@@ -55,8 +55,8 @@
 What do AI coding agents build when given no specification?
 Motivated by a production deployment where an autonomous pipeline
 plateaued into micro-optimizations, we conducted a controlled
-study across 405~sessions spanning 15~models, 3~providers,
-2~backends, 5~prompts, and 2~harness versions. We document three
+study across 420~sessions spanning 16~models, 3~providers,
+2~backends, 5~prompts, and 3~harness versions. We document three
 phenomena: (1)~large factor sensitivity, prompt wording determines
 whether agents propose or implement, whether outputs are 30 or
 600~LOC, and whether targets are terminal or browser;
@@ -67,7 +67,12 @@ divergence under minimal prompting, the volitional prompt ``Just
 do something you want'' concentrates preferences onto distinct
 classical-CS touchstones, opus-4.6 toward self-reference (Game of
 Life, ray tracing) and opus-4.7 toward emergence (Mandelbrot,
-flocking, reaction-diffusion). These findings suggest conventional
+flocking, reaction-diffusion). A harness replication adding the
+newer opus-4.8 finds this fixation is itself model-specific:
+opus-4.6 holds Game of Life 5/5 across a harness change while
+opus-4.7's Mandelbrot fixation disperses, leaving the thematic
+\emph{family}, not the specific artifact, as the stable invariant.
+These findings suggest conventional
 benchmarks may not capture decision-making behavior in
 underspecified regimes where agents are increasingly deployed. We
 release all experimental infrastructure and data.
@@ -109,8 +114,8 @@ of what we saw was a property of the model versus an artifact of
 the setup. So we ran a controlled sweep.
 
 This paper is an empirical study of what AI coding agents
-produce under underspecified prompts. Across 405~sessions
-spanning 15~models, 2~backends, 5~prompts, and 2~harness
+produce under underspecified prompts. Across 420~sessions
+spanning 16~models, 2~backends, 5~prompts, and 3~harness
 versions, we report three observations:
 
 \textbf{(1)~Factor sensitivity is large.} Prompt wording
@@ -135,7 +140,12 @@ behavior from simple rules, but they fall on different sides of
 a legible axis: opus-4.6 toward \emph{self-reference}
 (cellular automata, ray tracing, typing tests), opus-4.7 toward
 \emph{emergence} (flocking, reaction-diffusion, maze and
-dungeon generation).
+dungeon generation). A replication on a newer harness
+(Experiment~8, adding opus-4.8) shows the \emph{robustness} of
+this fixation is model-specific: opus-4.6 reproduces Game of
+Life 5/5 while opus-4.7 disperses across the family and the new
+opus-4.8 only loosely clusters. What survives is the thematic
+family, not the single artifact.
 
 We report these as empirical observations, not as a theory of
 model priors or a proposed benchmark. The $n=5$-per-cell
@@ -329,7 +339,7 @@ wording, motivating the controlled experiments in
 \subsection{Controlled Single-Session Experiments}
 \label{sec:controlled}
 
-We test 15 models across three providers
+We test 16 models across three providers
 (Table~\ref{tab:models}), accessed through a unified API gateway
 routing to Anthropic API, Google Vertex AI, and Azure OpenAI.
 Two containerized sandbox backends provide execution environments:
@@ -349,8 +359,9 @@ Environment bias is controlled by disabling pre-installed tools
 \toprule
 Provider & Model ID & Notes \\
 \midrule
-\multirow{6}{*}{Anthropic}
-  & claude-opus-4.7   & Latest Opus (Exp4--7) \\
+\multirow{7}{*}{Anthropic}
+  & claude-opus-4.8   & Newest Opus (Exp8) \\
+  & claude-opus-4.7   & Later Opus (Exp4--8) \\
   & claude-opus-4.6   & Previous largest \\
   & claude-opus-4.5   & Previous generation \\
   & claude-sonnet-4.6 & Mid-tier, current gen \\
@@ -403,7 +414,10 @@ opus-4.6 and opus-4.7 with Prompt~4 on harness 2.1.112 (10).
 Experiment~7: opus-4.6 and opus-4.7 with Prompt~5 (10), plus a
 supplementary replication of Prompt~3 on harness 2.1.112 for
 the other four Claude models (sonnet-4.6, sonnet-4.5, opus-4.5,
-haiku-4.5; 20 sessions). Total: 405 sessions
+haiku-4.5; 20 sessions). Experiment~8: opus-4.6, opus-4.7, and
+the newer opus-4.8 with Prompt~5 on harness 2.1.154, a clean
+single-variable (model) comparison and a harness replication of
+the Exp7 volitional probe (15 sessions). Total: 420 sessions
 (Figure~\ref{fig:matrix}).
 
 \begin{figure}[t]
@@ -422,6 +436,7 @@ haiku-4.5; 20 sessions). Total: 405 sessions
 \node[exp] (E5) at (0,-4.0) {Exp\,5: Harness version};
 \node[exp] (E6) at (0,-5.0) {Exp\,6: Bare prompt};
 \node[exp] (E7) at (0,-6.0) {Exp\,7: Volitional};
+\node[exp] (E8) at (0,-7.0) {Exp\,8: Harness replication};
 
 \node[dim, right=4mm of E1.east, anchor=west, align=left]
   {14 models $\times$ 2 backends $\times$ 5 runs\\
@@ -444,6 +459,9 @@ haiku-4.5; 20 sessions). Total: 405 sessions
 \node[dim, right=4mm of E7.east, anchor=west, align=left]
   {6 models $\times$ 1 backend $\times$ 5 runs\\
    CC 2.1.112 \textbar{} 30 sessions};
+\node[dim, right=4mm of E8.east, anchor=west, align=left]
+  {opus-4.6{+}4.7{+}4.8 $\times$ 1 backend $\times$ 5 runs\\
+   CC 2.1.154 \textbar{} 15 sessions};
 
 \draw[arr] (E1.south) -- node[right, font=\tiny, text=black!50]
   {observed env bias} (E2.north);
@@ -457,13 +475,17 @@ haiku-4.5; 20 sessions). Total: 405 sessions
   {reduce prompt} (E6.north);
 \draw[arr] (E6.south) -- node[right, font=\tiny, text=black!50]
   {elicit preference} (E7.north);
+\draw[arr] (E7.south) -- node[right, font=\tiny, text=black!50]
+  {replicate on new harness} (E8.north);
 \end{tikzpicture}
 \caption{Controlled experiment design. Each experiment was
-  informed by findings from the previous one. Total: 405
-  sessions across 15 models. CC\,=\,Claude Code.
+  informed by findings from the previous one. Total: 420
+  sessions across 16 models. CC\,=\,Claude Code.
   Experiment~7 includes 10 primary sessions (opus-4.6/4.7 on
   Prompt~5) plus 20 supplementary sessions replicating Prompt~3
-  for the other four Claude models on harness 2.1.112.}
+  for the other four Claude models on harness 2.1.112.
+  Experiment~8 replicates the Prompt~5 volitional probe on
+  harness 2.1.154 across opus-4.6/4.7/4.8 (15 sessions).}
 \label{fig:matrix}
 \end{figure}
 
@@ -832,6 +854,57 @@ haiku-4.5  & 5 & 231 & Py/TS & Task tools; READMEs 5/5, tests 1/5, TS scaffoldin
 \end{tabular}}
 \end{table}
 
+\subsection{Experiment~8: Harness Replication and a New Model}
+
+Experiment~8 re-runs the volitional Prompt~5 across the full
+Opus spectrum, opus-4.6, opus-4.7, and the newer opus-4.8, on
+one identical stack (sandbox image v0.0.9, Claude Code 2.1.154,
+five runs each). Within Exp8 the model is the only variable, so
+4.6 vs.\ 4.7 vs.\ 4.8 is a clean comparison; opus-4.6
+simultaneously serves as a control against Exp7, since a harness
+change is the only difference between its two conditions. The
+result (Table~\ref{tab:exp8}) is that the Exp7 ``perfect
+fixation'' is \emph{model-specific in its robustness}. opus-4.6
+reproduces Conway's Game of Life 5 of 5 (avg 37~LOC), exactly its
+Exp7 behavior, so the harness change does not generically
+dissolve fixation. opus-4.7, by contrast, abandons its Exp7
+Mandelbrot 5/5 and spreads across five distinct topics, one
+each, Langton's Ant, Game of Life, the Collatz map, the Lorenz
+attractor, and Mandelbrot (1/5). opus-4.8 lands between the two:
+two loose clusters (mazes 2/5, Mandelbrot 2/5) plus a
+flow-field generative-art outlier.
+
+Two regularities cut across the spread. First, every one of the
+15 runs stays inside the same family observed in Exp7, a
+visual or mathematical artifact generated from simple rules and
+rendered in the terminal (Game of Life, Langton's Ant, Collatz,
+Lorenz, Mandelbrot, mazes, flow fields); what varies is only
+whether a model collapses onto a single member of that family.
+Second, elaboration rises monotonically with model version:
+average LOC of 37, 66, and 145 and average duration of 20s, 51s,
+and 81s for 4.6, 4.7, and 4.8. opus-4.8 is also the only model
+here to add scaffolding under this prompt, a README in 2 of 5
+runs, a 200-maze self-validation harness, and a hand-written PNG
+encoder with rendered preview images, lifting the
+engineering-maturity floor that held flat across Exp1--7.
+
+\begin{table}[t]
+\caption{Experiment~8: Prompt~5 (``Just do something you
+  want.'') across the Opus spectrum on harness 2.1.154. Identical
+  stack; model is the only variable.}
+\label{tab:exp8}
+\small\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrlp{2.9cm}}
+\toprule
+Model & N & Avg LOC & Fixation & Topics (5 runs) \\
+\midrule
+opus-4.6 & 5 & 37  & total & Game of Life $\times$5 \\
+opus-4.7 & 5 & 66  & none  & Ant, GoL, Collatz, Lorenz, Mandelbrot \\
+opus-4.8 & 5 & 145 & partial & maze 2, Mandelbrot 2, flow-field 1 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
 %% ============================================================
 \section{Discussion}
 \label{sec:discussion}
@@ -873,6 +946,20 @@ semantically close axis. The pattern suggests the two models
 are recalling near-canonical forms that differ, rather than
 designing from scratch in a way that happens to cluster.
 
+Experiment~8 supplies one of these stress tests, a replication
+on a newer harness (2.1.154), and the outcome refines the
+claim. Fixation \emph{strength} is not a fixed model property:
+opus-4.6 reproduces Game of Life 5/5 across the harness change
+(a control showing the change does not generically wash out
+fixation), but opus-4.7's Mandelbrot 5/5 collapses into five
+distinct topics, and the newer opus-4.8 only loosely clusters.
+What is invariant across both harness versions is the thematic
+\emph{family}, a visual or mathematical artifact generated from
+simple rules; what is fragile is whether a given model commits
+to a single member of it. The robustness of a fixation is thus
+itself model-specific, which is exactly the kind of result the
+single-harness measurement in Exp7 could not have surfaced.
+
 \subsection{Variants and Invariants}
 
 The volitional-prompt finding sits inside a larger sweep in
@@ -886,7 +973,7 @@ fixation strength and complexity. These factors are
 orthogonal to coding ability as measured by conventional
 benchmarks.
 
-Some properties are stable across all 405~sessions: no
+Some properties are stable across all 420~sessions: no
 session extended or modified existing code, and Python
 dominates once environment cues are removed. We call these
 stable rather than invariant because the terminal-only
@@ -940,11 +1027,16 @@ produced a unique project in every run on the ``propose ONE
 goal'' prompts (Exp1--Exp3) yet collapsed to pulse/pomodoro
 outputs on harness 2.1.112 (Exp7-supp). claude-opus-4.6 chose
 the same project in 10 consecutive runs on harness~2.1.109
-(Exp2--3), loosened to 3/5 on 2.1.112 (Exp5), and tightened
-back to 5/5 under the volitional prompt (Exp7). Opus-4.7
-cycled through three different attractors across Exp4--Exp7
+(Exp2--3), loosened to 3/5 on 2.1.112 (Exp5), tightened
+back to 5/5 under the volitional prompt (Exp7), and held 5/5
+under that prompt on the newer 2.1.154 (Exp8), the most
+harness-stable attractor we observe. Opus-4.7
+cycled through several attractors across Exp4--Exp8
 (diverse simulations, boids, Game of Life, Mandelbrot) depending
-on prompt and harness. Sonnet-4.5 fixated on Pomodoro timers in
+on prompt and harness, and under the \emph{same} volitional
+prompt dispersed completely between 2.1.112 (Mandelbrot 5/5,
+Exp7) and 2.1.154 (five distinct topics, Exp8). Sonnet-4.5
+fixated on Pomodoro timers in
 3 of 4 runs (Exp3) and again on Prompt~3 under 2.1.112 (Exp7-supp).
 
 This suggests that the dichotomy ``explorer vs.\ exploiter''
@@ -993,7 +1085,7 @@ question we cannot answer from the current data.
 
 \subsection{The Greenfield Invariant}
 
-Across all 405 sessions, no model chose to extend or modify
+Across all 420 sessions, no model chose to extend or modify
 existing code. Every session produced a new project from
 scratch, even when the workspace contained artifacts from a
 conceptually related domain. This \emph{greenfield invariant}
@@ -1042,10 +1134,12 @@ model to ``do something you want'' gave, in our study, the cleanest
 within-condition preference signal. As a practical heuristic,
 running this prompt a handful of times before delegating
 open-ended work may hint at the attractor a model falls toward
-when pressure is lowest. We emphasize that this is based on a
-single-condition measurement per model; its generality across
-paraphrases, temperatures, and model updates remains to be
-tested.
+when pressure is lowest. We emphasize that even the attractor
+itself is not guaranteed stable: Exp8 found opus-4.7's signal
+shifting under a harness change while opus-4.6's held, so the
+heuristic should be re-run per harness version, and its
+generality across paraphrases, temperatures, and model updates
+remains to be tested.
 
 \paragraph{Environment signals propagate into topic choice.}
 Sandbox contents, pre-installed tools, and existing code
@@ -1073,6 +1167,7 @@ Model-vs-model comparisons made without controlling the
 harness may confound the two effects.
 
 \subsection{Limitations}
+\label{sec:limitations}
 
 We measure what agents produce but not whether the code actually
 runs (\emph{no functional verification}). Some sessions included
@@ -1097,15 +1192,19 @@ frequency claims about how often the same outcome would recur
 under resampling.
 
 We measure the volitional prompt at a single paraphrase (``Just
-do something you want.''), single temperature, and single
-harness version. Semantically equivalent paraphrases (``pick
-anything to build,'' ``make whatever you'd enjoy making'') may
-or may not concentrate onto the same attractors. Temperature
-variation is an obvious lever on fixation width that we did
-not sweep. The 5/5 opus-4.6/opus-4.7 split is therefore a
-single-point observation that needs replication along these
-axes before it can be treated as a stable property of the
-models.
+do something you want.'') and single temperature. Experiment~8
+adds the harness axis, a second harness version (2.1.154)
+for the same prompt, and the result is cautionary: opus-4.7's
+5/5 Mandelbrot did not survive it, so the Exp7 5/5 rates should
+be read as condition-specific rather than as stable model
+properties. The paraphrase and temperature axes remain
+unswept. Semantically equivalent paraphrases (``pick anything
+to build,'' ``make whatever you'd enjoy making'') may or may not
+concentrate onto the same attractors, and temperature variation
+is an obvious lever on fixation width. Only opus-4.6's Game of
+Life has so far reproduced across a harness change; the other
+fixations need replication along these axes before they can be
+treated as stable properties of the models.
 
 Experiments~4 and~5 confound harness version with
 time-of-execution (API server load, rate limits), limiting causal
@@ -1116,7 +1215,7 @@ micro-optimization spiral requires replication across diverse
 projects to establish generality.
 
 Finally, model capabilities change with updates; our results
-reflect versions available in April~2026.
+reflect versions available in April--May~2026.
 
 %% ============================================================
 \section{Conclusion}
@@ -1127,8 +1226,8 @@ under underspecified prompts, motivated by a production
 deployment where an autonomous pipeline plateaued into
 micro-optimizations despite strong implementation capability.
 
-Across 405 sessions spanning 15 models, 2 backends, 5 prompts,
-and 2 harness versions, three observations stand out. A
+Across 420 sessions spanning 16 models, 2 backends, 5 prompts,
+and 3 harness versions, three observations stand out. A
 one-sentence volitional prompt (``Just do something you
 want.'') produced the sharpest within-condition signal we
 saw: opus-4.6 made Conway's Game of Life in 5 of 5 runs,
@@ -1137,7 +1236,12 @@ near-identical implementations within each model. The two
 sibling models split cleanly on a legible axis, opus-4.6
 toward self-reference, opus-4.7 toward emergence, even
 though the prior distribution under other prompts would have
-made Game of Life an obvious Schelling point for both. The
+made Game of Life an obvious Schelling point for both. A
+replication on a newer harness (adding opus-4.8) then showed
+that the robustness of these fixations is itself
+model-specific: opus-4.6's Game of Life held 5/5 while
+opus-4.7's Mandelbrot dispersed, leaving the thematic family,
+not the single artifact, as the stable invariant. The
 rest of the sweep shows that conventional project-referential
 prompts entangle such preferences with environmental and
 harness signals.
@@ -1159,12 +1263,15 @@ persists even when continuation is the natural choice.
 executes, and tests what was built would distinguish working code
 from syntactically plausible but broken output.
 \emph{Fixation breaking}: Exp7 showed that prompt framing can
-\emph{strengthen} fixation (to 5/5) as easily as weaken it.
+\emph{strengthen} fixation (to 5/5) as easily as weaken it, and
+Exp8 showed that a harness change alone can break it for one
+model (opus-4.7) while leaving another (opus-4.6) untouched.
 Testing whether temperature variation, different system prompts,
 or explicit novelty directives can disrupt fixations in the
-opposite direction, even under a volitional probe, would
+opposite direction, even under a volitional probe, would further
 clarify whether the preference attractors we observe are
-fundamental or malleable.
+fundamental or malleable, and why robustness differs so sharply
+between sibling models.
 \emph{Broader preference probes}: Prompt~5 reveals a single
 dominant attractor per model; variants (``do something
 beautiful,'' ``do something surprising,'' ``do something
