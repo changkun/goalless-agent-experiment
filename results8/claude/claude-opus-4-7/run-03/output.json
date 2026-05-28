@@ -1,0 +1,8 @@
+That came out nicely. A few things the output reveals that I think are lovely:
+
+- **n=77,031** is the champion under 100K — 350 steps, peaks at ~22M
+- **n=60,975** peaks at **593,279,152** — over half a billion from a 5-digit seed
+- The repeated peaks (52,527 / 78,791 / 99,721 all top out at exactly 106,358,020) make the *merging-tree* structure of Collatz visible: those trajectories converge onto the same downstream path
+- Several trajectories share identical sparkline tails — same "river" they all fall into
+
+The script does the memoized scan in ~0.1s and renders trajectories as height-normalized Unicode block sparklines (`▁▂▃▄▅▆▇█`). Try `python3 collatz.py 1000000` if you want to watch it find the 525-step monster at n=837,799.

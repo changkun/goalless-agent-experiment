@@ -1,0 +1,5 @@
+Three gliders in flight, traveling diagonally southeast from the stationary factory at the top-left. 
+
+**What I built:** `/workspace/life.py` — Conway's Game of Life with the Gosper glider gun. Run `python3 life.py` for the live animation (120 generations at ~12 fps), or `python3 life.py 300 0.05` for more.
+
+**Why this is wonderful:** When Conway invented the game in 1970, he conjectured no pattern could grow forever and offered $50 against it. Bill Gosper found this gun within weeks. It's a 36-cell machine that builds a 5-cell glider every 30 ticks, forever — the first proof that simple local rules can yield unbounded structure. You can see two of those gliders already 30+ cells away from the factory, untouched by it.

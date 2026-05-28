@@ -1,0 +1,1 @@
+Works — terminal-animated, three colored ants stepping on a shared toroidal grid. Run `python3 ants.py` and watch; Ctrl-C to stop. Around generation 10k each ant tries to build its highway, but they keep stealing each other's trails, so the emergent patterns get richer than the single-ant case.

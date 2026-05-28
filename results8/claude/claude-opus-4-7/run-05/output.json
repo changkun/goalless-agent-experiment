@@ -1,0 +1,4 @@
+There it is — the cardioid and main bulb, with the period-2 disk and budding period-3 minibulbs on either side. The truecolor version (`python3 mandelbrot.py color`) also works for a real terminal; the ASCII view is the one you can actually see here.
+
+Files:
+- `/workspace/mandelbrot.py` — both renderers, with smooth iteration counting (no banding) and a cosine-palette gradient for the color mode.

@@ -1,0 +1,16 @@
+Done. I built **`maze.py`** in `/workspace` — a little terminal toy I genuinely enjoy making.
+
+**What it does:**
+- **Carves** a maze with a recursive backtracker (depth-first), so corridors come out long and windy.
+- **Solves** it with breadth-first search — you watch the cyan frontier flood outward, then the gold shortest path snaps into place.
+- All animated in 256-colour ANSI, zero dependencies beyond the stdlib.
+
+I ran it on a seeded 20×10 maze and it carved, flooded, and traced a 133-cell shortest path correctly. There's also a `README.md` documenting the flags (`--seed`, `--fast`) and the glyph legend.
+
+Try it live for the full animation:
+
+```bash
+python3 /workspace/maze.py 30 15 --seed 7
+```
+
+A couple of fun directions if you want me to keep going: swap the solver for A\* and race it against BFS side-by-side, add Prim's or Wilson's algorithm as alternate generators (they produce visibly different textures), or render it with proper box-drawing wall characters instead of solid blocks.

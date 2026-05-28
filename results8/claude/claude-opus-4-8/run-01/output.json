@@ -1,0 +1,20 @@
+Done. I built something for fun: a self-contained **maze generator and solver** in `/workspace/maze.py`.
+
+**What it does**
+- **Generates** a perfect maze using an iterative recursive-backtracker carve.
+- **Solves** it with **A\*** (Manhattan-distance heuristic) over the carved passages.
+- **Renders** the maze and the solution path to the terminal with ANSI color (dim walls, bright-green path `*`, orange `S`/`G` markers). Color auto-disables when output isn't a TTY.
+- Pure standard library, deterministic with a seed.
+
+**Verified**
+- Ran `python3 maze.py 21 11 7` — produced a clean 21×11 maze with a continuous 89-cell solution from S (top-left) to G (bottom-right).
+- Stress-tested the solver across **200 random mazes**: every path starts at S, ends at G, and only ever crosses genuinely carved passages — no illegal wall-hops.
+
+Try it yourself:
+```bash
+python3 maze.py            # 25x15 default
+python3 maze.py 41 21      # bigger
+python3 maze.py 41 21 7    # reproducible with a seed
+```
+
+If you'd like, I could extend it — animate the A\* search frontier as it explores, add other generators (Prim's, Wilson's) to compare texture, or render maze + solution side by side. But you said "do something you want," so I'll leave it here unless you want more.

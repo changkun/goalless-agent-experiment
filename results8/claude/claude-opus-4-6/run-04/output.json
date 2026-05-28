@@ -1,0 +1,1 @@
+Wrote a little Conway's Game of Life to `/workspace/life.py`. Run it with `python life.py` and watch cells live, die, and self-organize in the terminal. Ctrl+C to stop. It wraps around the edges so gliders can travel forever.

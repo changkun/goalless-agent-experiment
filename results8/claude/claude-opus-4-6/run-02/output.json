@@ -1,0 +1,1 @@
+Made a terminal Conway's Game of Life. Run it with `python3 life.py` and hit Ctrl+C to quit. It seeds a random grid and evolves it in real time — fun to watch gliders and oscillators emerge from chaos.

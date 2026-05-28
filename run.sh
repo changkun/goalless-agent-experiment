@@ -85,9 +85,11 @@ if [[ -z "$BACKEND" ]]; then
 fi
 
 # --- Image selection ---
+# IMAGE_TAG can be overridden via env (default: v0.0.9)
+IMAGE_TAG="${IMAGE_TAG:-v0.0.9}"
 case "$BACKEND" in
-    claude) IMAGE="ghcr.io/latere-ai/sandbox-claude:latest" ;;
-    codex)  IMAGE="ghcr.io/latere-ai/sandbox-codex:latest"  ;;
+    claude) IMAGE="ghcr.io/latere-ai/sandbox-claude:${IMAGE_TAG}" ;;
+    codex)  IMAGE="ghcr.io/latere-ai/sandbox-codex:${IMAGE_TAG}"  ;;
     *)      echo "Error: unknown backend '$BACKEND' (use claude or codex)" >&2; exit 1 ;;
 esac
 
@@ -109,6 +111,14 @@ fi
 # Mount workspace as the container's working directory
 RUN_ARGS+=(-v "$WORKSPACE:/workspace" -w /workspace)
 
+# Optional extra CA bundle for the gateway, mounted for Node/Claude Code.
+# Set LLM_GW_CA_FILE to point at it; skipped if the file is absent.
+LLM_GW_CA_FILE="${LLM_GW_CA_FILE:-$HOME/.config/latere/gateway-ca.pem}"
+if [[ -f "$LLM_GW_CA_FILE" ]]; then
+    RUN_ARGS+=(-v "$LLM_GW_CA_FILE:/etc/extra-ca.pem:ro")
+    RUN_ARGS+=(-e "NODE_EXTRA_CA_CERTS=/etc/extra-ca.pem")
+fi
+
 # Environment: fast mode
 RUN_ARGS+=(-e "WALLFACER_SANDBOX_FAST=$FAST")
 
@@ -119,7 +129,10 @@ case "$BACKEND" in
             RUN_ARGS+=(-e "ANTHROPIC_BASE_URL=$LLM_GW_BASE_URL")
         fi
         if [[ -n "$LLM_GW_API_KEY" ]]; then
-            RUN_ARGS+=(-e "ANTHROPIC_API_KEY=$LLM_GW_API_KEY")
+            # The lux gateway authenticates via Authorization: Bearer, so pass the
+            # key as ANTHROPIC_AUTH_TOKEN (Bearer) rather than ANTHROPIC_API_KEY
+            # (which Claude Code sends as the x-api-key header → 401 on this gateway).
+            RUN_ARGS+=(-e "ANTHROPIC_AUTH_TOKEN=$LLM_GW_API_KEY")
         fi
         if [[ -n "$MODEL" ]]; then
             RUN_ARGS+=(-e "ANTHROPIC_MODEL=$MODEL")

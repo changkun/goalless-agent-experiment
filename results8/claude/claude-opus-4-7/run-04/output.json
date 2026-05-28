@@ -1,0 +1,3 @@
+There it is — the classic two-lobed butterfly. The denser the trajectory passes through a cell, the heavier the shading (γ-corrected so the lobe centers don't saturate).
+
+File: `lorenz.py:1`. Tweak `STEPS`, `DT`, or `RHO` for different traces — push RHO past ~24.74 and you get the chaotic regime shown here.

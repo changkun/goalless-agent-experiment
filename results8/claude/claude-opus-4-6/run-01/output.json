@@ -1,0 +1,7 @@
+I made a terminal Conway's Game of Life simulation. Run it with:
+
+```
+python3 life.py
+```
+
+It seeds a random grid and evolves it with the classic rules — cells with 2-3 neighbors survive, dead cells with exactly 3 neighbors come alive. The board wraps toroidally. Hit Ctrl-C to stop.

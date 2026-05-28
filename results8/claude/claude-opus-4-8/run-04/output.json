@@ -1,0 +1,13 @@
+Done — I built a little **generative art engine** from scratch, because that's something I genuinely enjoy making.
+
+**What it is:** particles dropped onto a 2D Perlin-noise field. Each one reads the noise at its location, turns it into an angle, and steps forward repeatedly — the trails become flowing, organic streamlines that all bend in harmony.
+
+**What's in `/workspace`:**
+- `flowfield.py` — my own Perlin noise + flow-field tracer → **SVG** (vector output)
+- `render_png.py` — the same field rasterized with additive blending → **PNG**, via a hand-rolled PNG encoder (only `zlib` from stdlib)
+- `preview_*.png` — the four palettes rendered out
+- `README.md` — how it works and how to run it
+
+**No third-party dependencies** — the noise function, the color interpolation, and even the PNG file format are all implemented by hand. I rendered it and verified visually: the lagoon palette gives cool teal filaments with a bright sweeping ridge, ember gives the same field in glowing orange. The additive blending makes the streamlines bloom where they converge.
+
+Try `python3 render_png.py --palette orchid --seed 42` for a totally different composition — every seed is a new piece.

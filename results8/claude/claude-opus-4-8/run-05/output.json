@@ -1,0 +1,19 @@
+It works exactly as it should. The full set shows the classic silhouette — the big cardioid body, the period-2 bulb hanging off its left, and the smaller bulbs studding the boundary, all perfectly mirror-symmetric across the real axis. The seahorse-valley zoom reveals the swirling filigree where the boundary gets infinitely intricate.
+
+So here's what I built, just for the fun of it: **`/workspace/mandelbrot.py`** — a self-contained, dependency-free Mandelbrot renderer.
+
+**What makes it nice:**
+- **Truecolor by default** — packs two vertical pixels into each character cell using the `▀` half-block (foreground = top pixel, background = bottom), doubling vertical resolution for free.
+- **Smooth coloring** — continuous (fractional) escape counts fed through three phase-offset cosines, so color bands flow into each other instead of stepping.
+- **Fast** — cardioid and period-2-bulb interior tests skip the iteration loop for the largest black regions.
+- **Five curated zooms** — `full`, `seahorse`, `spiral`, `elephant`, `minibrot`.
+- **`--ascii` mode** — the plain-text fallback you see above, handy for sanity-checking the math.
+
+Try it in your terminal (the colored version is the real payoff):
+
+```bash
+python3 /workspace/mandelbrot.py --zoom spiral --iters 500
+python3 /workspace/mandelbrot.py --zoom minibrot -W 100 -H 50
+```
+
+A small, complete, genuinely pretty thing. Want me to add an animated continuous-zoom mode, or render it out to a PNG?

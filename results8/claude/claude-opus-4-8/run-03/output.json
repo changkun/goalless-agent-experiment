@@ -1,0 +1,22 @@
+Works end to end. The Seahorse Valley zoom shows the intricate spiraling tendrils that give the region its name — proof the zoom and auto-scaled iteration budget are working.
+
+## What I built
+
+`/workspace/mandelbrot.py` — a self-contained, zero-dependency **truecolor Mandelbrot renderer** for the terminal.
+
+**Highlights:**
+- **Half-block rendering** — each character cell packs two vertical pixels (foreground `▀` + background color), doubling vertical resolution.
+- **Smooth iteration coloring** — fractional escape counts (via the log-log trick) instead of banded integers, fed through a **cosine-gradient palette** for continuous color.
+- **Auto-scaling detail** — iteration budget grows with `log₂(zoom)`, so deep zooms stay sharp.
+- **Six scenic presets** — `seahorse`, `elephant`, `spiral`, `minibrot`, `tendrils`, `full`.
+
+**Try it (best in a truecolor terminal):**
+```bash
+python3 mandelbrot.py                      # classic view
+python3 mandelbrot.py --preset spiral      # deep 600x spiral zoom
+python3 mandelbrot.py -cx -0.745 -cy 0.113 -z 250 -w 120   # custom region
+```
+
+The two ASCII previews above (verified live) confirm the math: a symmetric main cardioid + period-2 bulb in the full view, and the signature seahorse tendrils when zoomed. The real script renders all of that in full RGB color.
+
+Want me to take it further — an animated zoom sequence, PNG export, or an interactive keyboard-driven explorer?

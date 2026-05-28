@@ -1,0 +1,7 @@
+Wrote `life.py` — Conway's Game of Life that runs in the terminal. Run it with:
+
+```
+python life.py
+```
+
+It seeds a random grid and evolves it with the classic rules (cells survive with 2-3 neighbors, dead cells come alive with exactly 3). Press Ctrl+C to stop. Enjoy the little patterns that emerge.

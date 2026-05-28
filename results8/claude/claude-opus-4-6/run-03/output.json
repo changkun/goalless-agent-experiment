@@ -1,0 +1,7 @@
+I wrote a terminal Conway's Game of Life at `/workspace/life.py`. Run it with:
+
+```
+python3 life.py
+```
+
+It seeds a random grid and evolves it in place — cells live, die, and reproduce by the classic rules. Ctrl+C stops it. Enjoy the little cellular automata show.
