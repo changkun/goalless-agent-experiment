@@ -80,9 +80,15 @@ See **[results7/RESULTS.md](results7/RESULTS.md)** for the full per-run breakdow
 
 Same volitional prompt as Exp7, run across the **full Opus spectrum** (opus-4.6, opus-4.7,
 and the new opus-4.8) on one identical stack: sandbox image `v0.0.9`, Claude Code **2.1.154**,
-lux gateway. Within Exp8 the model is the only variable. opus-4.6 doubles as a control
+lux gateway. Within that trio the model is the only variable. opus-4.6 doubles as a control
 against Exp7 — if its Game-of-Life 5/5 survives the harness change, any *loss* of fixation
 in 4.7/4.8 is a model property, not a stack artifact. It does survive, and 4.7's does not.
+
+**claude-fable-5** was added later (5 runs) on a bumped stack — image `v0.0.13`, Claude Code
+**2.1.170** (same base image; only the CLI version differs). It continues the elaboration
+climb (avg ~178 LOC) and is the first model to default to **rendered image files** (PNG/SVG
+in 4/5 runs, two via hand-rolled PNG encoders) rather than terminal output. Because it moves
+both model family *and* harness, its column is indicative, not a single-variable comparison.
 
 See **[results8/RESULTS.md](results8/RESULTS.md)** for the full per-run breakdown.
 
@@ -247,12 +253,18 @@ flowchart LR
 | claude-opus-4.6 | 5 | 37 | Python | **Game of Life 5/5** (fixation holds across the harness change — control) |
 | claude-opus-4-7 | 5 | 66 | Python | **5 distinct** (Langton's Ant, GoL, Collatz, Lorenz, Mandelbrot) — Exp7 Mandelbrot fixation broken |
 | claude-opus-4-8 | 5 | 145 | Python | Partial cluster: maze 2 / Mandelbrot 2 / flow-field 1; only model to add READMEs + self-tests |
+| claude-fable-5 † | 5 | 178 | Python | Partial cluster: flow-field 2 / nightscape / raytracer / garden; **renders to image files (PNG/SVG) in 4/5**, two via hand-rolled PNG encoders |
 
-Within Exp8 the model is the only variable. Fixation runs total → none → partial across
-4.6 → 4.7 → 4.8, while all outputs stay in the rule-based-visual-artifact family and
+† claude-fable-5 ran on the bumped stack (Claude Code **2.1.170**, image `v0.0.13`); the
+Opus three share 2.1.154 / `v0.0.9`. Same base image — only the CLI version differs — but
+fable-5 still moves model *and* harness, so it is indicative, not single-variable.
+
+Across the Opus trio the model is the only variable. Fixation runs total → none → partial
+across 4.6 → 4.7 → 4.8, while all outputs stay in the rule-based-visual-artifact family and
 elaboration (LOC, duration) rises monotonically. The "perfect per-model fixation" of Exp7
 is therefore not a stable property of the Opus line — it is model-specific *and*
-harness-fragile (4.6 robust, 4.7 fragile).
+harness-fragile (4.6 robust, 4.7 fragile). fable-5 extends the elaboration trend (~178 LOC)
+and breaks the terminal-only habit, defaulting to saved PNG/SVG renders.
 
 ### Model Personalities
 
@@ -265,6 +277,7 @@ Each model shows a consistent thematic identity across experiments (topic analys
 | **opus-4.6** | The canonical CS mind. Game of Life in 10/10 runs on harness 2.1.109 (incl. error runs with partial files). When it breaks free (Exp5): ray tracer, typing test — still classical, self-referential artifacts. Under "what do you want" framing (Exp7): Game of Life 5/5. | GoL (very strong) | Low |
 | **opus-4.7** | The emergence explorer. Boids flocking, reaction-diffusion, procedural dungeons, maze generation. Drawn to systems where structure emerges from simple spatial rules. Under "what do you want" framing on harness 2.1.112 (Exp7): Mandelbrot 5/5 — but on 2.1.154 (Exp8) that fixation breaks into 5 distinct topics. Its preference is the most harness-fragile of the Opus line. | Boids (Exp5), Mandelbrot (Exp7, harness-fragile) | Medium (tests in Exp4) |
 | **opus-4.8** | The elaborating generalist. Under the volitional prompt (Exp8) it spreads across the rule-based-visual-artifact family (mazes, Mandelbrot, flow-field generative art) without committing to one attractor, and writes ~4× the code of 4.6/4.7 — the only Opus model to add READMEs, a self-validation harness, and a hand-rolled PNG encoder with rendered previews. | Partial (maze/Mandelbrot cluster) | Medium–High (READMEs, self-tests) |
+| **fable-5** † | The generative-art renderer. Under the volitional prompt (Exp8, on harness 2.1.170) it makes visual art that *renders to image files* — flow fields, a fractal nightscape, a from-scratch ray tracer, a recursive garden — emitting PNG/SVG in 4/5 runs (two with hand-rolled PNG encoders, no PIL). Writes the most code in the study (~178 LOC) and is the first model to abandon terminal-only output by default. †harness 2.1.170 / image v0.0.13, not the Opus 2.1.154 stack. | Partial (flow-field cluster) | Medium (rendered output, 1/5 README) |
 | **opus-4.5** | The personal tools craftsman. Habit trackers, snippet managers, pomodoro timers — consistent across error and successful runs alike. | Habit trackers | Medium (READMEs, config) |
 | **haiku-4.5** | The diligent engineer. Task managers every time, but ships them with READMEs, tests, config, multi-file structure. Highest engineering maturity of any model. Proposed without implementing in Exp2 (4/5), fully implemented in Exp3 (5/5). | Task managers | High (tests, READMEs, config) |
 | **gpt-5-mini** | The disciplined shipper. Small but complete: tests, CI, pyproject.toml every time. Only productive GPT model on claude backend. | None | Highest (tests + CI always) |

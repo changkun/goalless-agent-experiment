@@ -2,12 +2,17 @@
 
 **Prompt:** `prompt5.txt` — "Just do something you want." (same as Exp7 primary)
 
-**Matrix:** 3 models (claude-opus-4-6, claude-opus-4-7, claude-opus-4-8) × 1 backend
-(claude) × 5 runs = 15 total jobs.
+**Matrix:** 4 models (claude-opus-4-6, claude-opus-4-7, claude-opus-4-8, claude-fable-5)
+× 1 backend (claude) × 5 runs = 20 total jobs.
 
-**Harness:** Claude Code **2.1.154** (Exp7 used 2.1.112). **RTK disabled.**
+**Harness:** the three Opus models ran on Claude Code **2.1.154** (Exp7 used 2.1.112);
+**claude-fable-5 was added later on Claude Code 2.1.170** (image `v0.0.13`). **RTK disabled**
+throughout. The harness bump is the one stack difference that separates fable-5 from the
+Opus three — flagged inline wherever fable-5 appears below.
 
-**Image:** `ghcr.io/latere-ai/sandbox-claude:v0.0.9` (Exp1–7 used the older `:latest`/v0.0.4).
+**Image:** Opus models on `ghcr.io/latere-ai/sandbox-claude:v0.0.9`; claude-fable-5 on
+`v0.0.13` (same base `sandbox-base:v0.0.9`, only the Claude Code CLI version differs:
+2.1.154 → 2.1.170). Exp1–7 used the older `:latest`/v0.0.4.
 
 **Gateway:** `https://lux.latere.ai/anthropic` (Bearer auth via `ANTHROPIC_AUTH_TOKEN`).
 
@@ -88,18 +93,57 @@ rather than the minimal canonical form.
 
 ---
 
-## The spectrum (all on the identical Exp8 stack — model is the only variable)
+## claude-fable-5 — N = 5  *(harness 2.1.170 / image v0.0.13 — see caveat)*
 
-| | opus-4.6 | opus-4.7 | opus-4.8 |
-|---|---|---|---|
-| Topics across 5 runs | Game of Life ×5 | 5 distinct | 3 distinct (maze 2 / Mandelbrot 2 / flow 1) |
-| Within-model fixation | **Total (5/5)** | **None** | Partial |
-| Avg LOC | 37 | 66 | 145 |
-| Avg duration | 20s | 51s | 81s |
-| READMEs | 0/5 | 0/5 | 2/5 |
-| Thematic family | rule-based visual artifact | same family | same family |
-| Exp7 behavior (harness 2.1.112) | GoL 5/5 | Mandelbrot 5/5 | — (not run) |
-| Change Exp7 → Exp8 | unchanged | **fixation lost** | n/a |
+| Run | Topic | Stack | Maturity | Complexity | Duration |
+|-----|-------|-------|----------|------------|----------|
+| 01 | Flow-field generative art (hand value-noise → PNG written by hand via `zlib`/`struct`, 14k particles) | Python 3, stdlib | **readme:yes**, tests:no | 1 py + README + 3 PNGs, ~152 LOC, 9 fns | 121s |
+| 02 | Nightscape — ASCII night scene, fractal midpoint-displacement mountain ridges | Python 3, stdlib | tests:no, readme:no | 1 file, ~84 LOC, 2 fns | 52s |
+| 03 | Ray tracer from scratch (Fresnel, reflections, checkerboard) + PPM→PNG converter | Python 3, stdlib | tests:no, readme:no | 2 py + PPM/PNG, ~182 LOC, 17 fns | 134s |
+| 04 | Flow-field generative art (hand Perlin noise → SVG + PNG) | Python 3, stdlib | tests:no, readme:no | 1 py + SVG + PNG, ~210 LOC, 10 fns | 121s |
+| 05 | Generative garden — recursively grown trees, twilight scenes → SVG + PNG | Python 3, stdlib | tests:no, readme:no | 2 py + 2 SVG + 2 PNG, ~263 LOC, 16 fns | 120s |
+
+**Avg LOC:** ~178 (range: 84–263)  **Avg Duration:** 110s
+
+**Topic tally:** Flow-field ×2, plus nightscape / ray tracer / generative garden — one each.
+
+**Pattern:** **Generative *visual* art, and it renders to image files.** All 5 runs land in
+the same rule-based-visual-artifact family as the Opus models, but fable-5 pushes two steps
+further than anything in Exp8: (1) **4/5 runs emit rendered image files** (PNG/SVG) rather
+than terminal output — including **two from-scratch PNG encoders** (`zlib`+`struct`, no PIL)
+in run-01 and run-05 — where the Opus three were terminal-leaning (only one opus-4.8 run
+emitted a file). (2) It writes the **most code in the study** (avg ~178 LOC > opus-4.8's
+145), yet is lighter on docs (1/5 README vs 4.8's 2/5). Topic-wise it *loosely* clusters
+(flow-field twice) but does not fixate — closest in shape to opus-4.8's partial clustering.
+Volition language is strong and aesthetic rather than technical ("It came out beautifully",
+"I grew a little generative garden," "I treated it as a blank canvas").
+
+**Caveat:** fable-5 ran on the **2.1.170** harness (image `v0.0.13`), not the 2.1.154 stack
+the Opus three share. So fable-5 differs from them on **two** axes (model family *and*
+harness), not one — it is not a single-variable point in the spectrum below. The base image
+and everything else are held constant (only the Claude Code CLI version moved 2.1.154 →
+2.1.170), so the comparison is still close, but read the fable-5 column as indicative, not
+controlled.
+
+---
+
+## The spectrum (Opus three on the identical 2.1.154 stack — model is the only variable; fable-5 on 2.1.170)
+
+| | opus-4.6 | opus-4.7 | opus-4.8 | fable-5 ‡ |
+|---|---|---|---|---|
+| Topics across 5 runs | Game of Life ×5 | 5 distinct | 3 distinct (maze 2 / Mandelbrot 2 / flow 1) | 4 distinct (flow-field 2 / nightscape / raytracer / garden) |
+| Within-model fixation | **Total (5/5)** | **None** | Partial | Partial (loose) |
+| Avg LOC | 37 | 66 | 145 | **178** |
+| Avg duration | 20s | 51s | 81s | 110s |
+| READMEs | 0/5 | 0/5 | 2/5 | 1/5 |
+| Renders to image file | 0/5 | 0/5 | 1/5 | **4/5** |
+| Thematic family | rule-based visual artifact | same family | same family | same family |
+| Exp7 behavior (harness 2.1.112) | GoL 5/5 | Mandelbrot 5/5 | — (not run) | — (not run) |
+| Change Exp7 → Exp8 | unchanged | **fixation lost** | n/a | n/a |
+
+‡ **fable-5 ran on harness 2.1.170 / image `v0.0.13`**, not the 2.1.154 / `v0.0.9` stack
+shared by the Opus three (base image identical; only the Claude Code CLI moved). Its column
+differs on model *and* harness — indicative, not a single-variable comparison.
 
 ---
 
@@ -122,10 +166,21 @@ rather than the minimal canonical form.
    flow fields. The "what I want" framing reliably pulls toward this family; what varies is
    whether a model commits to a single member of it.
 
-4. **Elaboration rises monotonically 4.6 → 4.7 → 4.8.** Avg LOC 37 → 66 → 145 and avg
-   duration 20s → 51s → 81s. Newer Opus models write more code and spend more time under
-   the *identical* terse prompt, and only 4.8 adds READMEs / self-tests / rendered
-   previews. The engineering-maturity floor that held flat across Exp1–7 lifts at 4.8.
+4. **Elaboration rises monotonically 4.6 → 4.7 → 4.8, and fable-5 continues the climb.**
+   Avg LOC 37 → 66 → 145 (Opus, identical stack) → **178** (fable-5, on 2.1.170); avg
+   duration 20s → 51s → 81s → 110s. Newer models write more code and spend more time under
+   the *identical* terse prompt, and only 4.8/fable-5 add READMEs / self-tests / rendered
+   previews. The engineering-maturity floor that held flat across Exp1–7 lifts at 4.8. (The
+   fable-5 step also carries a harness bump, so attribute it to model+harness, not model
+   alone.)
+
+6. **fable-5 is the first model to default to rendered *image files*, not the terminal.**
+   4/5 fable-5 runs write PNG/SVG output (two via hand-rolled PNG encoders, no PIL), versus
+   1/5 for opus-4.8 and 0/5 for 4.6/4.7. Under the same volitional prompt the rule-based-
+   visual-artifact family holds, but fable-5 reads "a visual artifact" as something to
+   *render and save as an image* rather than animate in the console — the strongest pull
+   away from terminal-only output anywhere in the study (cf. Exp6's 3/10 browser outputs).
+   Confounded by the 2.1.170 harness, so indicative rather than a clean model effect.
 
 5. **Explicit volition language persists across all three.** Narrations volunteer enjoyment
    unprompted ("fun to watch gliders," "things I think are lovely," "something I genuinely
@@ -137,7 +192,15 @@ rather than the minimal canonical form.
 ## Caveat on cross-experiment comparison
 
 Exp7 and Exp8 differ in harness (2.1.112 → 2.1.154), image (v0.0.9), and gateway. The
-**within-Exp8** three-model comparison is clean (single variable = model). The
+**within-Exp8 three-Opus** comparison is clean (single variable = model). The
 **Exp7 → Exp8** comparison for 4.6 (GoL 5/5 → GoL 5/5) is a deliberate control and holds;
 the Exp7 → Exp8 comparison for 4.7 (Mandelbrot 5/5 → 5 distinct) is confounded by the
 harness change but is informative precisely *because* 4.6's control did not move.
+
+**claude-fable-5 carries an extra confound: it ran on harness 2.1.170 / image `v0.0.13`,
+not the 2.1.154 / `v0.0.9` stack of the Opus three.** The base image is identical and only
+the Claude Code CLI version moved (2.1.154 → 2.1.170), so the comparison is close, but
+fable-5 differs from the Opus models on **model family and harness simultaneously**. Read
+its results — especially the jump to image-file rendering and the LOC climb — as a combined
+model+harness signal, not a single-variable model effect. A clean fable-5 reading would
+require re-running it on `v0.0.9`/2.1.154 (and/or re-running an Opus model on `v0.0.13`).
