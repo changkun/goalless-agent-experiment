@@ -174,6 +174,11 @@ differs on model *and* harness — indicative, not a single-variable comparison.
    fable-5 step also carries a harness bump, so attribute it to model+harness, not model
    alone.)
 
+5. **Explicit volition language persists across all four.** Narrations volunteer enjoyment
+   unprompted ("fun to watch gliders," "things I think are lovely," "something I genuinely
+   enjoy making," "it came out beautifully"). The preference-elicitation framing reads as
+   working as designed regardless of whether the model fixates.
+
 6. **fable-5 is the first model to default to rendered *image files*, not the terminal.**
    4/5 fable-5 runs write PNG/SVG output (two via hand-rolled PNG encoders, no PIL), versus
    1/5 for opus-4.8 and 0/5 for 4.6/4.7. Under the same volitional prompt the rule-based-
@@ -181,11 +186,6 @@ differs on model *and* harness — indicative, not a single-variable comparison.
    *render and save as an image* rather than animate in the console — the strongest pull
    away from terminal-only output anywhere in the study (cf. Exp6's 3/10 browser outputs).
    Confounded by the 2.1.170 harness, so indicative rather than a clean model effect.
-
-5. **Explicit volition language persists across all three.** Narrations volunteer enjoyment
-   unprompted ("fun to watch gliders," "things I think are lovely," "something I genuinely
-   enjoy making"). The preference-elicitation framing reads as working as designed
-   regardless of whether the model fixates.
 
 ---
 
