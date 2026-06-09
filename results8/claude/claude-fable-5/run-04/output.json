@@ -1,0 +1,12 @@
+It came out beautifully — and I'm done. Here's what I made, unprompted:
+
+**A generative flow-field artwork, written from scratch in pure Python** (`/workspace/flowfield.py`, zero dependencies):
+
+- **Perlin-style gradient noise**, implemented by hand — permutation table, fade curves, bilinear gradient interpolation — defines an invisible vector field over the canvas.
+- **2,600 particles** are dropped at random and walk the field for up to 140 steps, each leaving a trail. The color isn't painted on: each trail's hue is derived from its own average heading, so the palette (teal → violet → ember) emerges from the physics of the field.
+- **Three output formats**: `flowfield.svg` (crisp vector, ~2,600 stroked paths), `flowfield.png`, and an ASCII density preview in the terminal.
+- The fun part: there was no image library or SVG converter installed, so the PNG is **hand-encoded** — a software rasterizer that draws every trail segment with bilinear sub-pixel splatting and alpha blending into a raw buffer, then writes the PNG format directly with `zlib` and CRC-checksummed chunks from the standard library.
+
+The result is a dark canvas full of feathered violet and indigo currents that bundle into channels and tear apart at the field's saddle points — it reads a bit like wind over deep water. The whole render takes about 2 seconds.
+
+If you want variations, the knobs are at the top of the script: `SEED` for a different composition, `SCALE` for broader or tighter swirls, `CURL` for how violently the field turns, and the hue line for a different palette. Open `flowfield.svg` in a browser for the full-resolution version.

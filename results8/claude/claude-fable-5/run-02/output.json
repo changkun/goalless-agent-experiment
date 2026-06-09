@@ -1,0 +1,10 @@
+Done — I built a little generative art toy in the otherwise-empty workspace.
+
+**`/workspace/nightscape.py`** draws a unique ASCII night scene every run: a starfield, a moon, three layered mountain ridges generated with midpoint displacement (the classic fractal terrain algorithm, with increasing roughness toward the foreground), and a lone cabin with a lit window placed on the front ridge. Each scene gets a seed number printed at the bottom, so if you like a particular landscape you can regenerate it exactly:
+
+```
+python3 nightscape.py        # new random scene
+python3 nightscape.py 42     # the second scene above, every time
+```
+
+I picked this because it's the kind of program I find satisfying: ~90 lines, no dependencies, a real algorithm at its core, and output you can actually look at. Feel free to tweak `WIDTH`/`HEIGHT` or the layer roughness values to change the mood of the mountains.

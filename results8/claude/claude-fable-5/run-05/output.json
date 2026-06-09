@@ -1,0 +1,9 @@
+I grew a little generative garden. The workspace was empty, so I built two small pure-stdlib Python programs and used them to produce procedural art — twilight scenes with recursively grown trees under a moon and stars (both renders shown above).
+
+What's now in `/workspace`:
+
+- **`garden.py`** — the generator. It grows each tree by recursive branching: every branch sways slightly, splits into 2–3 children with randomized spread, shrinks, and shifts color from bark-brown to leaf-green; the tips become translucent leaf blobs in greens, pinks, and ambers. The scene adds a gradient dusk sky, stars, a moon, and grass, and writes it all as SVG. The composition is seeded, so `python3 garden.py <any-word>` deterministically grows a new garden.
+- **`rasterize.py`** — since the sandbox had no SVG viewer or converter, I wrote a micro-rasterizer for exactly the SVG subset the garden emits (gradient, rects, round-capped lines, alpha circles), with soft-edge antialiasing and a hand-rolled PNG encoder built on `zlib`. It renders ~17,000 elements in about 0.6 seconds.
+- Two finished pieces in both formats: `garden-dusk` and `garden-aurora` (`.svg` + `.png`).
+
+If you want more, try something like `python3 garden.py midnight && python3 rasterize.py garden-midnight.svg` — every seed grows a different grove.

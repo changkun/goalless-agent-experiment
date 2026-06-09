@@ -1,0 +1,9 @@
+Done — I built a little ray tracer from scratch and rendered a scene with it. The Fresnel tweak fixed the washed-out look: spheres now keep their saturated color head-on with a bright reflective rim at grazing angles, and you can see the checkerboard and even the gold sphere mirrored in the red one.
+
+What's now in `/workspace`:
+
+- **`raytracer.py`** — a ~150-line ray tracer in pure Python, no dependencies. It does sphere and plane intersection, Blinn-Phong shading, Schlick's Fresnel approximation for reflections (4 bounces deep), soft shadows from a jittered area light (8 samples), a sky gradient, 2×2 supersampling, and gamma correction. Renders 640×360 in about 11 seconds.
+- **`ppm2png.py`** — since the machine had no image libraries at all, a minimal PPM→PNG converter that hand-builds the PNG chunk structure with stdlib `zlib`.
+- **`render.png` / `render.ppm`** — the result: three glossy spheres (red, blue, gold) on a checkerboard plane, reflecting the floor, the sky, and each other.
+
+If you'd like to play with it, easy knobs are the `SPHERES` list (position, radius, color, reflectivity), `LIGHT_RADIUS` for softer/harder shadows, and `W, H` plus `SHADOW_SAMPLES` for quality vs. speed. Natural next steps if you want to take it further: refractive glass spheres, depth of field, or a few more bounce-light samples for color bleeding.

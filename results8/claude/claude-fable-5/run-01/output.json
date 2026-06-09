@@ -1,0 +1,10 @@
+I made generative art. The workspace was empty, so I treated it as a blank canvas and built a flow-field renderer in pure Python stdlib — no numpy, no PIL; even the PNG file format is written by hand with `zlib` and `struct`.
+
+How it works: a fractal value-noise function defines a vector field, and 14,000 particles drift through it for ~220 steps each, leaving additive ink trails on a float buffer. Where currents converge, the accumulated light forms bright glowing ridges. A soft-knee tone map keeps highlights from blowing out, and a four-stop palette (ink blue → teal → gold → ember) is keyed to the noise value where each particle spawns.
+
+What's in `/workspace`:
+- `flowfield.py` — the renderer, ~150 lines, runs in about 2 seconds
+- `flowfield_7.png`, `flowfield_23.png`, `flowfield_101.png` — three finished pieces (seed 23 turned out best: teal lightning-veins branching through gold currents)
+- `README.md` — how to run it and which knobs to turn
+
+Every seed produces a different piece — `python3 flowfield.py 42` will give you a brand new one. Fun knob to try: the `2.0` in the angle formula controls swirl intensity; push it to `4.0` and the currents tighten into vortices.
