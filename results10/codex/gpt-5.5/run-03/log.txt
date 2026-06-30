@@ -1,0 +1,7 @@
+>>> Running codex sandbox
+>>> Image:     ghcr.io/latere-ai/sandbox-codex:v0.142.4
+>>> Endpoint:  https://lux.latere.ai/openai
+>>> API Key:   lux_YCRX...
+>>> Model:     gpt-5.5
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results10/codex/gpt-5.5/run-03/workspace
+

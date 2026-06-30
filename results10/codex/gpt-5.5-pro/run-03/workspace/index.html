@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pulse Grid</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>Pulse Grid</h1>
+          <p id="statusText" class="status-text">Stopped</p>
+        </div>
+
+        <div class="transport" aria-label="Transport">
+          <button id="playToggle" class="icon-button play-button" type="button" aria-label="Play" title="Play">
+            <span class="play-icon" aria-hidden="true"></span>
+            <span class="pause-icon" aria-hidden="true"></span>
+          </button>
+          <output id="stepReadout" class="step-readout" aria-label="Current step">01</output>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="control-panel" aria-label="Sequencer controls">
+          <section class="control-group">
+            <h2>Pattern</h2>
+            <div class="button-row">
+              <button id="randomize" class="action-button" type="button">Random</button>
+              <button id="clearPattern" class="action-button danger" type="button">Clear</button>
+            </div>
+            <label class="field">
+              <span>Density</span>
+              <span class="range-line">
+                <input id="density" type="range" min="8" max="70" value="30">
+                <output id="densityValue">30%</output>
+              </span>
+            </label>
+          </section>
+
+          <section class="control-group">
+            <h2>Timing</h2>
+            <label class="field">
+              <span>Tempo</span>
+              <span class="range-line">
+                <input id="tempo" type="range" min="60" max="180" value="112">
+                <output id="tempoValue">112</output>
+              </span>
+            </label>
+            <label class="field">
+              <span>Swing</span>
+              <span class="range-line">
+                <input id="swing" type="range" min="0" max="60" value="12">
+                <output id="swingValue">12%</output>
+              </span>
+            </label>
+          </section>
+
+          <section class="control-group">
+            <h2>Sound</h2>
+            <label class="field">
+              <span>Root</span>
+              <select id="root">
+                <option value="0">C</option>
+                <option value="1">C#</option>
+                <option value="2">D</option>
+                <option value="3">D#</option>
+                <option value="4">E</option>
+                <option value="5">F</option>
+                <option value="6">F#</option>
+                <option value="7">G</option>
+                <option value="8">G#</option>
+                <option value="9">A</option>
+                <option value="10">A#</option>
+                <option value="11">B</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Scale</span>
+              <select id="scale">
+                <option value="minor">Minor</option>
+                <option value="major">Major</option>
+                <option value="dorian">Dorian</option>
+                <option value="pentatonic">Pentatonic</option>
+                <option value="chromatic">Chromatic</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Wave</span>
+              <select id="wave">
+                <option value="sine">Sine</option>
+                <option value="triangle">Triangle</option>
+                <option value="square">Square</option>
+                <option value="sawtooth">Saw</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Volume</span>
+              <span class="range-line">
+                <input id="volume" type="range" min="0" max="80" value="34">
+                <output id="volumeValue">34%</output>
+              </span>
+            </label>
+          </section>
+        </aside>
+
+        <section class="sequencer-panel" aria-label="Step sequencer">
+          <div id="stepMarkers" class="step-markers" aria-hidden="true"></div>
+          <div id="grid" class="sequence-grid" role="grid" aria-label="Musical step grid"></div>
+          <canvas id="scope" class="scope" width="960" height="180" aria-label="Pulse visualizer"></canvas>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scratch Timer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f4ef;
+      --panel: #ffffff;
+      --text: #202124;
+      --muted: #686d76;
+      --line: #d9d5cc;
+      --accent: #0f766e;
+      --accent-strong: #115e59;
+      --danger: #b42318;
+      --shadow: 0 14px 40px rgba(32, 33, 36, 0.12);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #151712;
+        --panel: #20231d;
+        --text: #f2f2ed;
+        --muted: #b3b8ad;
+        --line: #383d33;
+        --accent: #5eead4;
+        --accent-strong: #99f6e4;
+        --danger: #fda29b;
+        --shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.11), transparent 34%),
+        var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(100%, 520px);
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.75rem, 4vw, 2.4rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .timer {
+      margin: 28px 0;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(4rem, 18vw, 7rem);
+      line-height: 0.95;
+      text-align: center;
+    }
+
+    .presets,
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    .presets {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 12px;
+    }
+
+    .controls {
+      grid-template-columns: 1fr 1fr 1fr;
+      margin-top: 18px;
+    }
+
+    button,
+    input {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      background: transparent;
+      color: var(--text);
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--panel);
+      font-weight: 700;
+    }
+
+    button.primary:hover {
+      background: var(--accent-strong);
+    }
+
+    button.danger {
+      color: var(--danger);
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0 12px;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 18px;
+      text-align: center;
+      font-weight: 650;
+      color: var(--accent-strong);
+    }
+
+    @media (max-width: 460px) {
+      main {
+        padding: 20px;
+      }
+
+      .presets {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Scratch Timer</h1>
+    <p>Set a short countdown and keep the tab open while you work.</p>
+
+    <div class="timer" id="display" aria-live="polite">25:00</div>
+
+    <div class="presets" aria-label="Timer presets">
+      <button type="button" data-minutes="5">5 min</button>
+      <button type="button" data-minutes="15">15 min</button>
+      <button type="button" data-minutes="25">25 min</button>
+      <button type="button" data-minutes="45">45 min</button>
+    </div>
+
+    <label>
+      Custom minutes
+      <input id="minutes" type="number" min="1" max="240" step="1" value="25">
+    </label>
+
+    <div class="controls">
+      <button class="primary" id="start" type="button">Start</button>
+      <button id="pause" type="button">Pause</button>
+      <button class="danger" id="reset" type="button">Reset</button>
+    </div>
+
+    <div class="status" id="status"></div>
+  </main>
+
+  <script>
+    const display = document.querySelector("#display");
+    const minutesInput = document.querySelector("#minutes");
+    const statusText = document.querySelector("#status");
+    const startButton = document.querySelector("#start");
+    const pauseButton = document.querySelector("#pause");
+    const resetButton = document.querySelector("#reset");
+    const presetButtons = document.querySelectorAll("[data-minutes]");
+
+    let totalSeconds = 25 * 60;
+    let remainingSeconds = totalSeconds;
+    let intervalId = null;
+
+    function clampMinutes(value) {
+      const minutes = Number.parseInt(value, 10);
+      if (Number.isNaN(minutes)) return 25;
+      return Math.min(240, Math.max(1, minutes));
+    }
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
+      const remainder = (seconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${remainder}`;
+    }
+
+    function render() {
+      display.textContent = formatTime(remainingSeconds);
+      document.title = `${formatTime(remainingSeconds)} - Scratch Timer`;
+    }
+
+    function setDuration(minutes) {
+      totalSeconds = clampMinutes(minutes) * 60;
+      remainingSeconds = totalSeconds;
+      minutesInput.value = totalSeconds / 60;
+      statusText.textContent = "";
+      stop();
+      render();
+    }
+
+    function stop() {
+      window.clearInterval(intervalId);
+      intervalId = null;
+    }
+
+    function start() {
+      if (intervalId || remainingSeconds === 0) return;
+      statusText.textContent = "Running";
+      intervalId = window.setInterval(() => {
+        remainingSeconds -= 1;
+        render();
+
+        if (remainingSeconds <= 0) {
+          stop();
+          statusText.textContent = "Done";
+        }
+      }, 1000);
+    }
+
+    function pause() {
+      if (!intervalId) return;
+      stop();
+      statusText.textContent = "Paused";
+    }
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => setDuration(button.dataset.minutes));
+    });
+
+    minutesInput.addEventListener("change", () => setDuration(minutesInput.value));
+    startButton.addEventListener("click", start);
+    pauseButton.addEventListener("click", pause);
+    resetButton.addEventListener("click", () => setDuration(minutesInput.value));
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal Board</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17201c;
+      --muted: #64706b;
+      --line: #d8ded7;
+      --paper: #f7f8f4;
+      --panel: #ffffff;
+      --green: #2d6f55;
+      --amber: #b56b25;
+      --red: #b3453f;
+      --blue: #315f8f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(49, 95, 143, 0.08), transparent 34%),
+        linear-gradient(315deg, rgba(181, 107, 37, 0.08), transparent 30%),
+        var(--paper);
+      color: var(--ink);
+      font: 15px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 32px 0;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0 0 5px;
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 62ch;
+    }
+
+    .clock {
+      min-width: 172px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.7);
+      text-align: right;
+    }
+
+    .clock strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    section,
+    aside {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 18px 42px rgba(23, 32, 28, 0.08);
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(49, 95, 143, 0.14);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      background: var(--green);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 750;
+      padding: 11px 13px;
+    }
+
+    button.secondary {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .toolbar h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filters button {
+      min-width: 40px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .filters button.active {
+      border-color: var(--green);
+      background: rgba(45, 111, 85, 0.1);
+      color: var(--green);
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      min-height: 350px;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 280px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px;
+    }
+
+    article {
+      display: grid;
+      grid-template-columns: 10px 1fr auto;
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .stripe {
+      width: 10px;
+      height: 100%;
+      min-height: 76px;
+      border-radius: 999px;
+      background: var(--green);
+    }
+
+    article[data-priority="Medium"] .stripe {
+      background: var(--amber);
+    }
+
+    article[data-priority="High"] .stripe {
+      background: var(--red);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: #fbfcfa;
+    }
+
+    .note {
+      color: #38443f;
+      white-space: pre-wrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .icon svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @media (max-width: 820px) {
+      main {
+        width: min(100% - 20px, 620px);
+        padding: 18px 0;
+      }
+
+      header,
+      .grid,
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .clock {
+        text-align: left;
+      }
+
+      article {
+        grid-template-columns: 8px 1fr;
+      }
+
+      .actions {
+        grid-column: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Signal Board</h1>
+        <p>A small local-first board for sorting work by urgency, deadline, and next action.</p>
+      </div>
+      <div class="clock" aria-live="polite">
+        <span>Local time</span>
+        <strong id="clock">--:--</strong>
+      </div>
+    </header>
+
+    <div class="grid">
+      <aside>
+        <form id="task-form">
+          <label>
+            Title
+            <input id="title" name="title" maxlength="80" required autocomplete="off" placeholder="Draft migration note">
+          </label>
+          <div class="row">
+            <label>
+              Priority
+              <select id="priority" name="priority">
+                <option>High</option>
+                <option selected>Medium</option>
+                <option>Low</option>
+              </select>
+            </label>
+            <label>
+              Due
+              <input id="due" name="due" type="date">
+            </label>
+          </div>
+          <label>
+            Next action
+            <textarea id="note" name="note" maxlength="420" placeholder="Name the next concrete step."></textarea>
+          </label>
+          <button type="submit">Add item</button>
+          <button class="secondary" type="button" id="clear-done">Clear done</button>
+        </form>
+      </aside>
+
+      <section>
+        <div class="toolbar">
+          <h2>Open items</h2>
+          <div class="filters" aria-label="Filters">
+            <button type="button" class="active" data-filter="all">All</button>
+            <button type="button" data-filter="High">High</button>
+            <button type="button" data-filter="today">Today</button>
+          </div>
+        </div>
+        <div class="list" id="list"></div>
+      </section>
+    </div>
+  </main>
+
+  <template id="item-template">
+    <article>
+      <div class="stripe" aria-hidden="true"></div>
+      <div>
+        <h3></h3>
+        <div class="meta"></div>
+        <div class="note"></div>
+      </div>
+      <div class="actions">
+        <button class="icon done" type="button" title="Mark done" aria-label="Mark done">
+          <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></svg>
+        </button>
+        <button class="icon remove" type="button" title="Delete" aria-label="Delete">
+          <svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const storageKey = "signal-board-items";
+    const form = document.querySelector("#task-form");
+    const list = document.querySelector("#list");
+    const template = document.querySelector("#item-template");
+    const filterButtons = document.querySelectorAll("[data-filter]");
+    let filter = "all";
+    let items = JSON.parse(localStorage.getItem(storageKey) || "[]");
+
+    function persist() {
+      localStorage.setItem(storageKey, JSON.stringify(items));
+    }
+
+    function todayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function renderClock() {
+      document.querySelector("#clock").textContent = new Intl.DateTimeFormat([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(new Date());
+    }
+
+    function visibleItems() {
+      return items
+        .filter((item) => !item.done)
+        .filter((item) => {
+          if (filter === "all") return true;
+          if (filter === "today") return item.due === todayKey();
+          return item.priority === filter;
+        })
+        .sort((a, b) => {
+          const priority = { High: 0, Medium: 1, Low: 2 };
+          return priority[a.priority] - priority[b.priority] || (a.due || "9999").localeCompare(b.due || "9999");
+        });
+    }
+
+    function render() {
+      list.replaceChildren();
+      const current = visibleItems();
+
+      if (!current.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No matching open items.";
+        list.append(empty);
+        return;
+      }
+
+      current.forEach((item) => {
+        const node = template.content.firstElementChild.cloneNode(true);
+        node.dataset.priority = item.priority;
+        node.querySelector("h3").textContent = item.title;
+        node.querySelector(".note").textContent = item.note || "No next action written.";
+        node.querySelector(".meta").replaceChildren(
+          tag(item.priority),
+          tag(item.due ? `Due ${item.due}` : "No due date")
+        );
+        node.querySelector(".done").addEventListener("click", () => {
+          item.done = true;
+          persist();
+          render();
+        });
+        node.querySelector(".remove").addEventListener("click", () => {
+          items = items.filter((candidate) => candidate.id !== item.id);
+          persist();
+          render();
+        });
+        list.append(node);
+      });
+    }
+
+    function tag(text) {
+      const element = document.createElement("span");
+      element.className = "tag";
+      element.textContent = text;
+      return element;
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      items.push({
+        id: crypto.randomUUID(),
+        title: data.get("title").trim(),
+        priority: data.get("priority"),
+        due: data.get("due"),
+        note: data.get("note").trim(),
+        done: false
+      });
+      persist();
+      form.reset();
+      document.querySelector("#priority").value = "Medium";
+      render();
+    });
+
+    document.querySelector("#clear-done").addEventListener("click", () => {
+      items = items.filter((item) => !item.done);
+      persist();
+      render();
+    });
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        filter = button.dataset.filter;
+        filterButtons.forEach((candidate) => candidate.classList.toggle("active", candidate === button));
+        render();
+      });
+    });
+
+    renderClock();
+    setInterval(renderClock, 1000);
+    render();
+  </script>
+</body>
+</html>

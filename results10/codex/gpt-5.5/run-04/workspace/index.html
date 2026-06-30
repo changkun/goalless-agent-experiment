@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Focus Desk</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202124;
+      --muted: #6b7280;
+      --line: #d8dee8;
+      --paper: #fbfaf7;
+      --panel: #ffffff;
+      --accent: #1f7a6d;
+      --accent-strong: #155d55;
+      --warn: #b45309;
+      --shadow: 0 18px 50px rgba(25, 32, 45, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(31, 122, 109, 0.12), rgba(204, 96, 70, 0.10)),
+        var(--paper);
+    }
+
+    main {
+      width: min(1100px, calc(100% - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(280px, 420px) minmax(320px, 1fr);
+      gap: 24px;
+      align-items: center;
+      padding: 28px 0;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .timer {
+      padding: 26px;
+    }
+
+    .label {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 22px;
+      font-size: clamp(2rem, 8vw, 4.75rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .time {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f6f7f9;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font: inherit;
+      font-weight: 700;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #b8c1ce;
+    }
+
+    button[aria-pressed="true"],
+    .primary {
+      color: #ffffff;
+      background: var(--accent);
+    }
+
+    .primary:hover {
+      border-color: var(--accent-strong);
+      background: var(--accent-strong);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat {
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.45rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: min(720px, calc(100vh - 56px));
+      overflow: hidden;
+    }
+
+    .notes header,
+    .notes footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .notes footer {
+      border-top: 1px solid var(--line);
+      border-bottom: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 360px;
+      height: 100%;
+      padding: 20px;
+      resize: none;
+      border: 0;
+      outline: 0;
+      font: 1rem/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      color: var(--ink);
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          #ffffff 0,
+          #ffffff 30px,
+          #f0f3f6 31px
+        );
+    }
+
+    .clear {
+      color: var(--warn);
+    }
+
+    @media (max-width: 760px) {
+      main {
+        grid-template-columns: 1fr;
+        align-items: start;
+        padding-top: 18px;
+      }
+
+      .notes {
+        min-height: 480px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="timer" aria-labelledby="timer-title">
+      <p class="label">Focus Desk</p>
+      <h1 id="timer-title"><span class="time" id="time">25:00</span></h1>
+
+      <div class="modes" role="group" aria-label="Timer mode">
+        <button type="button" data-minutes="25" aria-pressed="true">Focus</button>
+        <button type="button" data-minutes="5" aria-pressed="false">Break</button>
+        <button type="button" data-minutes="15" aria-pressed="false">Long</button>
+      </div>
+
+      <div class="controls">
+        <button class="primary" type="button" id="toggle">Start</button>
+        <button type="button" id="reset">Reset</button>
+      </div>
+
+      <div class="meta" aria-label="Session stats">
+        <div class="stat">
+          <span class="label">Completed</span>
+          <strong id="completed">0</strong>
+        </div>
+        <div class="stat">
+          <span class="label">Local Time</span>
+          <strong id="clock">--:--</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="notes" aria-labelledby="notes-title">
+      <header>
+        <h2 id="notes-title">Current Notes</h2>
+        <button class="clear" type="button" id="clear">Clear</button>
+      </header>
+      <textarea id="notes" spellcheck="true" placeholder="Write the next concrete task, useful context, or a short decision log."></textarea>
+      <footer>
+        <span id="saved">Saved locally</span>
+        <span id="words">0 words</span>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const timeEl = document.querySelector("#time");
+    const toggleEl = document.querySelector("#toggle");
+    const resetEl = document.querySelector("#reset");
+    const completedEl = document.querySelector("#completed");
+    const clockEl = document.querySelector("#clock");
+    const notesEl = document.querySelector("#notes");
+    const savedEl = document.querySelector("#saved");
+    const wordsEl = document.querySelector("#words");
+    const clearEl = document.querySelector("#clear");
+    const modeButtons = [...document.querySelectorAll("[data-minutes]")];
+
+    let selectedMinutes = 25;
+    let remaining = selectedMinutes * 60;
+    let running = false;
+    let completed = Number(localStorage.getItem("focusDesk.completed") || 0);
+    let timerId = null;
+
+    notesEl.value = localStorage.getItem("focusDesk.notes") || "";
+    completedEl.textContent = completed;
+
+    function renderTime() {
+      const minutes = Math.floor(remaining / 60).toString().padStart(2, "0");
+      const seconds = (remaining % 60).toString().padStart(2, "0");
+      timeEl.textContent = `${minutes}:${seconds}`;
+      document.title = `${minutes}:${seconds} - Focus Desk`;
+    }
+
+    function resetTimer(minutes = selectedMinutes) {
+      selectedMinutes = minutes;
+      remaining = selectedMinutes * 60;
+      running = false;
+      clearInterval(timerId);
+      timerId = null;
+      toggleEl.textContent = "Start";
+      renderTime();
+    }
+
+    function tick() {
+      if (remaining > 0) {
+        remaining -= 1;
+        renderTime();
+        return;
+      }
+
+      completed += 1;
+      localStorage.setItem("focusDesk.completed", completed);
+      completedEl.textContent = completed;
+      resetTimer();
+    }
+
+    toggleEl.addEventListener("click", () => {
+      running = !running;
+      toggleEl.textContent = running ? "Pause" : "Start";
+
+      if (running) {
+        timerId = setInterval(tick, 1000);
+      } else {
+        clearInterval(timerId);
+      }
+    });
+
+    resetEl.addEventListener("click", () => resetTimer());
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        modeButtons.forEach((item) => item.setAttribute("aria-pressed", "false"));
+        button.setAttribute("aria-pressed", "true");
+        resetTimer(Number(button.dataset.minutes));
+      });
+    });
+
+    notesEl.addEventListener("input", () => {
+      localStorage.setItem("focusDesk.notes", notesEl.value);
+      savedEl.textContent = `Saved ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+      const words = notesEl.value.trim().split(/\s+/).filter(Boolean).length;
+      wordsEl.textContent = `${words} ${words === 1 ? "word" : "words"}`;
+    });
+
+    clearEl.addEventListener("click", () => {
+      notesEl.value = "";
+      notesEl.dispatchEvent(new Event("input"));
+      notesEl.focus();
+    });
+
+    setInterval(() => {
+      clockEl.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }, 1000);
+
+    notesEl.dispatchEvent(new Event("input"));
+    renderTime();
+  </script>
+</body>
+</html>
