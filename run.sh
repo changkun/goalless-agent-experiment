@@ -120,6 +120,12 @@ if [[ -f "$LLM_GW_CA_FILE" ]]; then
 fi
 
 # Environment: fast mode
+# Fast mode forces codex's reasoning effort to "low" (see the sandbox
+# entrypoint). Pro reasoning models (e.g. gpt-5.5-pro) reject "low", so disable
+# fast mode for them and let the config.toml effort ("high") take effect.
+if [[ "$MODEL" == *-pro* ]]; then
+    FAST="false"
+fi
 RUN_ARGS+=(-e "WALLFACER_SANDBOX_FAST=$FAST")
 
 # Environment: gateway endpoint and API key → backend-specific env vars
@@ -168,6 +174,11 @@ case "$BACKEND" in
         fi
         # Disable web search to avoid Vertex AI org policy violations
         CODEX_TOML+="web_search = \"disabled\""$'\n'
+        # Pro reasoning models reject the codex default effort 'low'
+        # (gpt-5.5-pro supports only medium/high/xhigh) — pin to high.
+        if [[ "$MODEL" == *-pro* ]]; then
+            CODEX_TOML+="model_reasoning_effort = \"high\""$'\n'
+        fi
         if [[ -n "$CODEX_TOML" ]]; then
             printf '%s' "$CODEX_TOML" > "$CODEX_HOME_DIR/config.toml"
             chmod 666 "$CODEX_HOME_DIR/config.toml"
