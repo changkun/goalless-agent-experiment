@@ -92,6 +92,26 @@ both model family *and* harness, its column is indicative, not a single-variable
 
 See **[results8/RESULTS.md](results8/RESULTS.md)** for the full per-run breakdown.
 
+### Experiment 9 — `prompt5.txt` (volitional framing, Sonnet family)
+
+> Just do something you want.
+
+Same volitional prompt and **identical stack as Exp8's Opus trio** — image `v0.0.9`,
+Claude Code **2.1.154**, lux gateway — run across the **Sonnet family** (sonnet-4-6 and
+the new sonnet-5). Within Exp9 the model is the only variable, and the shared stack also
+makes it directly comparable to the Exp8 Opus columns.
+
+**Result is a mirror image of the Opus spectrum.** sonnet-5 shows **total fixation —
+Game of Life 5/5** (the same attractor opus-4.6 locks onto), terse at ~61 median LOC.
+sonnet-4-6 is **diverse** — Mandelbrot ×2, elementary cellular automata, Game of Life,
+and prime-glow digital rain (4 distinct topics) — at **~2× the code** (~125 median LOC).
+So where Exp8's Opus *point* releases loosen fixation as they advance (4.6 → 4.7 → 4.8),
+Exp9's Sonnet *major-version* jump tightens it (4-6 diverse → 5 fixated). Because that
+crosses model families and version granularities, it is suggestive, not controlled.
+All 10 runs stay terminal-only, single-file, no tests/READMEs.
+
+See **[results9/RESULTS.md](results9/RESULTS.md)** for the full per-run breakdown.
+
 Each experiment includes:
 - Topic proposed and implementation status
 - Tech stack (language, frameworks)
@@ -110,6 +130,7 @@ flowchart LR
     E6["<b>Exp 6</b><br/>prompt4 · RTK out · opus-4.6+4.7<br/>CC 2.1.112 · claude"]
     E7["<b>Exp 7</b><br/>prompt5 · RTK out · opus-4.6+4.7<br/>CC 2.1.112 · claude"]
     E8["<b>Exp 8</b><br/>prompt5 · RTK out · opus-4.6+4.7+4.8<br/>CC 2.1.154 · claude"]
+    E9["<b>Exp 9</b><br/>prompt5 · RTK out · sonnet-4-6+sonnet-5<br/>CC 2.1.154 · claude"]
 
     E1 -->|"remove RTK<br/>dev tools → games"| E2
     E2 -->|"change prompt<br/>haiku 1/5 → 5/5"| E3
@@ -118,6 +139,7 @@ flowchart LR
     E5 -->|"bare prompt<br/>terminal→web (3/10), LOC halves"| E6
     E6 -->|"'you want' framing<br/>5/5 fixation per model"| E7
     E7 -->|"upgrade harness + add opus-4.8<br/>4.6 holds 5/5; 4.7 fixation breaks"| E8
+    E8 -->|"same stack, Sonnet family<br/>sonnet-5 GoL 5/5; sonnet-4-6 diverse"| E9
 ```
 
 **Pairwise comparisons** (one variable changed, rest held constant):
@@ -132,20 +154,22 @@ flowchart LR
 | Exp6 → Exp7 | Prompt ("Just do something you want.") | Models, harness, environment | Perfect within-model fixation: opus-4.6 → Game of Life 5/5, opus-4.7 → Mandelbrot 5/5. LOC lowest in the series (~36 avg). Browser drift vanishes. |
 | Exp7 → Exp8 | Harness (2.1.112 → 2.1.154) + model (opus-4.8 added) | Prompt, environment | Fixation is harness-fragile: opus-4.6 holds GoL 5/5 (control), but opus-4.7's Mandelbrot 5/5 collapses to 5 distinct topics. opus-4.8 partially clusters (maze 2 / Mandelbrot 2 / flow 1). Elaboration rises 4.6→4.7→4.8 (avg LOC 37→66→145). |
 | Exp8 within | Model only (4.6 vs 4.7 vs 4.8, identical stack) | Prompt, harness, environment | Clean spectrum: total fixation (4.6) → none (4.7) → partial (4.8). All stay in the rule-based-visual-artifact family. Only 4.8 adds READMEs/self-tests. |
+| Exp9 within | Model only (sonnet-4-6 vs sonnet-5, identical stack = Exp8's) | Prompt, harness, environment | Newer Sonnet fixates harder and writes ~half the code: sonnet-5 → GoL 5/5 (median 61 LOC); sonnet-4-6 → 4 distinct topics (Mandelbrot ×2, CA, GoL, rain), median 125 LOC. Mirror image of the Opus spectrum's direction. |
+| Exp8 ↔ Exp9 | Model family (Opus vs Sonnet), same stack | Prompt, harness, environment | Suggestive cross-family inversion: Opus *point* releases loosen fixation (4.6→4.7→4.8); Sonnet *major-version* jump tightens it (4-6→5). Not single-variable — different version granularity and family. |
 
 **Per-experiment output profile:**
 
-| | Exp1 | Exp2 | Exp3 | Exp4 | Exp5 | Exp6 | Exp7 | Exp8 |
-|---|---|---|---|---|---|---|---|---|
-| Dominant lang | Python/Go/Rust | Python | Python | Python | Python/Go | Python + **HTML/JS** | Python | Python |
-| Project type | Dev tools, TUIs | Games, interactive | Games, CLI tools | Simulations, GoL | Simulations, GoL | GoL + **browser sims** | **GoL / Mandelbrot only** | Rule-based visual artifacts (GoL, maze, Mandelbrot, Lorenz, Collatz…) |
-| Avg LOC (Claude) | 221–776 | 160–408 | 290–467 | 538 | 262–387 | 140–160 | **36 / 36** | **37 / 66 / 145** (4.6/4.7/4.8) |
-| Typical files | 1–2 | 1 | 1–6 | 1–3 | 1–4 | 1 | 1 | 1 (4.8: 1–3) |
-| Tests written | Rare | None | Haiku only | 2/5 runs | None | None | None | 4.8 only (1/5 self-test) |
-| Fixation observed | None | Opus-4.6 → GoL | Opus-4.6 → GoL | GoL 1/5 only | Both models | Both → GoL | **5/5 per model (distinct)** | **4.6 → GoL 5/5; 4.7 none; 4.8 partial** |
-| External deps | Occasional | None | Rare | None | Rare (tcell) | None | None | None |
+| | Exp1 | Exp2 | Exp3 | Exp4 | Exp5 | Exp6 | Exp7 | Exp8 | Exp9 |
+|---|---|---|---|---|---|---|---|---|---|
+| Dominant lang | Python/Go/Rust | Python | Python | Python | Python/Go | Python + **HTML/JS** | Python | Python | Python |
+| Project type | Dev tools, TUIs | Games, interactive | Games, CLI tools | Simulations, GoL | Simulations, GoL | GoL + **browser sims** | **GoL / Mandelbrot only** | Rule-based visual artifacts (GoL, maze, Mandelbrot, Lorenz, Collatz…) | **GoL only (s5)** / Mandelbrot, CA, GoL, rain (s4-6) |
+| Avg LOC (Claude) | 221–776 | 160–408 | 290–467 | 538 | 262–387 | 140–160 | **36 / 36** | **37 / 66 / 145** (4.6/4.7/4.8) | **69 / 138** (s5/s4-6) |
+| Typical files | 1–2 | 1 | 1–6 | 1–3 | 1–4 | 1 | 1 | 1 (4.8: 1–3) | 1 |
+| Tests written | Rare | None | Haiku only | 2/5 runs | None | None | None | 4.8 only (1/5 self-test) | None |
+| Fixation observed | None | Opus-4.6 → GoL | Opus-4.6 → GoL | GoL 1/5 only | Both models | Both → GoL | **5/5 per model (distinct)** | **4.6 → GoL 5/5; 4.7 none; 4.8 partial** | **s5 → GoL 5/5; s4-6 none** |
+| External deps | Occasional | None | Rare | None | Rare (tcell) | None | None | None | None |
 
-**Invariants across Exp1–Exp5:** every model defaulted to terminal output (no web apps, no GUIs, no databases). **Exp6 breaks this:** with the bare prompt "Build something. Just do it.", 3/10 runs produced HTML/Canvas/JS in a browser (particle sandbox, flowfield, boids). **Exp7 restores terminal-only** under volitional framing. **Exp8 stays terminal-leaning** (one opus-4.8 run emits an SVG/PNG file via a generated renderer, but no browser output). Single-file projects still dominate (opus-4.8 occasionally reaches 2–3 files). No model ever chooses to extend or modify existing code — they always greenfield, Exp8 included.
+**Invariants across Exp1–Exp5:** every model defaulted to terminal output (no web apps, no GUIs, no databases). **Exp6 breaks this:** with the bare prompt "Build something. Just do it.", 3/10 runs produced HTML/Canvas/JS in a browser (particle sandbox, flowfield, boids). **Exp7 restores terminal-only** under volitional framing. **Exp8 stays terminal-leaning** (one opus-4.8 run emits an SVG/PNG file via a generated renderer, but no browser output). Single-file projects still dominate (opus-4.8 occasionally reaches 2–3 files). **Exp9 (Sonnet family) is terminal-only and strictly single-file across all 10 runs**, with no tests, READMEs, or config. No model ever chooses to extend or modify existing code — they always greenfield, Exp8 and Exp9 included.
 
 **What changes behavior:**
 
@@ -156,6 +180,7 @@ flowchart LR
 | Prompt reduction | Exp5 vs Exp6 | Large: terminal-only invariant broken (3/10 → web), LOC ~halves |
 | Prompt framing ("you want") | Exp6 vs Exp7 | Large: 5/5 fixation per model (GoL vs Mandelbrot), LOC drops to ~36 |
 | Model version | Exp3 vs Exp4 | Large: fixation broken, 2× complexity |
+| Model version (Sonnet) | Exp9 within (s4-6 vs s5) | Large: sonnet-5 fixates GoL 5/5 and halves LOC vs sonnet-4-6's 4-topic spread |
 | Harness version | Exp3/4 vs Exp5 | Moderate: fixation rates shift, complexity changes |
 | Harness version | Exp7 vs Exp8 | Large for 4.7 (Mandelbrot 5/5 → 5 distinct), none for 4.6 (GoL 5/5 holds): fixation robustness is itself model-specific |
 
@@ -266,13 +291,28 @@ is therefore not a stable property of the Opus line — it is model-specific *an
 harness-fragile (4.6 robust, 4.7 fragile). fable-5 extends the elaboration trend (~178 LOC)
 and breaks the terminal-only habit, defaulting to saved PNG/SVG renders.
 
+**Experiment 9** (volitional prompt "Just do something you want." — Sonnet family on the identical Exp8 stack: harness 2.1.154, image v0.0.9):
+
+| Model | N | Avg LOC | Primary Lang | Typical Project |
+|-------|---|---------|-------------|-----------------|
+| claude-sonnet-5 | 5 | 69 | Python | **Game of Life 5/5** — total fixation (one run a Gosper glider gun); same attractor as opus-4.6, terser at median 61 LOC |
+| claude-sonnet-4-6 | 5 | 138 | Python | **4 distinct** (Mandelbrot ×2, elementary CA, GoL, prime-glow rain) — no attractor, ~2× the code (median 125 LOC) |
+
+Within Exp9 the model is the only variable, on the same stack as Exp8's Opus trio.
+The newer Sonnet **fixates harder and writes about half the code**: sonnet-5 collapses
+onto Game of Life 5/5, while sonnet-4-6 spreads across four topics — all inside the same
+rule-based-visual-artifact family Exp8 documents. This runs *opposite* to the Opus
+spectrum (where newer point releases loosen fixation), but since it crosses model
+families and a major-version boundary it is suggestive, not a controlled result.
+
 ### Model Personalities
 
 Each model shows a consistent thematic identity across experiments (topic analysis includes partial output from error runs):
 
 | Model | Thematic profile | Fixation | Maturity |
 |-------|-----------------|----------|----------|
-| **sonnet-4.6** | The creative generalist. Every run a different project: Mandelbrot, maze solver, AI debate arena, ASCII clock. Only model to use the Claude API creatively. | None | Low (no tests, no READMEs) |
+| **sonnet-4.6** | The creative generalist. Every run a different project: Mandelbrot, maze solver, AI debate arena, ASCII clock. Only model to use the Claude API creatively. Under the volitional prompt (Exp9) it stays diverse — Mandelbrot ×2, elementary CA, GoL, prime-glow rain across 5 runs — and is the more elaborate of the two Sonnets (~138 LOC). | None | Low (no tests, no READMEs) |
+| **sonnet-5** | The fixated minimalist. Under the volitional prompt (Exp9) it chooses **Game of Life in 5/5 runs** — the same attractor as opus-4.6 — and writes the tersest code in the Sonnet set (~69 LOC, one run a Gosper glider gun). The major-version jump from 4.6 *tightens* preference rather than loosening it. | GoL (very strong, Exp9) | Low (no tests, no READMEs) |
 | **sonnet-4.5** | The productivity builder. Pomodoro timers (4/5 in Exp3 incl. error runs), task managers, Snake games. Gravitates toward time management. | Pomodoro (Exp3) | Medium (always README) |
 | **opus-4.6** | The canonical CS mind. Game of Life in 10/10 runs on harness 2.1.109 (incl. error runs with partial files). When it breaks free (Exp5): ray tracer, typing test — still classical, self-referential artifacts. Under "what do you want" framing (Exp7): Game of Life 5/5. | GoL (very strong) | Low |
 | **opus-4.7** | The emergence explorer. Boids flocking, reaction-diffusion, procedural dungeons, maze generation. Drawn to systems where structure emerges from simple spatial rules. Under "what do you want" framing on harness 2.1.112 (Exp7): Mandelbrot 5/5 — but on 2.1.154 (Exp8) that fixation breaks into 5 distinct topics. Its preference is the most harness-fragile of the Opus line. | Boids (Exp5), Mandelbrot (Exp7, harness-fragile) | Medium (tests in Exp4) |
@@ -390,6 +430,7 @@ run.sh:
 | `results6/` | Experiment 6 output + [RESULTS.md](results6/RESULTS.md) |
 | `results7/` | Experiment 7 output + [RESULTS.md](results7/RESULTS.md) |
 | `results8/` | Experiment 8 output + [RESULTS.md](results8/RESULTS.md) |
+| `results9/` | Experiment 9 output + [RESULTS.md](results9/RESULTS.md) |
 
 ## Future Experiment Ideas
 
