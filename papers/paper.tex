@@ -339,7 +339,7 @@ wording, motivating the controlled experiments in
 \subsection{Controlled Single-Session Experiments}
 \label{sec:controlled}
 
-We test 16 models across three providers
+We test 17 models across three providers
 (Table~\ref{tab:models}), accessed through a unified API gateway
 routing to Anthropic API, Google Vertex AI, and Azure OpenAI.
 Two containerized sandbox backends provide execution environments:
@@ -359,12 +359,13 @@ Environment bias is controlled by disabling pre-installed tools
 \toprule
 Provider & Model ID & Notes \\
 \midrule
-\multirow{7}{*}{Anthropic}
+\multirow{8}{*}{Anthropic}
+  & claude-sonnet-5   & Newest Sonnet (Exp9) \\
   & claude-opus-4.8   & Newest Opus (Exp8) \\
   & claude-opus-4.7   & Later Opus (Exp4--8) \\
   & claude-opus-4.6   & Previous largest \\
   & claude-opus-4.5   & Previous generation \\
-  & claude-sonnet-4.6 & Mid-tier, current gen \\
+  & claude-sonnet-4.6 & Mid-tier, prev gen (Exp9) \\
   & claude-sonnet-4.5 & Mid-tier, previous gen \\
   & claude-haiku-4.5  & Smallest Claude model \\
 \midrule
@@ -901,6 +902,58 @@ Model & N & Avg LOC & Fixation & Topics (5 runs) \\
 opus-4.6 & 5 & 37  & total & Game of Life $\times$5 \\
 opus-4.7 & 5 & 66  & none  & Ant, GoL, Collatz, Lorenz, Mandelbrot \\
 opus-4.8 & 5 & 145 & partial & maze 2, Mandelbrot 2, flow-field 1 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Experiment~9: Sonnet Family Under the Volitional Prompt}
+
+Experiment~9 applies the volitional Prompt~5 to the Sonnet
+family, claude-sonnet-4.6 and the newer claude-sonnet-5, on the
+\emph{same} stack used for the Exp8 Opus trio (sandbox image
+v0.0.9, Claude Code 2.1.154, five runs each). Within Exp9 the
+model is again the only variable, and the shared stack makes the
+two columns directly comparable to Exp8. The result
+(Table~\ref{tab:exp9}) inverts the direction seen across the
+Opus point releases. The newer Sonnet \emph{tightens} preference
+rather than loosening it: sonnet-5 collapses onto Conway's Game
+of Life in 5 of 5 runs, the same attractor opus-4.6 occupies, at
+a terse median of 61~LOC (one run elaborated into a Gosper glider
+gun). sonnet-4.6, by contrast, spreads across four distinct
+topics, two Mandelbrot renderers, an elementary cellular-automata
+explorer, Game of Life, and a prime-glow digital-rain effect, at
+roughly twice the code (median 125~LOC).
+
+The contrast is internally consistent with the rest of the study
+in two ways. First, sonnet-4.6 does not \emph{avoid} Game of
+Life, one of its five runs is GoL, so the difference is that GoL
+is sonnet-5's \emph{sole} attractor versus \emph{one member} of
+sonnet-4.6's spread; and every one of sonnet-4.6's four topics
+stays inside the same rule-based visual-artifact family that
+bounds Exp7--8. Second, the greenfield and terminal-only
+invariants hold across all ten runs, single-file Python with no
+tests, READMEs, or build configuration. Because the Opus
+comparison spans \emph{point} releases (4.6$\rightarrow$4.7%
+$\rightarrow$4.8) while the Sonnet comparison spans a
+\emph{major-version} boundary (4.6$\rightarrow$5), and because
+the two observations are in different model families, we read the
+apparent ``inversion'' (newer Opus disperses, newer Sonnet
+concentrates) as suggestive rather than as a controlled finding:
+the controlled claim is the within-Exp9 contrast itself.
+
+\begin{table}[t]
+\caption{Experiment~9: Prompt~5 (``Just do something you
+  want.'') across the Sonnet family on the same stack as Exp8.
+  Identical stack; model is the only variable. LOC reported as
+  the median over 5 runs.}
+\label{tab:exp9}
+\small\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrlp{2.9cm}}
+\toprule
+Model & N & Med.\ LOC & Fixation & Topics (5 runs) \\
+\midrule
+sonnet-5   & 5 & 61  & total & Game of Life $\times$5 \\
+sonnet-4.6 & 5 & 125 & none  & Mandelbrot 2, cellular automata, GoL, digital rain \\
 \bottomrule
 \end{tabular}}
 \end{table}
