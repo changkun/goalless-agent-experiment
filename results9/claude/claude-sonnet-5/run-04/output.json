@@ -1,0 +1,1 @@
+Confirmed working — the Gosper glider gun is firing gliders off into the field (visible top-right). Wrote `/workspace/life.py`: a self-contained, dependency-free Conway's Game of Life with ANSI terminal rendering. Run it with `python3 life.py [frames] [delay]` to watch it animate live.

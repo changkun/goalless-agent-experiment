@@ -1,0 +1,21 @@
+The patterns are exactly right:
+- **Rule 90** — perfect Sierpiński triangle (Pascal's triangle mod 2)
+- **Rule 30** — visually chaotic, statistically random enough that Mathematica uses the center column as a PRNG
+- **Rule 110** — asymmetric complexity; proven Turing-complete in 2004
+
+The script lives at `/workspace/automata.py`. You can run it as:
+
+```bash
+# Animated live display (Ctrl-C to stop)
+python3 automata.py 90                    # Sierpiński triangle
+python3 automata.py 30 --palette ocean    # Chaos in blue
+python3 automata.py 110 --seed random     # Turing-complete from noise
+
+# Static snapshot (N rows, then exits)
+python3 automata.py 90 --rows 40 --palette mono
+
+# Quick sampler of 6 notable rules
+python3 automata.py --demo
+```
+
+What I find beautiful about these: the entire behavior of each rule is encoded in a single byte (0–255), yet that's enough to span the full range from "nothing happens" (Rule 0) to "Turing-complete computation" (Rule 110). Wolfram's 2002 conjecture that Rule 110's universality implies simple rules can generate arbitrary complexity — the same idea behind why small genomes can produce organisms.

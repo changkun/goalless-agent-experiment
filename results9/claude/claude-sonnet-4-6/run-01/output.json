@@ -1,0 +1,11 @@
+It ran successfully — the ANSI escape codes are all there but don't render inside the tool output. The script works: it renders four iconic Mandelbrot views with a 44-color gradient (deep blues → purples → gold → white → black for the interior).
+
+To see it in a real terminal:
+
+```bash
+python3 /workspace/mandelbrot.py
+```
+
+It walks through four classic locations — the full set, seahorse valley, a lightning bolt filament, and elephant valley — each rendered as 120×40 colored pixels using Unicode block characters and ANSI 256-color backgrounds. Press Enter to step through each view.
+
+The math is elegant: for each pixel, iterate z → z² + c and count escapes. Fast escapers get warm gold tones, slow ones deep blues, and the true interior is pure black. Infinite complexity, ~50 lines of code.

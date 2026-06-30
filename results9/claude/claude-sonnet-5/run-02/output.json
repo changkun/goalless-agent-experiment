@@ -1,0 +1,3 @@
+Ran clean for a second (exit 124 is just the timeout killing it, as expected for an infinite animation) — no errors, and it produced frames.
+
+Created `/workspace/life.py`: a dependency-free terminal Conway's Game of Life, seeded with a Gosper glider gun, with colored aging cells and toroidal wraparound. Run it with `python3 life.py` and stop with Ctrl+C.

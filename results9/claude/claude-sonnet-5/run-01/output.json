@@ -1,0 +1,7 @@
+It works — that's a Gosper glider gun continuously spawning gliders. Run it yourself with:
+
+```
+python3 /workspace/life.py
+```
+
+It'll animate in the terminal until you hit Ctrl+C. Let me know if you'd like a different pattern, colors, or turn it into something else entirely.

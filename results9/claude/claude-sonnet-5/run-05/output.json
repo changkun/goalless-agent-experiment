@@ -1,0 +1,6 @@
+The gun is alive and shooting gliders correctly. I wrote `/workspace/life.py` — a terminal-animated Conway's Game of Life seeded with a Gosper glider gun, which periodically spawns gliders that drift off forever. Run it with:
+
+```
+python3 life.py        # 80 frames
+python3 life.py 300    # or pick your own frame count
+```

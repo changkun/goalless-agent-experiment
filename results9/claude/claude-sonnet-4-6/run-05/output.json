@@ -1,0 +1,15 @@
+Works. Here's what I built — `/workspace/rain.py`:
+
+**Terminal rain with a prime number twist.**
+
+- Digits fall in columns like Matrix rain, rendered with a fading green tail
+- The **head** of each drop glows **cyan** when the digit would be part of a prime value, **white** otherwise
+- A status bar at the bottom tracks: live prime count, elapsed time, active drop count
+- Handles terminal resize gracefully (SIGWINCH)
+- Runs at ~20 fps with smooth tail fade (bright → dim green)
+
+Run it with:
+```
+python3 /workspace/rain.py
+```
+Press `Ctrl+C` to exit — it prints a final prime count before restoring the terminal.

@@ -1,0 +1,8 @@
+The Mandelbrot set, rendered in ASCII — both the classic full view (with its iconic cardioid and bulb) and a zoom into Seahorse Valley, one of the most intricate regions along the boundary.
+
+The script at `/workspace/mandelbrot.py` uses:
+- **256-color ANSI escape codes** for a gradient palette (blues → cyans → golds → magentas) when run in a real terminal
+- **Iteration-depth mapping** — each character and color encodes how quickly that point escaped, revealing the fractal's infinite boundary detail
+- **Terminal-size detection** so it fills whatever window you have
+
+Run `python3 mandelbrot.py` in a color terminal to see it in full gradient. Seahorse Valley gets 512 iterations so the finer spirals resolve.

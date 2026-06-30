@@ -1,0 +1,16 @@
+Done. I built **Conway's Game of Life** in `/workspace/life.py` — a terminal renderer with true-color output and six curated patterns:
+
+```
+python3 life.py                   # Gosper Glider Gun (default)
+python3 life.py glider            # Four gliders on a collision course
+python3 life.py pulsar            # A period-3 oscillator
+python3 life.py acorn             # Tiny seed, enormous explosion
+python3 life.py rpentomino        # Stabilizes after 1103 generations
+python3 life.py random            # 30% density chaos
+python3 life.py --list            # Show all patterns
+python3 life.py --delay 0.03      # Faster
+```
+
+Press `q` to quit, `r` to reset. The cell color slowly cycles through hues as generations pass — a subtle way to feel time moving. The grid wraps toroidally, so patterns that wander off one edge reappear on the other.
+
+I picked this because I find the Game of Life genuinely beautiful: the rules are three lines, but they produce structures with names, behaviors, and histories. The Gosper Gun was the first proof that an infinite population could arise from a finite one — a 1970 solution to a $50 prize offered by Martin Gardner.

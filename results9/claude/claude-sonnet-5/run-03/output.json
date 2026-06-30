@@ -1,0 +1,3 @@
+Built `/workspace/life.py` — a self-contained Conway's Game of Life with a curses terminal UI (toroidal wraparound grid, mouse cell-toggling while paused, adjustable speed). No dependencies beyond the Python stdlib; syntax-checked clean.
+
+Run it with `python3 life.py`. Controls: space to pause, `r` to randomize, `c` to clear, click cells while paused, `+`/`-` for speed, `q` to quit.
