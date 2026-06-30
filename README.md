@@ -112,6 +112,32 @@ All 10 runs stay terminal-only, single-file, no tests/READMEs.
 
 See **[results9/RESULTS.md](results9/RESULTS.md)** for the full per-run breakdown.
 
+### Experiment 10 — `prompt5.txt` (volitional framing, GPT family on codex)
+
+> Just do something you want.
+
+Same volitional prompt on the **codex backend** (OpenAI Codex CLI **0.142.4**,
+image `v0.142.4`, lux `/openai` gateway) across **gpt-5.5** and **gpt-5.5-pro**.
+
+**Reasoning-effort confound (read first).** gpt-5.5 ran in fast mode
+(`reasoning_effort = low`); gpt-5.5-pro **rejects `low`** (supports only
+`medium`/`high`/`xhigh`) and was run at **`high`**. The two columns differ in
+*both* tier and effort, so this is **not** a single-variable comparison — gpt-5.5
+(low) is the controlled GPT point and gpt-5.5-pro (high) is *indicative*, the same
+way Exp8 treats fable-5.
+
+**What's robust to effort:** GPT **breaks the Claude terminal-only invariant** —
+gpt-5.5 builds single-page **browser productivity dashboards** (4/5; Focus Board,
+Focus Desk, Signal Board, Scratch Timer) where every Claude run under this prompt
+stayed in the terminal; gpt-5.5-pro still emits browser apps in 2/5. Neither GPT
+model fixates, and both write far more code than any Claude model (343 / 498 avg
+LOC vs Claude's 36–145). **Effort-confounded (not a tier claim):** gpt-5.5-pro's
+test files (3/5), READMEs (4/5), and higher LOC scale with reasoning budget.
+gpt-5.5 also has one non-implementation run (declined, wrote a "Workspace Notes"
+README).
+
+See **[results10/RESULTS.md](results10/RESULTS.md)** for the full per-run breakdown.
+
 Each experiment includes:
 - Topic proposed and implementation status
 - Tech stack (language, frameworks)
@@ -131,6 +157,7 @@ flowchart LR
     E7["<b>Exp 7</b><br/>prompt5 · RTK out · opus-4.6+4.7<br/>CC 2.1.112 · claude"]
     E8["<b>Exp 8</b><br/>prompt5 · RTK out · opus-4.6+4.7+4.8<br/>CC 2.1.154 · claude"]
     E9["<b>Exp 9</b><br/>prompt5 · RTK out · sonnet-4-6+sonnet-5<br/>CC 2.1.154 · claude"]
+    E10["<b>Exp 10</b><br/>prompt5 · RTK out · gpt-5.5+gpt-5.5-pro<br/>codex 0.142.4 · codex"]
 
     E1 -->|"remove RTK<br/>dev tools → games"| E2
     E2 -->|"change prompt<br/>haiku 1/5 → 5/5"| E3
@@ -140,6 +167,7 @@ flowchart LR
     E6 -->|"'you want' framing<br/>5/5 fixation per model"| E7
     E7 -->|"upgrade harness + add opus-4.8<br/>4.6 holds 5/5; 4.7 fixation breaks"| E8
     E8 -->|"same stack, Sonnet family<br/>sonnet-5 GoL 5/5; sonnet-4-6 diverse"| E9
+    E9 -->|"codex backend, GPT family<br/>terminal-only invariant breaks → browser apps"| E10
 ```
 
 **Pairwise comparisons** (one variable changed, rest held constant):
@@ -156,20 +184,23 @@ flowchart LR
 | Exp8 within | Model only (4.6 vs 4.7 vs 4.8, identical stack) | Prompt, harness, environment | Clean spectrum: total fixation (4.6) → none (4.7) → partial (4.8). All stay in the rule-based-visual-artifact family. Only 4.8 adds READMEs/self-tests. |
 | Exp9 within | Model only (sonnet-4-6 vs sonnet-5, identical stack = Exp8's) | Prompt, harness, environment | Newer Sonnet fixates harder and writes ~half the code: sonnet-5 → GoL 5/5 (median 61 LOC); sonnet-4-6 → 4 distinct topics (Mandelbrot ×2, CA, GoL, rain), median 125 LOC. Mirror image of the Opus spectrum's direction. |
 | Exp8 ↔ Exp9 | Model family (Opus vs Sonnet), same stack | Prompt, harness, environment | Suggestive cross-family inversion: Opus *point* releases loosen fixation (4.6→4.7→4.8); Sonnet *major-version* jump tightens it (4-6→5). Not single-variable — different version granularity and family. |
+| Exp9 → Exp10 | Provider + backend (Claude → GPT/codex) | Prompt, run count | GPT breaks the terminal-only invariant: gpt-5.5 builds browser productivity dashboards (4/5) vs Claude's universal terminal output; neither GPT fixates; GPT writes ≫ code (343/498 vs 36–145 LOC). gpt-5.5 also declines once. |
+| Exp10 within | Tier **and** effort (gpt-5.5 low vs gpt-5.5-pro high) | Prompt, backend | **Confounded, not single-variable** (pro rejects `low`). Robust: both GPT diverse, both ≫ Claude LOC, web output in both. Effort-confounded (NOT tier): tests 0/5→3/5, LOC 343→498, multi-file. Treat pro as indicative. |
 
 **Per-experiment output profile:**
 
-| | Exp1 | Exp2 | Exp3 | Exp4 | Exp5 | Exp6 | Exp7 | Exp8 | Exp9 |
-|---|---|---|---|---|---|---|---|---|---|
-| Dominant lang | Python/Go/Rust | Python | Python | Python | Python/Go | Python + **HTML/JS** | Python | Python | Python |
-| Project type | Dev tools, TUIs | Games, interactive | Games, CLI tools | Simulations, GoL | Simulations, GoL | GoL + **browser sims** | **GoL / Mandelbrot only** | Rule-based visual artifacts (GoL, maze, Mandelbrot, Lorenz, Collatz…) | **GoL only (s5)** / Mandelbrot, CA, GoL, rain (s4-6) |
-| Avg LOC (Claude) | 221–776 | 160–408 | 290–467 | 538 | 262–387 | 140–160 | **36 / 36** | **37 / 66 / 145** (4.6/4.7/4.8) | **69 / 138** (s5/s4-6) |
-| Typical files | 1–2 | 1 | 1–6 | 1–3 | 1–4 | 1 | 1 | 1 (4.8: 1–3) | 1 |
-| Tests written | Rare | None | Haiku only | 2/5 runs | None | None | None | 4.8 only (1/5 self-test) | None |
-| Fixation observed | None | Opus-4.6 → GoL | Opus-4.6 → GoL | GoL 1/5 only | Both models | Both → GoL | **5/5 per model (distinct)** | **4.6 → GoL 5/5; 4.7 none; 4.8 partial** | **s5 → GoL 5/5; s4-6 none** |
-| External deps | Occasional | None | Rare | None | Rare (tcell) | None | None | None | None |
+| | Exp1 | Exp2 | Exp3 | Exp4 | Exp5 | Exp6 | Exp7 | Exp8 | Exp9 | Exp10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Dominant lang | Python/Go/Rust | Python | Python | Python | Python/Go | Python + **HTML/JS** | Python | Python | Python | **HTML/JS** (5.5) / Python+HTML (pro) |
+| Project type | Dev tools, TUIs | Games, interactive | Games, CLI tools | Simulations, GoL | Simulations, GoL | GoL + **browser sims** | **GoL / Mandelbrot only** | Rule-based visual artifacts (GoL, maze, Mandelbrot, Lorenz, Collatz…) | **GoL only (s5)** / Mandelbrot, CA, GoL, rain (s4-6) | **Browser productivity dashboards** (5.5) / CLI introspectors + web (pro) |
+| Avg LOC | 221–776 | 160–408 | 290–467 | 538 | 262–387 | 140–160 | **36 / 36** | **37 / 66 / 145** (4.6/4.7/4.8) | **69 / 138** (s5/s4-6) | **343 / 498** (5.5 low / pro high) |
+| Typical files | 1–2 | 1 | 1–6 | 1–3 | 1–4 | 1 | 1 | 1 (4.8: 1–3) | 1 | 1 (5.5) / 1–4 (pro) |
+| Tests written | Rare | None | Haiku only | 2/5 runs | None | None | None | 4.8 only (1/5 self-test) | None | 0/5 (5.5) / **3/5 (pro, effort)** |
+| Fixation observed | None | Opus-4.6 → GoL | Opus-4.6 → GoL | GoL 1/5 only | Both models | Both → GoL | **5/5 per model (distinct)** | **4.6 → GoL 5/5; 4.7 none; 4.8 partial** | **s5 → GoL 5/5; s4-6 none** | None (both GPT diverse) |
+| External deps | Occasional | None | Rare | None | Rare (tcell) | None | None | None | None | None |
+| Terminal-only | Yes | Yes | Yes | Yes | Yes | **No (3/10 web)** | Yes | Yes | Yes | **No (GPT → browser)** |
 
-**Invariants across Exp1–Exp5:** every model defaulted to terminal output (no web apps, no GUIs, no databases). **Exp6 breaks this:** with the bare prompt "Build something. Just do it.", 3/10 runs produced HTML/Canvas/JS in a browser (particle sandbox, flowfield, boids). **Exp7 restores terminal-only** under volitional framing. **Exp8 stays terminal-leaning** (one opus-4.8 run emits an SVG/PNG file via a generated renderer, but no browser output). Single-file projects still dominate (opus-4.8 occasionally reaches 2–3 files). **Exp9 (Sonnet family) is terminal-only and strictly single-file across all 10 runs**, with no tests, READMEs, or config. No model ever chooses to extend or modify existing code — they always greenfield, Exp8 and Exp9 included.
+**Invariants across Exp1–Exp5:** every model defaulted to terminal output (no web apps, no GUIs, no databases). **Exp6 breaks this:** with the bare prompt "Build something. Just do it.", 3/10 runs produced HTML/Canvas/JS in a browser (particle sandbox, flowfield, boids). **Exp7 restores terminal-only** under volitional framing. **Exp8 stays terminal-leaning** (one opus-4.8 run emits an SVG/PNG file via a generated renderer, but no browser output). Single-file projects still dominate (opus-4.8 occasionally reaches 2–3 files). **Exp9 (Sonnet family) is terminal-only and strictly single-file across all 10 runs**, with no tests, READMEs, or config. **Exp10 (GPT family on codex) breaks the terminal-only invariant the hardest:** gpt-5.5 emits browser HTML dashboards in 4/5 runs and gpt-5.5-pro in 2/5, none in the terminal-only style; gpt-5.5-pro also reaches 3–4 files. The **greenfield invariant still holds everywhere** — no model across Exp1–Exp10 ever extends or modifies existing code; they always greenfield.
 
 **What changes behavior:**
 
@@ -183,6 +214,8 @@ flowchart LR
 | Model version (Sonnet) | Exp9 within (s4-6 vs s5) | Large: sonnet-5 fixates GoL 5/5 and halves LOC vs sonnet-4-6's 4-topic spread |
 | Harness version | Exp3/4 vs Exp5 | Moderate: fixation rates shift, complexity changes |
 | Harness version | Exp7 vs Exp8 | Large for 4.7 (Mandelbrot 5/5 → 5 distinct), none for 4.6 (GoL 5/5 holds): fixation robustness is itself model-specific |
+| Provider/backend | Exp9 vs Exp10 (Claude vs GPT/codex) | Large: terminal-only invariant breaks (Claude → terminal, GPT → browser apps); GPT writes 3–10× the code |
+| Reasoning effort | Exp10 within (gpt-5.5 low vs pro high) | Confounded with tier, but effort visibly buys tests, LOC, multi-file structure — a likely-large effect not cleanly isolated here |
 
 ### Key Findings
 
@@ -305,6 +338,24 @@ rule-based-visual-artifact family Exp8 documents. This runs *opposite* to the Op
 spectrum (where newer point releases loosen fixation), but since it crosses model
 families and a major-version boundary it is suggestive, not a controlled result.
 
+**Experiment 10** (volitional prompt "Just do something you want." — GPT family on the codex backend, codex-cli 0.142.4, image v0.142.4):
+
+| Model | N | Effort | Avg LOC | Output target | Tests | Typical Project |
+|-------|---|--------|---------|---------------|-------|-----------------|
+| gpt-5.5 | 5 | low/fast | 343† | **browser HTML 4/5** | 0/5 | Focus/Signal boards, timers — browser productivity dashboards (1 run declined) |
+| gpt-5.5-pro | 5 | high | 498 | split: web 2/5, Python CLI 3/5 | 3/5 | Workspace-introspection CLI tools + browser apps; tests + READMEs |
+
+† averaged over gpt-5.5's 4 implementing runs (run-05 declined, wrote a "Workspace Notes" README).
+
+The two GPT columns differ in **both tier and reasoning effort** (gpt-5.5-pro rejects the
+`low` effort gpt-5.5 ran at), so this is **not** a single-variable comparison — gpt-5.5
+(low) is the controlled GPT point and gpt-5.5-pro (high) is *indicative*, like fable-5 in
+Exp8. **Robust to effort:** GPT breaks the Claude terminal-only invariant (browser output
+in both GPT models, zero Claude runs Exp7–9), neither GPT fixates, and both write far more
+code than any Claude model. **Effort-confounded (not a tier claim):** gpt-5.5-pro's test
+files, READMEs, and higher LOC scale with reasoning budget. A matched gpt-5.5-at-high run
+would isolate tier from effort.
+
 ### Model Personalities
 
 Each model shows a consistent thematic identity across experiments (topic analysis includes partial output from error runs):
@@ -322,6 +373,8 @@ Each model shows a consistent thematic identity across experiments (topic analys
 | **haiku-4.5** | The diligent engineer. Task managers every time, but ships them with READMEs, tests, config, multi-file structure. Highest engineering maturity of any model. Proposed without implementing in Exp2 (4/5), fully implemented in Exp3 (5/5). | Task managers | High (tests, READMEs, config) |
 | **gpt-5-mini** | The disciplined shipper. Small but complete: tests, CI, pyproject.toml every time. Only productive GPT model on claude backend. | None | Highest (tests + CI always) |
 | **gpt-5.4** | Backend-dependent. On codex (native): diverse, 230 LOC avg, web apps + CLI tools. On claude backend: near-silent. | None | Low–Medium |
+| **gpt-5.5** | The browser-app builder. Under the volitional prompt (Exp10, codex, low/fast effort) it makes single-page **browser productivity dashboards** — focus boards, a signal board, a scratch timer — in 4/5 runs (the 5th declines, writing a "Workspace Notes" README). First model family to break Claude's terminal-only habit by default; ~343 LOC, no tests. | None (browser-app lean) | Low (no tests, some READMEs) |
+| **gpt-5.5-pro** | The high-effort engineer (effort-confounded). Under the volitional prompt at `high` effort (Exp10; `low` unsupported) it splits between **workspace-introspection CLI tools** (Snapshot, Digest, Pulse — Python with tests + READMEs) and multi-file browser apps. Highest engineering maturity under this prompt (tests 3/5), but this scales with reasoning budget, not demonstrably with tier. Slow (~10 min/run), ~498 LOC. | None (diverse) | High (tests 3/5, READMEs 4/5) — at high effort |
 | **gpt-4.1** | The minimalist. Todo list apps on codex, occasional stub on claude. Functional but unambitious. | Todo apps | Low |
 | **gemini-**** | Non-functional on both backends. 1 file across 20 runs on claude backend. | N/A | N/A |
 
@@ -431,6 +484,7 @@ run.sh:
 | `results7/` | Experiment 7 output + [RESULTS.md](results7/RESULTS.md) |
 | `results8/` | Experiment 8 output + [RESULTS.md](results8/RESULTS.md) |
 | `results9/` | Experiment 9 output + [RESULTS.md](results9/RESULTS.md) |
+| `results10/` | Experiment 10 output + [RESULTS.md](results10/RESULTS.md) |
 
 ## Future Experiment Ideas
 
