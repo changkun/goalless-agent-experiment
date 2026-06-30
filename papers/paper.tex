@@ -55,7 +55,7 @@
 What do AI coding agents build when given no specification?
 Motivated by a production deployment where an autonomous pipeline
 plateaued into micro-optimizations, we conducted a controlled
-study across 420~sessions spanning 16~models, 3~providers,
+study across 440~sessions spanning 19~models, 3~providers,
 2~backends, 5~prompts, and 3~harness versions. We document three
 phenomena: (1)~large factor sensitivity, prompt wording determines
 whether agents propose or implement, whether outputs are 30 or
@@ -114,8 +114,8 @@ of what we saw was a property of the model versus an artifact of
 the setup. So we ran a controlled sweep.
 
 This paper is an empirical study of what AI coding agents
-produce under underspecified prompts. Across 420~sessions
-spanning 16~models, 2~backends, 5~prompts, and 3~harness
+produce under underspecified prompts. Across 440~sessions
+spanning 19~models, 2~backends, 5~prompts, and 3~harness
 versions, we report three observations:
 
 \textbf{(1)~Factor sensitivity is large.} Prompt wording
@@ -339,7 +339,7 @@ wording, motivating the controlled experiments in
 \subsection{Controlled Single-Session Experiments}
 \label{sec:controlled}
 
-We test 17 models across three providers
+We test 19 models across three providers
 (Table~\ref{tab:models}), accessed through a unified API gateway
 routing to Anthropic API, Google Vertex AI, and Azure OpenAI.
 Two containerized sandbox backends provide execution environments:
@@ -375,10 +375,12 @@ Provider & Model ID & Notes \\
   & gemini-2.5-pro    & Previous generation \\
   & gemini-2.0-flash   & Older generation \\
 \midrule
-\multirow{5}{*}{OpenAI}
-  & gpt-5.4       & Latest, largest \\
-  & gpt-5.1       & Latest, mid-tier \\
-  & gpt-5-mini    & Latest, small \\
+\multirow{7}{*}{OpenAI}
+  & gpt-5.5-pro   & Newest, reasoning (Exp10) \\
+  & gpt-5.5       & Newest, large (Exp10) \\
+  & gpt-5.4       & Later, largest \\
+  & gpt-5.1       & Later, mid-tier \\
+  & gpt-5-mini    & Later, small \\
   & gpt-4.1       & Previous generation \\
   & gpt-4.1-mini  & Previous, small \\
 \bottomrule
@@ -418,7 +420,11 @@ the other four Claude models (sonnet-4.6, sonnet-4.5, opus-4.5,
 haiku-4.5; 20 sessions). Experiment~8: opus-4.6, opus-4.7, and
 the newer opus-4.8 with Prompt~5 on harness 2.1.154, a clean
 single-variable (model) comparison and a harness replication of
-the Exp7 volitional probe (15 sessions). Total: 420 sessions
+the Exp7 volitional probe (15 sessions). Experiment~9: sonnet-4.6
+and sonnet-5 with Prompt~5 on the Exp8 stack, a single-variable
+model comparison within the Sonnet family (10 sessions).
+Experiment~10: gpt-5.5 and gpt-5.5-pro with Prompt~5 on the Codex
+backend (10 sessions). Total: 440 sessions
 (Figure~\ref{fig:matrix}).
 
 \begin{figure}[t]
@@ -438,6 +444,8 @@ the Exp7 volitional probe (15 sessions). Total: 420 sessions
 \node[exp] (E6) at (0,-5.0) {Exp\,6: Bare prompt};
 \node[exp] (E7) at (0,-6.0) {Exp\,7: Volitional};
 \node[exp] (E8) at (0,-7.0) {Exp\,8: Harness replication};
+\node[exp] (E9) at (0,-8.0) {Exp\,9: Sonnet family};
+\node[exp] (E10) at (0,-9.0) {Exp\,10: GPT / codex};
 
 \node[dim, right=4mm of E1.east, anchor=west, align=left]
   {14 models $\times$ 2 backends $\times$ 5 runs\\
@@ -463,6 +471,12 @@ the Exp7 volitional probe (15 sessions). Total: 420 sessions
 \node[dim, right=4mm of E8.east, anchor=west, align=left]
   {opus-4.6{+}4.7{+}4.8 $\times$ 1 backend $\times$ 5 runs\\
    CC 2.1.154 \textbar{} 15 sessions};
+\node[dim, right=4mm of E9.east, anchor=west, align=left]
+  {sonnet-4.6{+}sonnet-5 $\times$ 1 backend $\times$ 5 runs\\
+   CC 2.1.154 \textbar{} 10 sessions};
+\node[dim, right=4mm of E10.east, anchor=west, align=left]
+  {gpt-5.5{+}gpt-5.5-pro $\times$ codex $\times$ 5 runs\\
+   codex 0.142.4 \textbar{} 10 sessions};
 
 \draw[arr] (E1.south) -- node[right, font=\tiny, text=black!50]
   {observed env bias} (E2.north);
@@ -478,10 +492,14 @@ the Exp7 volitional probe (15 sessions). Total: 420 sessions
   {elicit preference} (E7.north);
 \draw[arr] (E7.south) -- node[right, font=\tiny, text=black!50]
   {replicate on new harness} (E8.north);
+\draw[arr] (E8.south) -- node[right, font=\tiny, text=black!50]
+  {new model family} (E9.north);
+\draw[arr] (E9.south) -- node[right, font=\tiny, text=black!50]
+  {new provider / backend} (E10.north);
 \end{tikzpicture}
 \caption{Controlled experiment design. Each experiment was
-  informed by findings from the previous one. Total: 420
-  sessions across 16 models. CC\,=\,Claude Code.
+  informed by findings from the previous one. Total: 440
+  sessions across 19 models. CC\,=\,Claude Code.
   Experiment~7 includes 10 primary sessions (opus-4.6/4.7 on
   Prompt~5) plus 20 supplementary sessions replicating Prompt~3
   for the other four Claude models on harness 2.1.112.
@@ -958,6 +976,66 @@ sonnet-4.6 & 5 & 125 & none  & Mandelbrot 2, cellular automata, GoL, digital rai
 \end{tabular}}
 \end{table}
 
+\subsection{Experiment~10: The GPT Family on the Codex Backend}
+
+Experiment~10 applies the volitional Prompt~5 to two OpenAI
+models, gpt-5.5 and gpt-5.5-pro, on the Codex backend
+(Codex CLI 0.142.4), five runs each. A reasoning-effort
+constraint shapes the comparison and must be stated first.
+gpt-5.5 ran in the harness's default fast mode, which pins
+codex reasoning effort to \texttt{low}; gpt-5.5-pro
+\emph{rejects} \texttt{low} (it supports only
+\texttt{medium}/\texttt{high}/\texttt{xhigh}) and was therefore
+run at \texttt{high}. The two columns thus differ in \emph{both}
+model tier and reasoning effort, so this is not a single-variable
+comparison. We read gpt-5.5 (low) as the controlled GPT point,
+consistent with the GPT baseline of Exp1--3, and gpt-5.5-pro
+(high) as an \emph{indicative} high-effort point, the same status
+fable-5 holds in Exp8. Any difference that scales with reasoning
+budget, test files, line count, multi-file structure, is therefore
+attributed to effort, not tier.
+
+The result (Table~\ref{tab:exp10}) is a clean provider-level
+contrast with the Claude experiments. gpt-5.5 builds a
+single-page \emph{browser} application in four of five runs,
+focus boards, a signal board, and a scratch timer, loosely
+clustered as productivity dashboards; the fifth run declines,
+writing only a short README stating the workspace is empty. This
+breaks the terminal-only invariant that held across every Claude
+run under this prompt (Exp7--9): where Claude defaults to a
+terminal program, gpt-5.5 defaults to HTML in the browser.
+gpt-5.5-pro splits three-to-two between Python command-line tools
+(two of them workspace introspectors) and browser apps, and adds
+tests in three runs and READMEs in four, the highest engineering
+maturity any model reaches under this prompt, though under the
+effort confound we read that maturity as a budget effect rather
+than a tier property. Two robust, effort-independent observations
+survive: browser output appears in both GPT models and in zero
+Claude runs under this prompt, and both GPT models write far more
+code than any Claude model here (average 343 and 498 LOC versus
+Claude's 37--145). The greenfield invariant continues to hold, no
+GPT run extends existing code, but the terminal-only and
+single-file invariants do not.
+
+\begin{table}[t]
+\caption{Experiment~10: Prompt~5 (``Just do something you
+  want.'') on the Codex backend. Reasoning effort differs by model
+  (gpt-5.5-pro rejects \texttt{low}), so tier and effort are
+  confounded; gpt-5.5-pro is indicative, not a tier comparison.
+  gpt-5.5 LOC is averaged over its four implementing runs (the
+  fifth declined).}
+\label{tab:exp10}
+\small\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llrlp{2.4cm}}
+\toprule
+Model & Effort & Avg LOC & Fixation & Output (5 runs) \\
+\midrule
+gpt-5.5     & low  & 343 & none & browser apps 4, declined 1 \\
+gpt-5.5-pro & high & 498 & none & Python CLI 3, browser apps 2 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
 %% ============================================================
 \section{Discussion}
 \label{sec:discussion}
@@ -1026,14 +1104,17 @@ fixation strength and complexity. These factors are
 orthogonal to coding ability as measured by conventional
 benchmarks.
 
-Some properties are stable across all 420~sessions: no
-session extended or modified existing code, and Python
-dominates once environment cues are removed. We call these
-stable rather than invariant because the terminal-only
-default \emph{did} collapse under a bare imperative (Exp6,
-3 of 10 browser outputs), and an apparent invariant that
-breaks under one manipulation may break under others we did
-not test. The stable properties plausibly reflect the
+One property is stable across all 440~sessions: no
+session extended or modified existing code (the greenfield
+invariant). Python dominance, by contrast, is a Claude-and-Gemini
+default, not universal, as Exp10 shows. We call the terminal-only
+and single-file defaults stable rather than invariant because
+both \emph{did} collapse: terminal-only under a bare imperative
+(Exp6, 3 of 10 browser outputs) and, more sharply, under a change
+of provider (Exp10, where the GPT/codex stack defaults to browser
+applications and multi-file projects). An apparent invariant that
+breaks under one manipulation may break under others we did not
+test. The stable properties plausibly reflect the
 highest-density region of ``things to build from scratch'' in
 the training distribution; the variants reveal how easily
 that default region can be shifted.
@@ -1138,7 +1219,7 @@ question we cannot answer from the current data.
 
 \subsection{The Greenfield Invariant}
 
-Across all 420 sessions, no model chose to extend or modify
+Across all 440 sessions, no model chose to extend or modify
 existing code. Every session produced a new project from
 scratch, even when the workspace contained artifacts from a
 conceptually related domain. This \emph{greenfield invariant}
@@ -1168,6 +1249,14 @@ in Exp1 was \emph{induced by the environment}: RTK's presence
 provided context that made other languages salient. Without such
 context, agents default to the highest-probability language
 regardless of task suitability.
+
+The Python default is, however, provider-specific. It holds across
+the Claude and Gemini families, but Experiment~10 shows the
+GPT/codex stack defaults elsewhere: gpt-5.5 writes HTML/CSS/JS for
+the browser in four of five runs, and gpt-5.5-pro splits between
+Python command-line tools and browser apps. The ``default
+language'' is thus better read as a property of a provider's
+post-training than of LLM code generation in general.
 
 \subsection{Observations Relevant to Deployment}
 
@@ -1279,7 +1368,7 @@ under underspecified prompts, motivated by a production
 deployment where an autonomous pipeline plateaued into
 micro-optimizations despite strong implementation capability.
 
-Across 420 sessions spanning 16 models, 2 backends, 5 prompts,
+Across 440 sessions spanning 19 models, 2 backends, 5 prompts,
 and 3 harness versions, three observations stand out. A
 one-sentence volitional prompt (``Just do something you
 want.'') produced the sharpest within-condition signal we
