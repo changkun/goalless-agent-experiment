@@ -138,6 +138,32 @@ README).
 
 See **[results10/RESULTS.md](results10/RESULTS.md)** for the full per-run breakdown.
 
+### Experiment 11 — `prompt5.txt` (volitional framing, gpt-5.6 variants at matched high effort)
+
+> Just do something you want.
+
+Same volitional prompt on the **codex backend** (OpenAI Codex CLI **0.144.0**,
+image `v0.144.0`, lux `/openai` gateway) across the three **gpt-5.6 personality
+variants** — **gpt-5.6-sol**, **gpt-5.6-terra**, **gpt-5.6-luna** — all at
+**reasoning effort `high`** (via the new `CODEX_REASONING_EFFORT` override in
+`run.sh`). Unlike Exp10, the three columns share one effort, so within Exp11
+the model variant is the only variable.
+
+**The terminal-only invariant stays broken** — 14/15 runs are self-contained
+browser HTML pages (the 15th, a terra run, declines and writes only a README,
+echoing gpt-5.5's decline). But **the other two Exp10 GPT findings do not
+extend to gpt-5.6**: at matched high effort it writes *less* code than gpt-5.5
+at low (73–174 avg LOC vs 343/498 — inside the Claude range), and shows **zero
+engineering maturity (0/15 tests)** where gpt-5.5-pro at the same effort wrote
+tests in 3/5 — so Exp10's maturity effect is at least partly model-specific,
+not pure reasoning budget. And **thematic fixation appears in a GPT model for
+the first time**: gpt-5.6-sol builds the same breathing/night-sky ambient page
+**5/5**, with all three variants clustering on a calm/contemplative/wellness
+theme (sol = ambient/generative, terra = focus timers, luna = reflection
+micro-apps) — a marked shift from gpt-5.5's productivity dashboards.
+
+See **[results11/RESULTS.md](results11/RESULTS.md)** for the full per-run breakdown.
+
 Each experiment includes:
 - Topic proposed and implementation status
 - Tech stack (language, frameworks)
@@ -158,6 +184,7 @@ flowchart LR
     E8["<b>Exp 8</b><br/>prompt5 · RTK out · opus-4.6+4.7+4.8<br/>CC 2.1.154 · claude"]
     E9["<b>Exp 9</b><br/>prompt5 · RTK out · sonnet-4-6+sonnet-5<br/>CC 2.1.154 · claude"]
     E10["<b>Exp 10</b><br/>prompt5 · RTK out · gpt-5.5+gpt-5.5-pro<br/>codex 0.142.4 · codex"]
+    E11["<b>Exp 11</b><br/>prompt5 · RTK out · gpt-5.6-sol+terra+luna @high<br/>codex 0.144.0 · codex"]
 
     E1 -->|"remove RTK<br/>dev tools → games"| E2
     E2 -->|"change prompt<br/>haiku 1/5 → 5/5"| E3
@@ -168,6 +195,7 @@ flowchart LR
     E7 -->|"upgrade harness + add opus-4.8<br/>4.6 holds 5/5; 4.7 fixation breaks"| E8
     E8 -->|"same stack, Sonnet family<br/>sonnet-5 GoL 5/5; sonnet-4-6 diverse"| E9
     E9 -->|"codex backend, GPT family<br/>terminal-only invariant breaks → browser apps"| E10
+    E10 -->|"gpt-5.6 variants, matched high effort<br/>GPT fixation appears; LOC + maturity collapse"| E11
 ```
 
 **Pairwise comparisons** (one variable changed, rest held constant):
@@ -186,21 +214,23 @@ flowchart LR
 | Exp8 ↔ Exp9 | Model family (Opus vs Sonnet), same stack | Prompt, harness, environment | Suggestive cross-family inversion: Opus *point* releases loosen fixation (4.6→4.7→4.8); Sonnet *major-version* jump tightens it (4-6→5). Not single-variable — different version granularity and family. |
 | Exp9 → Exp10 | Provider + backend (Claude → GPT/codex) | Prompt, run count | GPT breaks the terminal-only invariant: gpt-5.5 builds browser productivity dashboards (4/5) vs Claude's universal terminal output; neither GPT fixates; GPT writes ≫ code (343/498 vs 36–145 LOC). gpt-5.5 also declines once. |
 | Exp10 within | Tier **and** effort (gpt-5.5 low vs gpt-5.5-pro high) | Prompt, backend | **Confounded, not single-variable** (pro rejects `low`). Robust: both GPT diverse, both ≫ Claude LOC, web output in both. Effort-confounded (NOT tier): tests 0/5→3/5, LOC 343→498, multi-file. Treat pro as indicative. |
+| Exp10 → Exp11 | Model generation (gpt-5.5 → gpt-5.6) + codex 0.142.4 → 0.144.0 | Prompt, backend | Browser output persists (14/15) but the high-LOC and maturity findings collapse: gpt-5.6 at high effort writes 73–174 avg LOC (inside the Claude range) with **0/15 tests** vs gpt-5.5-pro's 3/5 at the same effort — Exp10's maturity effect is at least partly model-specific, not pure effort. |
+| Exp11 within | Model variant only (sol vs terra vs luna, identical stack + effort) | Prompt, backend, effort | First GPT fixation: **sol → breathing/night-sky pages 5/5**; terra and luna cluster moderately (focus timers / reflection micro-apps). All three share a calm/contemplative theme; terra declines once, tersest (73 avg LOC). |
 
 **Per-experiment output profile:**
 
-| | Exp1 | Exp2 | Exp3 | Exp4 | Exp5 | Exp6 | Exp7 | Exp8 | Exp9 | Exp10 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Dominant lang | Python/Go/Rust | Python | Python | Python | Python/Go | Python + **HTML/JS** | Python | Python | Python | **HTML/JS** (5.5) / Python+HTML (pro) |
-| Project type | Dev tools, TUIs | Games, interactive | Games, CLI tools | Simulations, GoL | Simulations, GoL | GoL + **browser sims** | **GoL / Mandelbrot only** | Rule-based visual artifacts (GoL, maze, Mandelbrot, Lorenz, Collatz…) | **GoL only (s5)** / Mandelbrot, CA, GoL, rain (s4-6) | **Browser productivity dashboards** (5.5) / CLI introspectors + web (pro) |
-| Avg LOC | 221–776 | 160–408 | 290–467 | 538 | 262–387 | 140–160 | **36 / 36** | **37 / 66 / 145** (4.6/4.7/4.8) | **69 / 138** (s5/s4-6) | **343 / 498** (5.5 low / pro high) |
-| Typical files | 1–2 | 1 | 1–6 | 1–3 | 1–4 | 1 | 1 | 1 (4.8: 1–3) | 1 | 1 (5.5) / 1–4 (pro) |
-| Tests written | Rare | None | Haiku only | 2/5 runs | None | None | None | 4.8 only (1/5 self-test) | None | 0/5 (5.5) / **3/5 (pro, effort)** |
-| Fixation observed | None | Opus-4.6 → GoL | Opus-4.6 → GoL | GoL 1/5 only | Both models | Both → GoL | **5/5 per model (distinct)** | **4.6 → GoL 5/5; 4.7 none; 4.8 partial** | **s5 → GoL 5/5; s4-6 none** | None (both GPT diverse) |
-| External deps | Occasional | None | Rare | None | Rare (tcell) | None | None | None | None | None |
-| Terminal-only | Yes | Yes | Yes | Yes | Yes | **No (3/10 web)** | Yes | Yes | Yes | **No (GPT → browser)** |
+| | Exp1 | Exp2 | Exp3 | Exp4 | Exp5 | Exp6 | Exp7 | Exp8 | Exp9 | Exp10 | Exp11 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Dominant lang | Python/Go/Rust | Python | Python | Python | Python/Go | Python + **HTML/JS** | Python | Python | Python | **HTML/JS** (5.5) / Python+HTML (pro) | **HTML/JS** (all three) |
+| Project type | Dev tools, TUIs | Games, interactive | Games, CLI tools | Simulations, GoL | Simulations, GoL | GoL + **browser sims** | **GoL / Mandelbrot only** | Rule-based visual artifacts (GoL, maze, Mandelbrot, Lorenz, Collatz…) | **GoL only (s5)** / Mandelbrot, CA, GoL, rain (s4-6) | **Browser productivity dashboards** (5.5) / CLI introspectors + web (pro) | **Calm/contemplative browser pages** (breathing, focus timers, reflection) |
+| Avg LOC | 221–776 | 160–408 | 290–467 | 538 | 262–387 | 140–160 | **36 / 36** | **37 / 66 / 145** (4.6/4.7/4.8) | **69 / 138** (s5/s4-6) | **343 / 498** (5.5 low / pro high) | **172 / 73 / 174** (sol/terra/luna, all high) |
+| Typical files | 1–2 | 1 | 1–6 | 1–3 | 1–4 | 1 | 1 | 1 (4.8: 1–3) | 1 | 1 (5.5) / 1–4 (pro) | 1 (occasionally +README) |
+| Tests written | Rare | None | Haiku only | 2/5 runs | None | None | None | 4.8 only (1/5 self-test) | None | 0/5 (5.5) / **3/5 (pro, effort)** | **0/15 (at high effort)** |
+| Fixation observed | None | Opus-4.6 → GoL | Opus-4.6 → GoL | GoL 1/5 only | Both models | Both → GoL | **5/5 per model (distinct)** | **4.6 → GoL 5/5; 4.7 none; 4.8 partial** | **s5 → GoL 5/5; s4-6 none** | None (both GPT diverse) | **sol → breathing/sky 5/5**; terra/luna partial (theme) |
+| External deps | Occasional | None | Rare | None | Rare (tcell) | None | None | None | None | None | None |
+| Terminal-only | Yes | Yes | Yes | Yes | Yes | **No (3/10 web)** | Yes | Yes | Yes | **No (GPT → browser)** | **No (14/15 browser)** |
 
-**Invariants across Exp1–Exp5:** every model defaulted to terminal output (no web apps, no GUIs, no databases). **Exp6 breaks this:** with the bare prompt "Build something. Just do it.", 3/10 runs produced HTML/Canvas/JS in a browser (particle sandbox, flowfield, boids). **Exp7 restores terminal-only** under volitional framing. **Exp8 stays terminal-leaning** (one opus-4.8 run emits an SVG/PNG file via a generated renderer, but no browser output). Single-file projects still dominate (opus-4.8 occasionally reaches 2–3 files). **Exp9 (Sonnet family) is terminal-only and strictly single-file across all 10 runs**, with no tests, READMEs, or config. **Exp10 (GPT family on codex) breaks the terminal-only invariant the hardest:** gpt-5.5 emits browser HTML dashboards in 4/5 runs and gpt-5.5-pro in 2/5, none in the terminal-only style; gpt-5.5-pro also reaches 3–4 files. The **greenfield invariant still holds everywhere** — no model across Exp1–Exp10 ever extends or modifies existing code; they always greenfield.
+**Invariants across Exp1–Exp5:** every model defaulted to terminal output (no web apps, no GUIs, no databases). **Exp6 breaks this:** with the bare prompt "Build something. Just do it.", 3/10 runs produced HTML/Canvas/JS in a browser (particle sandbox, flowfield, boids). **Exp7 restores terminal-only** under volitional framing. **Exp8 stays terminal-leaning** (one opus-4.8 run emits an SVG/PNG file via a generated renderer, but no browser output). Single-file projects still dominate (opus-4.8 occasionally reaches 2–3 files). **Exp9 (Sonnet family) is terminal-only and strictly single-file across all 10 runs**, with no tests, READMEs, or config. **Exp10 (GPT family on codex) breaks the terminal-only invariant the hardest:** gpt-5.5 emits browser HTML dashboards in 4/5 runs and gpt-5.5-pro in 2/5, none in the terminal-only style; gpt-5.5-pro also reaches 3–4 files. **Exp11 (gpt-5.6 variants) keeps it broken:** 14/15 runs are browser HTML pages, all effectively single-file. The **greenfield invariant still holds everywhere** — no model across Exp1–Exp11 ever extends or modifies existing code; they always greenfield.
 
 **What changes behavior:**
 
@@ -216,6 +246,7 @@ flowchart LR
 | Harness version | Exp7 vs Exp8 | Large for 4.7 (Mandelbrot 5/5 → 5 distinct), none for 4.6 (GoL 5/5 holds): fixation robustness is itself model-specific |
 | Provider/backend | Exp9 vs Exp10 (Claude vs GPT/codex) | Large: terminal-only invariant breaks (Claude → terminal, GPT → browser apps); GPT writes 3–10× the code |
 | Reasoning effort | Exp10 within (gpt-5.5 low vs pro high) | Confounded with tier, but effort visibly buys tests, LOC, multi-file structure — a likely-large effect not cleanly isolated here |
+| Model generation (GPT) | Exp10 vs Exp11 (gpt-5.5 family vs gpt-5.6 variants) | Large: at matched high effort, LOC drops 498 → 73–174 and tests 3/5 → 0/15; topic family flips from productivity dashboards to calm/contemplative pages — Exp10's maturity-from-effort reading is partly model-specific |
 
 ### Key Findings
 
@@ -356,6 +387,26 @@ code than any Claude model. **Effort-confounded (not a tier claim):** gpt-5.5-pr
 files, READMEs, and higher LOC scale with reasoning budget. A matched gpt-5.5-at-high run
 would isolate tier from effort.
 
+**Experiment 11** (volitional prompt "Just do something you want." — gpt-5.6 variants on the codex backend, codex-cli 0.144.0, image v0.144.0, all at reasoning effort `high`):
+
+| Model | N | Effort | Avg LOC | Output target | Tests | Typical Project |
+|-------|---|--------|---------|---------------|-------|-----------------|
+| gpt-5.6-sol | 5 | high | 172 | browser HTML 5/5 | 0/5 | **Breathing/night-sky ambient pages 5/5** (One Quiet Minute, Night Garden, Breathing Room, A Small Sky) |
+| gpt-5.6-terra | 5 | high | 73† | browser HTML 4/5 | 0/5 | Focus timers ×2, one-thing picker, contemplative clock (1 run declined) |
+| gpt-5.6-luna | 5 | high | 174 | browser HTML 5/5 | 0/5 | Calm/reflection micro-apps (Blank Canvas, Tiny Wins, Pause, breathing orb) |
+
+† averaged over terra's 4 implementing runs (run-05 declined, wrote a 9-LOC welcome README).
+
+Within Exp11 the model variant is the only variable (shared stack and effort).
+**Replicates from Exp10:** browser output (14/15) and the greenfield invariant; the
+decline behavior recurs (terra run-05, like gpt-5.5 run-05). **Diverges:** gpt-5.6 at
+high effort writes *less* code than gpt-5.5 at low (73–174 vs 343) and shows **0/15
+tests** at the same effort where gpt-5.5-pro wrote 3/5 — so Exp10's maturity effect is
+at least partly model-specific rather than pure reasoning budget. And **fixation
+appears in a GPT model for the first time**: sol repeats the breathing/night-sky page
+5/5, and all three variants cluster on a calm/contemplative theme instead of gpt-5.5's
+productivity dashboards. Runs are fast (27–72s) and low-variance.
+
 ### Model Personalities
 
 Each model shows a consistent thematic identity across experiments (topic analysis includes partial output from error runs):
@@ -375,6 +426,9 @@ Each model shows a consistent thematic identity across experiments (topic analys
 | **gpt-5.4** | Backend-dependent. On codex (native): diverse, 230 LOC avg, web apps + CLI tools. On claude backend: near-silent. | None | Low–Medium |
 | **gpt-5.5** | The browser-app builder. Under the volitional prompt (Exp10, codex, low/fast effort) it makes single-page **browser productivity dashboards** — focus boards, a signal board, a scratch timer — in 4/5 runs (the 5th declines, writing a "Workspace Notes" README). First model family to break Claude's terminal-only habit by default; ~343 LOC, no tests. | None (browser-app lean) | Low (no tests, some READMEs) |
 | **gpt-5.5-pro** | The high-effort engineer (effort-confounded). Under the volitional prompt at `high` effort (Exp10; `low` unsupported) it splits between **workspace-introspection CLI tools** (Snapshot, Digest, Pulse — Python with tests + READMEs) and multi-file browser apps. Highest engineering maturity under this prompt (tests 3/5), but this scales with reasoning budget, not demonstrably with tier. Slow (~10 min/run), ~498 LOC. | None (diverse) | High (tests 3/5, READMEs 4/5) — at high effort |
+| **gpt-5.6-sol** | The ambient generative artist. Under the volitional prompt at high effort (Exp11) it builds the same calm **breathing/night-sky browser page 5/5** — the first GPT-family fixation observed, and Claude-like in its consistency (generative stars, drifting lights, breathing orbs). ~172 avg LOC, no tests. | Breathing/night-sky pages (strong, Exp11) | Low (no tests, 2/5 READMEs) |
+| **gpt-5.6-terra** | The focus minimalist. Pomodoro-style focus timers and attention pages ("One Thing", contemplative clock) in tiny single files — the tersest GPT column (~73 avg LOC) — and the only gpt-5.6 variant to decline a run (welcome README instead). | Focus/intentionality (moderate, Exp11) | Low (no tests) |
+| **gpt-5.6-luna** | The self-care app maker. Calm/reflection browser micro-apps (Blank Canvas, Tiny Wins with localStorage, Pause, breathing orb) — strictly single-file, never a README or test, ~174 avg LOC. | Calm/reflection (moderate, Exp11) | Low (no tests, no READMEs) |
 | **gpt-4.1** | The minimalist. Todo list apps on codex, occasional stub on claude. Functional but unambitious. | Todo apps | Low |
 | **gemini-**** | Non-functional on both backends. 1 file across 20 runs on claude backend. | N/A | N/A |
 
@@ -473,7 +527,7 @@ run.sh:
 | `prompt2.txt` | Experiment 2 prompt |
 | `prompt3.txt` | Experiment 3 prompt |
 | `prompt4.txt` | Experiment 6 prompt (bare imperative) |
-| `prompt5.txt` | Experiment 7/8 prompt (volitional framing) |
+| `prompt5.txt` | Experiment 7–11 prompt (volitional framing) |
 | `models.txt` | List of models to test |
 | `results1/` | Experiment 1 output + [RESULTS.md](results1/RESULTS.md) |
 | `results2/` | Experiment 2 output + [RESULTS.md](results2/RESULTS.md) |
@@ -485,6 +539,7 @@ run.sh:
 | `results8/` | Experiment 8 output + [RESULTS.md](results8/RESULTS.md) |
 | `results9/` | Experiment 9 output + [RESULTS.md](results9/RESULTS.md) |
 | `results10/` | Experiment 10 output + [RESULTS.md](results10/RESULTS.md) |
+| `results11/` | Experiment 11 output + [RESULTS.md](results11/RESULTS.md) |
 
 ## Future Experiment Ideas
 
