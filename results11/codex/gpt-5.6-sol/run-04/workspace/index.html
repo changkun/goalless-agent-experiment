@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A little breathing space</title>
+  <style>
+    :root { color-scheme: dark; font-family: ui-rounded, "SF Pro Rounded", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100svh; overflow: hidden; color: #edf6ff;
+      background: radial-gradient(circle at 50% 120%, #224053 0, #101a2b 44%, #070a13 100%);
+    }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+    main {
+      position: relative; z-index: 1; min-height: 100svh; display: grid; place-content: center;
+      padding: 2rem; text-align: center; pointer-events: none;
+    }
+    h1 { margin: 0; font-size: clamp(2.5rem, 9vw, 7rem); font-weight: 300; letter-spacing: -.055em; }
+    p { margin: .7rem 0 0; color: #b6c8d7; font-size: clamp(.9rem, 2vw, 1.05rem); letter-spacing: .04em; }
+    .orb {
+      width: clamp(7rem, 20vw, 11rem); aspect-ratio: 1; margin: 2.2rem auto;
+      border: 1px solid #b9e5e844; border-radius: 50%;
+      background: radial-gradient(circle at 38% 35%, #d9ffff66, #6cd4d322 42%, transparent 70%);
+      box-shadow: 0 0 60px #64d9d633, inset 0 0 45px #bff8ff22;
+      animation: breathe 8s ease-in-out infinite;
+    }
+    small { color: #8097aa; }
+    @keyframes breathe {
+      0%, 100% { transform: scale(.82); opacity: .64; }
+      50% { transform: scale(1.12); opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) { .orb { animation: none; } }
+  </style>
+</head>
+<body>
+  <canvas aria-hidden="true"></canvas>
+  <main>
+    <h1>be here now</h1>
+    <div class="orb" aria-hidden="true"></div>
+    <p>breathe in as the light grows · out as it softens</p>
+    <p><small>click anywhere to leave a little light</small></p>
+  </main>
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const lights = [];
+    let w, h, dpr;
+
+    function resize() {
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      w = innerWidth; h = innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    function add(x = Math.random() * w, y = Math.random() * h, born = -Math.random() * 5000) {
+      lights.push({ x, y, born: performance.now() + born, r: 1 + Math.random() * 2, phase: Math.random() * 7 });
+      if (lights.length > 90) lights.shift();
+    }
+    function draw(now) {
+      ctx.clearRect(0, 0, w, h);
+      for (const light of lights) {
+        const age = (now - light.born) / 1000;
+        const drift = age * 3;
+        const alpha = Math.max(0, Math.min(1, age * 2)) * (.35 + .35 * Math.sin(age * 1.5 + light.phase));
+        const glow = ctx.createRadialGradient(light.x, light.y - drift, 0, light.x, light.y - drift, light.r * 7);
+        glow.addColorStop(0, `rgba(196,255,226,${alpha})`);
+        glow.addColorStop(1, 'rgba(125,225,190,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(light.x, light.y - drift, light.r * 7, 0, Math.PI * 2); ctx.fill();
+        if (light.y - drift < -20) Object.assign(light, { y: h + 20, born: now });
+      }
+      requestAnimationFrame(draw);
+    }
+    addEventListener('resize', resize);
+    addEventListener('pointerdown', event => {
+      for (let i = 0; i < 7; i++) add(event.clientX + (Math.random() - .5) * 50, event.clientY + (Math.random() - .5) * 50);
+    });
+    resize();
+    for (let i = 0; i < 42; i++) add();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A Small Focus Timer</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        min-height: 100vh; margin: 0; display: grid; place-items: center;
+        background: radial-gradient(circle at 20% 20%, #27465c, #111827 55%, #090d15);
+        color: #f5f1e8; font: 16px/1.5 system-ui, sans-serif;
+      }
+      main { width: min(92vw, 34rem); text-align: center; padding: 2.5rem; }
+      h1 { font-size: clamp(1.5rem, 4vw, 2.25rem); margin: 0; }
+      p { color: #b9c6cf; }
+      #time { font: 700 clamp(5rem, 22vw, 9rem)/1 ui-monospace, SFMono-Regular, monospace; letter-spacing: -.08em; margin: 1.5rem 0; }
+      .controls { display: flex; justify-content: center; gap: .7rem; flex-wrap: wrap; }
+      button {
+        border: 1px solid #90c6bb; border-radius: 999px; padding: .65rem 1.1rem;
+        background: transparent; color: inherit; cursor: pointer; font: inherit;
+      }
+      button:hover, button:focus-visible { background: #90c6bb; color: #10201f; outline: none; }
+      .presets { margin-top: 1.5rem; font-size: .875rem; }
+      .presets button { border-color: #51636f; padding: .35rem .7rem; color: #c6d3dc; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Make room for one thing.</h1>
+      <p>Set a gentle boundary, then begin.</p>
+      <div id="time" role="timer" aria-live="polite">25:00</div>
+      <div class="controls">
+        <button id="start" type="button">Start</button>
+        <button id="reset" type="button">Reset</button>
+      </div>
+      <div class="presets" aria-label="Timer duration">
+        <button type="button" data-minutes="5">5 min</button>
+        <button type="button" data-minutes="25">25 min</button>
+        <button type="button" data-minutes="50">50 min</button>
+      </div>
+    </main>
+    <script>
+      const display = document.querySelector('#time');
+      const start = document.querySelector('#start');
+      let total = 25 * 60, remaining = total, interval;
+      const render = () => {
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        display.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+        document.title = `${display.textContent} — Focus`;
+      };
+      const stop = () => { clearInterval(interval); interval = undefined; start.textContent = 'Start'; };
+      start.addEventListener('click', () => {
+        if (interval) return stop();
+        interval = setInterval(() => {
+          if (remaining <= 1) {
+            remaining = 0; render(); stop();
+            display.textContent = 'Done'; document.title = 'Done — Focus';
+            return;
+          }
+          remaining--; render();
+        }, 1000);
+        start.textContent = 'Pause';
+      });
+      document.querySelector('#reset').addEventListener('click', () => { stop(); remaining = total; render(); });
+      document.querySelectorAll('[data-minutes]').forEach(button => button.addEventListener('click', () => {
+        stop(); total = remaining = Number(button.dataset.minutes) * 60; render();
+      }));
+      render();
+    </script>
+  </body>
+</html>

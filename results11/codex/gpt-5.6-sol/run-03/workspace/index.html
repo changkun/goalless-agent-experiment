@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a22">
+  <title>Breathing Room</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f2efe5;
+      --muted: rgba(242, 239, 229, .62);
+      --glass: rgba(255, 255, 255, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #101a22;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-family: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+      transition: background 1.8s ease;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(88vw, 680px);
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 1.2rem;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 650;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(3.8rem, 13vw, 8.5rem);
+      font-weight: 400;
+      letter-spacing: -.065em;
+      line-height: .82;
+      text-shadow: 0 4px 35px rgba(0, 0, 0, .16);
+    }
+
+    .thought {
+      min-height: 3.4rem;
+      margin: 2.3rem auto 0;
+      color: var(--muted);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1rem, 2.2vw, 1.2rem);
+      font-style: italic;
+      line-height: 1.6;
+      opacity: 1;
+      transition: opacity .7s ease, transform .7s ease;
+    }
+
+    .thought.changing { opacity: 0; transform: translateY(5px); }
+
+    .controls {
+      position: fixed;
+      z-index: 2;
+      right: 1.2rem;
+      bottom: 1.2rem;
+      display: flex;
+      gap: .55rem;
+    }
+
+    button {
+      width: 2.8rem;
+      height: 2.8rem;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 999px;
+      background: var(--glass);
+      color: var(--ink);
+      font: inherit;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      transition: background .2s ease, transform .2s ease;
+    }
+
+    button:hover { background: rgba(255, 255, 255, .15); transform: translateY(-2px); }
+    button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+    .hint {
+      position: fixed;
+      z-index: 2;
+      left: 1.2rem;
+      bottom: 1.45rem;
+      margin: 0;
+      color: rgba(242, 239, 229, .43);
+      font-size: .7rem;
+      letter-spacing: .08em;
+      pointer-events: none;
+    }
+
+    @media (max-width: 520px) {
+      .hint { display: none; }
+      .controls { right: 50%; transform: translateX(50%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas aria-hidden="true"></canvas>
+  <main>
+    <p class="eyebrow" id="greeting">A small pause</p>
+    <h1 id="clock" aria-label="Current time">00:00</h1>
+    <p class="thought" id="thought">You don't have to fill every moment.</p>
+  </main>
+  <p class="hint">click anywhere to make a ripple</p>
+  <nav class="controls" aria-label="Page controls">
+    <button id="new-thought" type="button" title="Another thought" aria-label="Show another thought">↻</button>
+    <button id="new-sky" type="button" title="Change the sky" aria-label="Change the color palette">◐</button>
+  </nav>
+
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const clock = document.querySelector('#clock');
+    const greeting = document.querySelector('#greeting');
+    const thought = document.querySelector('#thought');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const thoughts = [
+      "You don't have to fill every moment.",
+      'Some things become clear when left alone.',
+      'There is nowhere else you need to be.',
+      'Let the next minute arrive on its own.',
+      'A quiet mind still contains the whole sky.',
+      'Notice what is already enough.',
+      'Rest is part of the work.',
+      'The day can hold you for a while.'
+    ];
+
+    const skies = [
+      ['#101a22', '#315768', '#e0a978'],
+      ['#151525', '#4b3f72', '#d88a8a'],
+      ['#13221d', '#416d5b', '#d4bc78'],
+      ['#1f1820', '#784f62', '#e2a46f'],
+      ['#0b1f2a', '#1f7082', '#89c9bd']
+    ];
+
+    let skyIndex = Math.floor(Math.random() * skies.length);
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let motes = [];
+    let ripples = [];
+
+    function resize() {
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      width = innerWidth;
+      height = innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.min(70, Math.floor(width * height / 18000));
+      motes = Array.from({ length: count }, makeMote);
+    }
+
+    function makeMote() {
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: .4 + Math.random() * 1.6,
+        speed: .08 + Math.random() * .18,
+        drift: Math.random() * Math.PI * 2,
+        alpha: .08 + Math.random() * .22
+      };
+    }
+
+    function setSky() {
+      const [base] = skies[skyIndex];
+      document.body.style.background = base;
+      document.querySelector('meta[name="theme-color"]').content = base;
+    }
+
+    function updateTime() {
+      const now = new Date();
+      const hour = now.getHours();
+      clock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      greeting.textContent = hour < 5 ? 'The late hours' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    }
+
+    function anotherThought() {
+      const current = thought.textContent;
+      let next = current;
+      while (next === current) next = thoughts[Math.floor(Math.random() * thoughts.length)];
+      thought.classList.add('changing');
+      setTimeout(() => {
+        thought.textContent = next;
+        thought.classList.remove('changing');
+      }, reducedMotion ? 0 : 700);
+    }
+
+    function ripple(x, y) {
+      ripples.push({ x, y, radius: 4, alpha: .48 });
+    }
+
+    function draw(time = 0) {
+      ctx.clearRect(0, 0, width, height);
+      const [, middle, glow] = skies[skyIndex];
+      const gx = width * (.5 + Math.sin(time / 19000) * .18);
+      const gy = height * (.42 + Math.cos(time / 23000) * .12);
+      const gradient = ctx.createRadialGradient(gx, gy, 0, gx, gy, Math.max(width, height) * .82);
+      gradient.addColorStop(0, middle + 'b8');
+      gradient.addColorStop(.48, middle + '44');
+      gradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      const glowGradient = ctx.createRadialGradient(width * .82, height * .12, 0, width * .82, height * .12, Math.max(width, height) * .52);
+      glowGradient.addColorStop(0, glow + '50');
+      glowGradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = glowGradient;
+      ctx.fillRect(0, 0, width, height);
+
+      for (const mote of motes) {
+        if (!reducedMotion) {
+          mote.y -= mote.speed;
+          mote.x += Math.sin(time / 2200 + mote.drift) * .05;
+          if (mote.y < -4) { mote.y = height + 4; mote.x = Math.random() * width; }
+        }
+        ctx.beginPath();
+        ctx.arc(mote.x, mote.y, mote.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 247, 226, ${mote.alpha})`;
+        ctx.fill();
+      }
+
+      ripples = ripples.filter(r => r.alpha > .01);
+      for (const r of ripples) {
+        if (!reducedMotion) { r.radius += 1.25; r.alpha *= .985; } else { r.alpha *= .92; }
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(255, 247, 226, ${r.alpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    addEventListener('resize', resize);
+    canvas.addEventListener('pointerdown', event => ripple(event.clientX, event.clientY));
+    document.querySelector('#new-thought').addEventListener('click', anotherThought);
+    document.querySelector('#new-sky').addEventListener('click', () => {
+      skyIndex = (skyIndex + 1) % skies.length;
+      setSky();
+    });
+    addEventListener('keydown', event => {
+      if (event.key === ' ') { event.preventDefault(); anotherThought(); }
+    });
+
+    resize();
+    setSky();
+    updateTime();
+    setInterval(updateTime, 1000);
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

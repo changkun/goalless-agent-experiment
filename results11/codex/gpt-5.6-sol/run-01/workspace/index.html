@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10162b">
+  <title>One quiet minute</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f6f1df;
+      --muted: #b9bdd0;
+      --glass: rgba(9, 13, 29, .28);
+      --line: rgba(255, 255, 255, .16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #10162b;
+      color: var(--ink);
+      font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      width: min(34rem, 100%);
+      padding: clamp(1.5rem, 5vw, 3.25rem);
+      border: 1px solid var(--line);
+      border-radius: 2rem;
+      background: var(--glass);
+      box-shadow: 0 2rem 6rem rgba(0, 0, 0, .24);
+      text-align: center;
+      backdrop-filter: blur(18px) saturate(120%);
+    }
+
+    .eyebrow {
+      margin: 0 0 2.25rem;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .orb-wrap {
+      display: grid;
+      place-items: center;
+      height: 14rem;
+    }
+
+    .orb {
+      width: 7rem;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at 36% 30%, #fffbd5 0 5%, #ffd89a 24%, #e8998d 58%, #825d9f 100%);
+      box-shadow: 0 0 2rem rgba(255, 216, 154, .38), 0 0 7rem rgba(232, 153, 141, .28);
+      transform: scale(var(--breath, .78));
+      transition: transform 1s ease-in-out, filter .6s ease;
+    }
+
+    .orb.running { transition: none; }
+
+    h1 {
+      min-height: 1.3em;
+      margin: .75rem 0 .35rem;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 8vw, 3.4rem);
+      font-weight: 400;
+      letter-spacing: -.045em;
+    }
+
+    .time {
+      margin: 0 0 2rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button {
+      min-width: 9rem;
+      padding: .85rem 1.3rem;
+      border: 1px solid rgba(255, 255, 255, .32);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .1);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+
+    button:hover { background: rgba(255, 255, 255, .18); }
+    button:active { transform: scale(.97); }
+    button:focus-visible { outline: 3px solid #ffd89a; outline-offset: 4px; }
+
+    .hint {
+      margin: 1.2rem 0 0;
+      color: rgba(246, 241, 223, .55);
+      font-size: .75rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orb { transition: none; }
+      .hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <canvas aria-hidden="true"></canvas>
+  <main>
+    <section class="card" aria-labelledby="prompt">
+      <p class="eyebrow">One quiet minute</p>
+      <div class="orb-wrap"><div class="orb" aria-hidden="true"></div></div>
+      <h1 id="prompt" aria-live="polite">Ready?</h1>
+      <p class="time"><span id="time">1:00</span> remaining</p>
+      <button id="toggle" type="button">Begin</button>
+      <p class="hint">space to pause · r to restart</p>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const orb = document.querySelector('.orb');
+    const prompt = document.querySelector('#prompt');
+    const time = document.querySelector('#time');
+    const toggle = document.querySelector('#toggle');
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let width, height, stars;
+    let running = false;
+    let elapsed = 0;
+    let last = 0;
+    const duration = 60;
+
+    function resize() {
+      const dpr = Math.min(devicePixelRatio, 2);
+      width = innerWidth;
+      height = innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      stars = Array.from({ length: Math.min(110, Math.floor(width * height / 11000)) }, (_, i) => ({
+        x: hash(i * 3 + 1) * width,
+        y: hash(i * 3 + 2) * height,
+        r: .35 + hash(i * 3 + 3) * 1.35,
+        phase: hash(i * 7) * Math.PI * 2
+      }));
+    }
+
+    function hash(n) {
+      return Math.abs(Math.sin(n * 127.1) * 43758.5453) % 1;
+    }
+
+    function paint(now = 0) {
+      const t = now / 1000;
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, '#111b38');
+      gradient.addColorStop(.52, '#282342');
+      gradient.addColorStop(1, '#603f59');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      for (const star of stars) {
+        const alpha = .18 + .38 * (1 + Math.sin(t * .55 + star.phase)) / 2;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 244, 213, ${alpha})`;
+        ctx.fill();
+      }
+    }
+
+    function breathAt(seconds) {
+      const cycle = seconds % 10;
+      if (cycle < 4) return { label: 'Breathe in', scale: .78 + .22 * ease(cycle / 4) };
+      if (cycle < 5) return { label: 'Hold softly', scale: 1 };
+      if (cycle < 9) return { label: 'Breathe out', scale: 1 - .22 * ease((cycle - 5) / 4) };
+      return { label: 'Rest', scale: .78 };
+    }
+
+    function ease(x) { return .5 - Math.cos(Math.PI * x) / 2; }
+
+    function render(now) {
+      paint(reduceMotion ? 0 : now);
+
+      if (running) {
+        const delta = last ? (now - last) / 1000 : 0;
+        elapsed = Math.min(duration, elapsed + delta);
+        const breath = breathAt(elapsed);
+        prompt.textContent = breath.label;
+        orb.style.setProperty('--breath', reduceMotion ? .89 : breath.scale);
+
+        if (elapsed >= duration) {
+          running = false;
+          prompt.textContent = 'You made some room.';
+          toggle.textContent = 'Again';
+          orb.classList.remove('running');
+        }
+      }
+
+      time.textContent = `0:${String(Math.ceil(duration - elapsed)).padStart(2, '0')}`.replace('0:60', '1:00');
+      last = now;
+      requestAnimationFrame(render);
+    }
+
+    function setRunning(next) {
+      if (elapsed >= duration && next) elapsed = 0;
+      running = next;
+      last = 0;
+      orb.classList.toggle('running', running);
+      toggle.textContent = running ? 'Pause' : (elapsed ? 'Continue' : 'Begin');
+      if (!running && elapsed < duration) prompt.textContent = elapsed ? 'Paused' : 'Ready?';
+    }
+
+    function restart() {
+      elapsed = 0;
+      setRunning(true);
+    }
+
+    toggle.addEventListener('click', () => setRunning(!running));
+    addEventListener('keydown', event => {
+      if (event.code === 'Space') {
+        event.preventDefault();
+        setRunning(!running);
+      }
+      if (event.key.toLowerCase() === 'r') restart();
+    });
+    addEventListener('resize', resize);
+
+    resize();
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>

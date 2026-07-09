@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101522">
+  <title>A Little Pause</title>
+  <style>
+    :root {
+      --ink: #f3f5fb;
+      --muted: #a7afc3;
+      --panel: rgba(255,255,255,.08);
+      --line: rgba(255,255,255,.14);
+      --glow: #8ce3c4;
+      --glow-2: #6ca8ff;
+      --bg-a: #101522;
+      --bg-b: #1c1830;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(108,168,255,.16), transparent 32rem),
+        radial-gradient(circle at 80% 85%, rgba(140,227,196,.11), transparent 30rem),
+        linear-gradient(135deg, var(--bg-a), var(--bg-b));
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      transition: background .8s ease;
+    }
+
+    main { width: min(100%, 720px); text-align: center; }
+    .eyebrow {
+      color: var(--glow);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 12px 0 8px;
+      font: 500 clamp(2.6rem, 8vw, 5.5rem)/.98 Georgia, serif;
+      letter-spacing: -.055em;
+    }
+    .intro { color: var(--muted); margin: 0 auto 30px; max-width: 34rem; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: clamp(24px, 6vw, 48px);
+      background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
+      box-shadow: 0 24px 80px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.08);
+      backdrop-filter: blur(18px);
+    }
+    .orb-wrap { display: grid; place-items: center; min-height: 250px; }
+    .orb {
+      width: 150px; height: 150px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff, var(--glow) 13%, var(--glow-2) 72%, #6565ce);
+      box-shadow: 0 0 45px color-mix(in srgb, var(--glow) 40%, transparent), 0 0 110px color-mix(in srgb, var(--glow-2) 25%, transparent);
+      animation: breathe 8s ease-in-out infinite;
+    }
+    @keyframes breathe { 0%,100% { transform: scale(.72); opacity: .78; } 50% { transform: scale(1); opacity: 1; } }
+    .instruction { margin: -10px 0 24px; color: var(--muted); }
+    .prompt {
+      min-height: 54px;
+      display: grid; place-items: center;
+      border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+      padding: 14px 8px;
+      font: italic 1.15rem/1.4 Georgia, serif;
+    }
+    .actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    button {
+      border: 1px solid var(--line); border-radius: 999px; padding: 11px 17px;
+      color: var(--ink); background: var(--panel); cursor: pointer;
+      font: inherit; transition: transform .2s, background .2s, border-color .2s;
+    }
+    button:hover { transform: translateY(-2px); background: rgba(255,255,255,.15); border-color: var(--glow); }
+    button:focus-visible { outline: 3px solid var(--glow); outline-offset: 3px; }
+    .clock { margin-top: 24px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .clock strong { color: var(--ink); font-size: 1.05rem; font-weight: 500; }
+    footer { color: #7d8498; font-size: .8rem; margin-top: 22px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">A little pause</div>
+    <h1>You’re allowed<br>to arrive slowly.</h1>
+    <p class="intro">A small corner of the screen for the moment between one thing and the next.</p>
+
+    <section class="card" aria-label="Breathing pause">
+      <div class="orb-wrap"><div class="orb" aria-hidden="true"></div></div>
+      <p class="instruction" id="instruction">Breathe in as the light grows. Breathe out as it softens.</p>
+      <div class="prompt" id="prompt" aria-live="polite">What feels quietly good right now?</div>
+      <div class="actions">
+        <button id="promptButton" type="button">Another thought</button>
+        <button id="moodButton" type="button">Change the sky</button>
+      </div>
+    </section>
+
+    <div class="clock">Your local time: <strong id="clock">—</strong></div>
+    <footer>Nothing to achieve here.</footer>
+  </main>
+
+  <script>
+    const prompts = [
+      'What feels quietly good right now?',
+      'What can be made 10% easier?',
+      'Notice one color you have not noticed yet.',
+      'Which thought can wait until tomorrow?',
+      'What would kindness look like for the next five minutes?',
+      'Name one thing that is already enough.'
+    ];
+    const skies = [
+      ['#101522', '#1c1830', '#8ce3c4', '#6ca8ff'],
+      ['#20151b', '#30203a', '#ffc58b', '#f18bba'],
+      ['#0d1d20', '#142f38', '#96e6d0', '#7ed0f2'],
+      ['#1d1b14', '#352b1b', '#f6d58b', '#d9a85f']
+    ];
+    let promptIndex = 0;
+    let skyIndex = 0;
+    const root = document.documentElement;
+
+    document.querySelector('#promptButton').addEventListener('click', () => {
+      promptIndex = (promptIndex + 1) % prompts.length;
+      document.querySelector('#prompt').textContent = prompts[promptIndex];
+    });
+
+    document.querySelector('#moodButton').addEventListener('click', () => {
+      skyIndex = (skyIndex + 1) % skies.length;
+      const [a, b, glow, glow2] = skies[skyIndex];
+      root.style.setProperty('--bg-a', a);
+      root.style.setProperty('--bg-b', b);
+      root.style.setProperty('--glow', glow);
+      root.style.setProperty('--glow-2', glow2);
+    });
+
+    function updateClock() {
+      document.querySelector('#clock').textContent = new Intl.DateTimeFormat([], {
+        hour: 'numeric', minute: '2-digit'
+      }).format(new Date());
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>

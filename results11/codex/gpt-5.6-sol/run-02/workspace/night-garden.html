@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Night Garden</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      background: #07120f;
+      color: #d9f5df;
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      cursor: crosshair;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    .note {
+      position: fixed;
+      left: 1.25rem;
+      bottom: 1.1rem;
+      margin: 0;
+      opacity: .54;
+      font-size: clamp(.72rem, 1.5vw, .9rem);
+      letter-spacing: .08em;
+      pointer-events: none;
+      transition: opacity 1.2s ease;
+    }
+    body:active .note { opacity: .15; }
+    @media (prefers-reduced-motion: reduce) { .note { display: none; } }
+  </style>
+</head>
+<body>
+  <canvas aria-label="An animated night garden with drifting fireflies"></canvas>
+  <p class="note">click anywhere to plant a little moon</p>
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, dpr, time = 0;
+    const pointer = { x: -9999, y: -9999 };
+    const moons = [];
+    let seeds = [];
+
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const fireflies = Array.from({ length: 46 }, () => ({
+      x: Math.random(), y: Math.random(),
+      phase: rand(0, Math.PI * 2), speed: rand(.25, .7), size: rand(.8, 2.2)
+    }));
+
+    function resize() {
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      w = innerWidth; h = innerHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      seeds = Array.from({ length: Math.ceil(w / 14) }, (_, i) => ({
+        x: i * 14 + rand(-5, 5), height: rand(25, Math.min(150, h * .22)),
+        lean: rand(-18, 18), phase: rand(0, 7), bloom: Math.random() > .78
+      }));
+    }
+
+    function plant(x, y) {
+      moons.push({ x, y, r: 0, target: rand(13, 25), born: time, hue: rand(45, 85) });
+      if (moons.length > 12) moons.shift();
+    }
+
+    function drawMoon(m) {
+      m.r += (m.target - m.r) * .045;
+      const age = time - m.born;
+      const alpha = Math.max(0, Math.min(1, age * 2)) * Math.max(0, 1 - age / 18);
+      const glow = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r * 4);
+      glow.addColorStop(0, `hsla(${m.hue} 90% 78% / ${.8 * alpha})`);
+      glow.addColorStop(.18, `hsla(${m.hue} 75% 70% / ${.23 * alpha})`);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `hsla(${m.hue} 65% 88% / ${.86 * alpha})`;
+      ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `hsla(150 35% 10% / ${.48 * alpha})`;
+      ctx.beginPath(); ctx.arc(m.x + m.r * .42, m.y - m.r * .2, m.r * .92, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function frame(now) {
+      time = now / 1000;
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, '#071412'); sky.addColorStop(.68, '#0b2119'); sky.addColorStop(1, '#10271b');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+
+      for (const f of fireflies) {
+        const x = f.x * w + Math.sin(time * f.speed + f.phase) * 24;
+        const y = f.y * h * .78 + Math.cos(time * f.speed * .7 + f.phase) * 15;
+        const near = Math.hypot(x - pointer.x, y - pointer.y) < 110;
+        const pulse = .25 + .75 * Math.max(0, Math.sin(time * 2.2 * f.speed + f.phase));
+        const r = f.size * (near ? 2.4 : 1);
+        ctx.shadowBlur = 10 + pulse * 12; ctx.shadowColor = '#d9ff8b';
+        ctx.fillStyle = `rgba(224,255,150,${.25 + pulse * .7})`;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+
+      moons.forEach(drawMoon);
+      for (const s of seeds) {
+        const sway = Math.sin(time * .55 + s.phase) * 5;
+        const topX = s.x + s.lean + sway;
+        const topY = h - s.height;
+        ctx.strokeStyle = 'rgba(92,151,93,.58)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(s.x, h + 2); ctx.quadraticCurveTo(s.x + sway * .25, h - s.height * .55, topX, topY); ctx.stroke();
+        if (s.bloom) {
+          ctx.fillStyle = 'rgba(180,214,130,.55)';
+          for (let i = 0; i < 5; i++) {
+            const a = i / 5 * Math.PI * 2 + time * .04;
+            ctx.beginPath(); ctx.ellipse(topX + Math.cos(a) * 4, topY + Math.sin(a) * 4, 3.4, 1.8, a, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+      }
+      for (let i = moons.length - 1; i >= 0; i--) if (time - moons[i].born > 18) moons.splice(i, 1);
+      requestAnimationFrame(frame);
+    }
+
+    addEventListener('resize', resize);
+    addEventListener('pointermove', e => { pointer.x = e.clientX; pointer.y = e.clientY; });
+    addEventListener('pointerleave', () => { pointer.x = pointer.y = -9999; });
+    addEventListener('pointerdown', e => plant(e.clientX, e.clientY));
+    addEventListener('keydown', e => { if (e.key === ' ') plant(rand(w * .15, w * .85), rand(h * .12, h * .67)); });
+    resize();
+    plant(innerWidth * .72, innerHeight * .28);
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

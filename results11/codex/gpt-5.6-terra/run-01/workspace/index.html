@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A Small Moment</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #f6f1e8;
+        --muted: #c9c1b4;
+        --night: #17212b;
+        --sea: #264653;
+        --sun: #f4a261;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        align-items: center;
+        background:
+          radial-gradient(circle at 80% 18%, #4c6a76 0 0.4%, transparent 18%),
+          radial-gradient(circle at 22% 80%, #344e5c 0 0.5%, transparent 25%),
+          var(--night);
+        color: var(--ink);
+        display: flex;
+        font-family: Georgia, "Times New Roman", serif;
+        justify-content: center;
+        margin: 0;
+        min-height: 100vh;
+        padding: 2rem;
+      }
+
+      main { max-width: 36rem; text-align: center; }
+      .eyebrow { color: var(--sun); font: 600 .72rem/1.3 system-ui, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+      h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 400; letter-spacing: -.05em; line-height: 1; margin: .35rem 0 2rem; }
+      .clock {
+        border: 1px solid color-mix(in srgb, var(--ink), transparent 72%);
+        border-radius: 50%;
+        display: grid;
+        height: 11rem;
+        margin: 0 auto 2rem;
+        place-items: center;
+        position: relative;
+        width: 11rem;
+      }
+      .clock::after { background: var(--sun); border-radius: 50%; content: ""; height: .45rem; width: .45rem; z-index: 2; }
+      .hand { background: var(--ink); border-radius: 1rem; bottom: 50%; left: calc(50% - .12rem); position: absolute; transform-origin: bottom center; width: .24rem; }
+      #hour { height: 2.6rem; opacity: .9; }
+      #minute { background: var(--sun); height: 4.2rem; }
+      #time { color: var(--muted); font: .95rem/1.5 system-ui, sans-serif; letter-spacing: .08em; }
+      #prompt { font-size: clamp(1.35rem, 4vw, 1.8rem); font-style: italic; line-height: 1.45; margin: 2.3rem auto; max-width: 29rem; }
+      button { background: transparent; border: 1px solid color-mix(in srgb, var(--ink), transparent 58%); border-radius: 99px; color: var(--ink); cursor: pointer; font: 600 .78rem/1 system-ui, sans-serif; letter-spacing: .07em; padding: .8rem 1.1rem; text-transform: uppercase; transition: background .2s, color .2s; }
+      button:hover, button:focus-visible { background: var(--ink); color: var(--night); }
+      footer { color: var(--muted); font: .78rem/1.5 system-ui, sans-serif; margin-top: 2.5rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">A small moment</p>
+      <h1>Be here now.</h1>
+      <div class="clock" aria-label="Current time">
+        <i class="hand" id="hour"></i><i class="hand" id="minute"></i>
+      </div>
+      <div id="time"></div>
+      <p id="prompt"></p>
+      <button type="button" id="another">Another thought</button>
+      <footer>Nothing to solve. Just a minute that belongs to you.</footer>
+    </main>
+    <script>
+      const prompts = [
+        "What is already enough, right here?",
+        "Notice one ordinary thing doing its job beautifully.",
+        "If today had a color, what would it be?",
+        "Let your shoulders receive the news that the day is not a race.",
+        "What would you keep if you could only keep the gentle parts?",
+        "Look for the smallest source of light in the room."
+      ];
+      const prompt = document.querySelector('#prompt');
+      const format = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+
+      function drawClock() {
+        const now = new Date();
+        document.querySelector('#hour').style.transform = `rotate(${(now.getHours() % 12) * 30 + now.getMinutes() * .5}deg)`;
+        document.querySelector('#minute').style.transform = `rotate(${now.getMinutes() * 6}deg)`;
+        document.querySelector('#time').textContent = format.format(now);
+      }
+      function newPrompt() {
+        const current = prompt.textContent;
+        const choices = prompts.filter(item => item !== current);
+        prompt.textContent = choices[Math.floor(Math.random() * choices.length)];
+      }
+      document.querySelector('#another').addEventListener('click', newPrompt);
+      newPrompt(); drawClock(); setInterval(drawClock, 1000);
+    </script>
+  </body>
+</html>
