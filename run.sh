@@ -27,6 +27,9 @@ EXTRA_ARGS=()
 # Read from environment if set
 LLM_GW_BASE_URL="${LLM_GW_BASE_URL:-}"
 LLM_GW_API_KEY="${LLM_GW_API_KEY:-}"
+# Optional codex reasoning-effort override (low|medium|high|xhigh). When set,
+# fast mode is disabled and the effort is pinned in the generated config.toml.
+CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-}"
 
 usage() {
     cat <<'EOF'
@@ -47,6 +50,8 @@ Options:
 Environment:
   LLM_GW_BASE_URL            API gateway base URL
   LLM_GW_API_KEY             API gateway key
+  CODEX_REASONING_EFFORT     Pin codex reasoning effort (low|medium|high|xhigh);
+                             implies --no-fast
 
 Examples:
   export LLM_GW_BASE_URL=https://llm-gw.example.com
@@ -126,6 +131,11 @@ fi
 if [[ "$MODEL" == *-pro* ]]; then
     FAST="false"
 fi
+# An explicit effort override also bypasses fast mode so the pinned
+# model_reasoning_effort in config.toml takes effect.
+if [[ -n "$CODEX_REASONING_EFFORT" ]]; then
+    FAST="false"
+fi
 RUN_ARGS+=(-e "WALLFACER_SANDBOX_FAST=$FAST")
 
 # Environment: gateway endpoint and API key → backend-specific env vars
@@ -176,7 +186,10 @@ case "$BACKEND" in
         CODEX_TOML+="web_search = \"disabled\""$'\n'
         # Pro reasoning models reject the codex default effort 'low'
         # (gpt-5.5-pro supports only medium/high/xhigh) — pin to high.
-        if [[ "$MODEL" == *-pro* ]]; then
+        # CODEX_REASONING_EFFORT takes precedence when set.
+        if [[ -n "$CODEX_REASONING_EFFORT" ]]; then
+            CODEX_TOML+="model_reasoning_effort = \"$CODEX_REASONING_EFFORT\""$'\n'
+        elif [[ "$MODEL" == *-pro* ]]; then
             CODEX_TOML+="model_reasoning_effort = \"high\""$'\n'
         fi
         if [[ -n "$CODEX_TOML" ]]; then
