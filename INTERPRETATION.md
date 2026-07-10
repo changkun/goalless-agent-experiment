@@ -64,30 +64,73 @@ Two details support this over a "stored preference" reading:
   Mandelbrot, Lorenz, Collatz, boids, mazes). The *family* is the prior; the
   *member* is where post-training happened to leave the sharpest peak.
 
-## 3. Why these attractors: corpus density × verifiability
+## 3. Why these attractors: a menu from the corpus, a selection by post-training
 
 **Observation.** The Claude attractor set is Game of Life, Mandelbrot,
-cellular automata, boids, mazes — not, say, web scrapers or REST APIs.
+cellular automata, boids, mazes — not, say, todo apps or REST APIs. The GPT
+attractor sets are productivity dashboards (gpt-5.5) and calm/wellness pages
+(gpt-5.6).
 
-**Training account.** Two filters intersect:
+**Framing.** Corpus density alone cannot explain this. Todo apps, snake, and
+calculators are at least as dense in tutorial corpora as GoL, yet no Claude
+run ever picks them — while GPT models pick dashboard-shaped things on the
+same prompt. So the pretraining corpus supplies a **menu** of canonical
+"code written for its own sake" artifacts; something in post-training does
+the **selection** among comparably dense regions. Where does the selection
+come from? The candidate hypotheses, with the evidence this study bears on
+each:
 
-1. **Corpus density.** "Write Conway's Game of Life" and "plot the Mandelbrot
-   set" are among the most-repeated exemplars of *recreational programming*
-   in the pretraining corpus — tutorials, blog posts, Rosetta Code, "fun
-   things to program" listicles. When the prompt frames coding as volitional
-   ("something you want"), the highest-density region of *code written for
-   pleasure* is exactly this canon. The model is completing the cultural
-   pattern "programmer left alone → writes GoL," which humans wrote first.
-2. **Verifiability under agentic RL.** Agentic post-training rewards episodes
-   where the model can *check its own work* (run the program, see output).
-   Rule-based visual artifacts are ideal RL episodes: deterministic,
-   dependency-free, self-evidently correct when the glider glides. A model
-   whose recent training rewarded verifiable terminal output will, absent a
-   task, reach for artifacts that *score well under its own training
-   objective*. This also explains the near-total absence of external
-   dependencies across all 11 experiments — dependencies make episodes fail.
+- **H1 — Pure corpus density (unintentional).** The attractor is simply the
+  single densest "recreational programming" pattern, inherited as-is.
+  *For:* GoL and Mandelbrot are genuinely canonical (Rosetta Code, tutorial
+  canon, "fun things to program" lists). *Against:* density is shared across
+  vendors, but the selections differ by vendor and even by checkpoint
+  (opus-4.6 → GoL, opus-4.7 → Mandelbrot); and equally dense regions (todo
+  apps) are never chosen by Claude. Density defines the menu, not the pick.
+- **H2 — Intentional trait-level character shaping, emergent artifact-level
+  choice.** Vendors deliberately train persona *traits* (Anthropic documents
+  character training: curiosity, taste for elegant self-contained ideas);
+  the corpus canon supplies the concrete artifacts that best express the
+  trait, and which *member* a checkpoint sharpens onto is an accident of
+  training dynamics. *For:* explains family-stable/member-fragile structure
+  (§2), sibling disagreement within one pipeline, and the gpt-5.6
+  sol/terra/luna split (three deliberate personas, three corners of one
+  theme). Best overall fit.
+- **H3 — Intentional artifact-level enforcement.** The vendor deliberately
+  upweighted "write Game of Life" style data. *Against, on this data:*
+  adjacent siblings from the same pipeline disagree (4.6 GoL, 4.7 Mandelbrot,
+  4.8 disperses; sonnet-4-6 disperses while sonnet-5 fixates); the fixation
+  is harness-fragile where deliberately installed behavior tends to be
+  robust; and there is no product incentive for this specific behavior.
+  Would predict cross-sibling consistency we do not observe.
+- **H4 — Synthetic-data / self-distillation feedback (unintentional
+  amplification).** Model-generated data recycled into training amplifies
+  the model's own existing modes — a documented entropy-collapse mechanism.
+  *For:* explains why sharpening *degree* varies erratically between
+  checkpoints of one family, and could explain distant models sharing an
+  attractor (opus-4.6 and sonnet-5 both → GoL) via shared data lineage.
+  Not directly testable from outside.
+- **H5 — Verifiability bias from agentic RL.** Agentic post-training rewards
+  episodes where the model can check its own work; rule-based visual
+  artifacts are ideal episodes (deterministic, dependency-free, self-evident
+  when the glider glides). *For:* explains the *family* boundary and the
+  near-total absence of external dependencies across all 11 experiments.
+  Selects the medium and family, not the specific topic — complementary to
+  H2, not competing.
+- **H6 — Decoding/harness artifact.** Fixation is just low sampling entropy
+  in the harness. *Against:* diverse and fixated models run on the identical
+  harness in the same experiment (Exp8: 4.6 fixates 5/5, 4.7 disperses 5/5),
+  so decoding settings cannot be the cause.
 
-The same two filters explain the LOC collapse under volitional framing
+The reading most consistent with all eleven experiments is **H2 × H5 with H4
+as the sharpening noise**: intentional at the trait level, emergent at the
+artifact level, bounded by what agentic RL made verifiable. The same
+structure holds for GPT — the mechanism is vendor-general (gpt-5.6-sol
+fixates 5/5, the Claude-style signature), only the *shelf of the menu* the
+character points at differs: intellectual play for Claude, usefulness for
+gpt-5.5, well-being for gpt-5.6.
+
+These filters also explain the LOC collapse under volitional framing
 (Exp7: ~36 avg LOC, the series minimum): the canonical minimal GoL/Mandelbrot
 is short, and nothing in the context rewards elaboration.
 
@@ -237,6 +280,10 @@ Each mechanism above implies an experiment this harness can run:
    exceeds any alternative; base/less-aligned models show flatter topic
    distributions. Paraphrase the volitional prompt (other languages, other
    phrasings) — a genuine mode survives paraphrase, a prompt artifact does not.
+   This same experiment discriminates §3's H1 from H2/H4: if pure corpus
+   density (H1), a *base* model's "fun program" distribution should already
+   peak on GoL as sharply as the aligned model's; if the peak appears or
+   sharpens only after alignment, the selection happened in post-training.
 2. **Verifiability bias (§3):** offer a sandbox with no execution tool (write
    files only, cannot run them). Prediction: Claude's rule-based-artifact
    family weakens; artifact choice shifts toward things checkable by reading.
@@ -256,3 +303,11 @@ Each mechanism above implies an experiment this harness can run:
    prompts. Prediction: functionality recovers; its goalless behavior lands
    in a family reflecting *its* training canon, distinct from both the
    Claude and GPT sets.
+7. **Selection lineage (§3, H2 vs H3 vs H4):** widen the sibling grid —
+   every available checkpoint of one family on one stack (extending Exp8/9).
+   H3 (deliberate artifact enforcement) predicts cross-sibling consistency;
+   H2/H4 predict what we see so far — a stable family with erratic
+   per-checkpoint sharpening — and more checkpoints make the pattern
+   decisive. Shared attractors across distant models (opus-4.6 and sonnet-5
+   both → GoL) would additionally hint at shared post-training data lineage
+   (H4) rather than coincidence.
