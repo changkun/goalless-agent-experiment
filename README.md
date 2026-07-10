@@ -436,6 +436,10 @@ Each model shows a consistent thematic identity across experiments (topic analys
 
 ### Observations
 
+For a training-perspective explanation of *why* these patterns appear (mode
+collapse, corpus density, persona tuning, scaffold match), see
+**[INTERPRETATION.md](INTERPRETATION.md)**.
+
 **What changes behavior:**
 - **Environment context matters:** With RTK in the sandbox, models built RTK-related
   dev tools. Without it, they shifted to games, interactive tools, and simpler CLIs.
@@ -521,6 +525,7 @@ run.sh:
 
 | File | Purpose |
 |------|---------|
+| `INTERPRETATION.md` | Training-perspective account of the cross-experiment observations |
 | `experiment.sh` | Orchestrator: parallel model × backend × N runs |
 | `run.sh` | Container launcher for a single sandbox run |
 | `prompt1.txt` | Experiment 1 prompt |
