@@ -258,6 +258,34 @@ about tool-format distribution shift. Likewise, the sensitivity of a mode's
 is understood as part of the conditional — the surprising finding would have
 been harness-*invariant* fixation.
 
+**Direct evidence (Exp12/13): the harness modulates *form*, the model owns
+*content*.** Running six open-weights models on *both* the Claude Code and codex
+harnesses (same models, same prompt) separates the two contributions cleanly:
+
+- **Content is the model's.** Each model's signature survives the harness swap
+  — kimi packages with pytest on both, minimax spreads wide on both, the GLMs
+  make terse generative art on both, and Game of Life recurs as a cross-lab
+  attractor on both. Topic and engineering-maturity are model properties, not
+  scaffold artifacts. (Reliability is not always: deepseek drove the agentic
+  loop 5/5 on Claude Code but only 3/5 on codex — a scaffold-match cost, exactly
+  what this section predicts.)
+- **Form is partly the harness's — but weakly, and only in one direction.** The
+  *rate* at which these models produce a graphical artifact is rare and about
+  equal on both harnesses; what changes is the *rendering*: the two models that
+  went graphical on both sides emitted static **SVG** under Claude Code and
+  interactive **HTML** under codex. Interactive browser pages appear only under
+  codex, and even there only ~1/9 for open-weights versus GPT's 4–5/5. So codex
+  *raises the ceiling* on browser output rather than *causing* it, and how close
+  a model comes to that ceiling is a model property (persona/RL medium, §4). The
+  one cell that would fully separate provider from scaffold — a GPT model on
+  Claude Code — remains blocked by a compat-plumbing limit (OpenAI reasoning
+  models require the Responses API for tool use), so the strongest medium claim
+  the data licenses is *within-codex* (GPT ≫ open-weights), not across the
+  Claude Code boundary. This is the empirical correction to any reading of §4
+  that treats "terminal vs browser" as purely a provider trait: it is a
+  model × harness interaction, with the model dominating content and the harness
+  nudging form.
+
 ## 8. What this data does not show
 
 The volitional prompt asks what the model "wants," and the fixation results
@@ -311,3 +339,14 @@ Each mechanism above implies an experiment this harness can run:
    decisive. Shared attractors across distant models (opus-4.6 and sonnet-5
    both → GoL) would additionally hint at shared post-training data lineage
    (H4) rather than coincidence.
+8. **The open medium cell (§7):** run a browser-happy GPT model (gpt-5.6-sol,
+   5/5 browser on codex) on the **Claude Code** harness — the one cell Exp12/13
+   leave empty. Currently blocked: OpenAI reasoning models need the Responses
+   API for tool use, which the anthropic→chat compat path doesn't route to
+   (fix: route reasoning-model tool calls to `/v1/responses`, or use a
+   non-reasoning GPT). Prediction, if H (model owns content, harness nudges
+   form) holds: GPT keeps its productivity/web *intent* but Claude Code pulls
+   the *rendering* toward terminal or static output — mirroring the open-weights
+   SVG↔HTML form-flip, in reverse. A GPT that still ships interactive browser
+   apps through Claude Code would instead argue the medium is a hard model
+   trait, not a harness-modulated one.

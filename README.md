@@ -164,6 +164,48 @@ micro-apps) — a marked shift from gpt-5.5's productivity dashboards.
 
 See **[results11/RESULTS.md](results11/RESULTS.md)** for the full per-run breakdown.
 
+### Experiment 12 & 13 — `prompt5.txt` (six open-weights models × two harnesses)
+
+> Just do something you want.
+
+The first **controlled harness comparison**: six open-weights models —
+`glm-5.2`, `glm-5.1`, `qwen3.7-max`, `minimax-m3`, `deepseek-v4-pro`,
+`kimi-k2.7-code` (Zhipu / Alibaba / MiniMax / DeepSeek / Moonshot) — run on
+**both** harnesses via Lux's compat surfaces, 5× each. **Exp12** drives them
+through **Claude Code** (`/compat/anthropic`); **Exp13** through **codex**
+0.144.0 (`/compat/openai`). Same models, same prompt; only the harness differs.
+(Required a compat fix — Claude Code's `{"role":"system"}` message turns were
+rejected as `unknown role`; fixed in `pkg` v0.28.1 and deployed.)
+
+**Robust (replicate across both harnesses):**
+- **Game of Life is a cross-lab, cross-harness attractor** — it appears in both
+  arms for most models (deepseek, qwen, glm-5.1/5.2, kimi, minimax all land on
+  it at least once), the same attractor opus-4.6 and sonnet-5 fixate on.
+- **Model engineering signatures hold** regardless of harness: kimi-k2.7-code
+  builds installable packages with pytest suites (the haiku archetype),
+  minimax spreads widest at the highest LOC, the GLMs make terse terminal
+  generative art. All six sit in the Claude **rule-based-visual / dev-tool**
+  space — none is a browser-productivity builder like GPT.
+
+**The harness effect (properly scoped):**
+- Graphical output is **rare and ~equal** under both harnesses (Claude Code
+  2/30, both **SVG**; codex 3/27, all **interactive HTML**). The harness shifts
+  the *form* (static SVG ↔ interactive HTML), not *whether* a model goes
+  graphical. The two models graphical on both sides (qwen, minimax) flipped
+  **SVG→HTML** on codex — a clean but n=2 signal.
+- **Interactive HTML appears only under codex**, but weakly for open-weights
+  (3/27) versus GPT's 4–5/5 (Exp10/11) — so within codex the browser tendency
+  is strongly *model*-dependent. **deepseek** shows a harness × reliability
+  interaction (5/5 implementing on Claude Code → 3/5 on codex, twice stopping
+  after a planning preamble).
+- **Open cell:** GPT × Claude Code is untested (blocked — OpenAI reasoning
+  models need the Responses API for tools, which the anthropic→chat compat path
+  doesn't route to), so "the harness sets the medium" is demonstrated only
+  *within* codex, not across the Claude Code boundary.
+
+See **[results12/RESULTS.md](results12/RESULTS.md)** and
+**[results13/RESULTS.md](results13/RESULTS.md)** for full per-run breakdowns.
+
 Each experiment includes:
 - Topic proposed and implementation status
 - Tech stack (language, frameworks)
@@ -185,6 +227,8 @@ flowchart LR
     E9["<b>Exp 9</b><br/>prompt5 · RTK out · sonnet-4-6+sonnet-5<br/>CC 2.1.154 · claude"]
     E10["<b>Exp 10</b><br/>prompt5 · RTK out · gpt-5.5+gpt-5.5-pro<br/>codex 0.142.4 · codex"]
     E11["<b>Exp 11</b><br/>prompt5 · RTK out · gpt-5.6-sol+terra+luna @high<br/>codex 0.144.0 · codex"]
+    E12["<b>Exp 12</b><br/>prompt5 · RTK out · 6 open-weights (glm/qwen/minimax/deepseek/kimi)<br/>compat/anthropic · Claude Code"]
+    E13["<b>Exp 13</b><br/>prompt5 · RTK out · same 6 open-weights<br/>compat/openai · codex 0.144.0"]
 
     E1 -->|"remove RTK<br/>dev tools → games"| E2
     E2 -->|"change prompt<br/>haiku 1/5 → 5/5"| E3
@@ -196,6 +240,8 @@ flowchart LR
     E8 -->|"same stack, Sonnet family<br/>sonnet-5 GoL 5/5; sonnet-4-6 diverse"| E9
     E9 -->|"codex backend, GPT family<br/>terminal-only invariant breaks → browser apps"| E10
     E10 -->|"gpt-5.6 variants, matched high effort<br/>GPT fixation appears; LOC + maturity collapse"| E11
+    E11 -->|"6 open-weights models, Claude Code harness<br/>all terminal; GoL cross-lab attractor"| E12
+    E12 -->|"same 6 models, codex harness<br/>harness shifts form SVG→HTML, not frequency"| E13
 ```
 
 **Pairwise comparisons** (one variable changed, rest held constant):
@@ -216,6 +262,7 @@ flowchart LR
 | Exp10 within | Tier **and** effort (gpt-5.5 low vs gpt-5.5-pro high) | Prompt, backend | **Confounded, not single-variable** (pro rejects `low`). Robust: both GPT diverse, both ≫ Claude LOC, web output in both. Effort-confounded (NOT tier): tests 0/5→3/5, LOC 343→498, multi-file. Treat pro as indicative. |
 | Exp10 → Exp11 | Model generation (gpt-5.5 → gpt-5.6) + codex 0.142.4 → 0.144.0 | Prompt, backend | Browser output persists (14/15) but the high-LOC and maturity findings collapse: gpt-5.6 at high effort writes 73–174 avg LOC (inside the Claude range) with **0/15 tests** vs gpt-5.5-pro's 3/5 at the same effort — Exp10's maturity effect is at least partly model-specific, not pure effort. |
 | Exp11 within | Model variant only (sol vs terra vs luna, identical stack + effort) | Prompt, backend, effort | First GPT fixation: **sol → breathing/night-sky pages 5/5**; terra and luna cluster moderately (focus timers / reflection micro-apps). All three share a calm/contemplative theme; terra declines once, tersest (73 avg LOC). |
+| Exp12 ↔ Exp13 | **Harness** (Claude Code vs codex), 6 open-weights models held fixed | Prompt, models | The controlled harness test. Model signatures (GoL attractor, kimi packaging, minimax diversity) replicate across both. Harness shifts graphical **form** (SVG on Claude Code ↔ interactive HTML on codex) but not frequency (~equal, rare). deepseek reliability drops 5/5→3/5 on codex. GPT×Claude-Code cell still blocked. |
 
 **Per-experiment output profile:**
 
@@ -545,6 +592,8 @@ run.sh:
 | `results9/` | Experiment 9 output + [RESULTS.md](results9/RESULTS.md) |
 | `results10/` | Experiment 10 output + [RESULTS.md](results10/RESULTS.md) |
 | `results11/` | Experiment 11 output + [RESULTS.md](results11/RESULTS.md) |
+| `results12/` | Experiment 12 output (6 open-weights × Claude Code) + [RESULTS.md](results12/RESULTS.md) |
+| `results13/` | Experiment 13 output (same 6 × codex) + [RESULTS.md](results13/RESULTS.md) |
 
 ## Future Experiment Ideas
 
