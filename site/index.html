@@ -190,6 +190,24 @@
   table.data thead th:hover{color:var(--ink)}
   table.data td.model{font-family:var(--mono);color:var(--ink)}
   table.data td.topic{white-space:normal;min-width:210px;color:var(--muted)}
+
+  /* harness-effect delta table */
+  .deltawrap{overflow-x:auto;margin-top:26px}
+  table.delta{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;font-size:13.5px}
+  table.delta th,table.delta td{padding:14px 22px 14px 0;text-align:left;border-bottom:1px solid var(--line);
+    white-space:nowrap;font-variant-numeric:tabular-nums}
+  table.delta thead th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  table.delta thead th small{display:block;color:var(--faint);font-weight:400;margin-top:2px}
+  .famrow2 td{padding:20px 0 6px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);border:0}
+  table.delta td.model{font-family:var(--mono);color:var(--ink)}
+  table.delta .held{color:var(--faint)}
+  table.delta .held .d{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:middle}
+  table.delta .was{color:var(--faint);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--faint) 60%,transparent)}
+  table.delta .arr{color:var(--faint);padding:0 3px}
+  table.delta .now{color:var(--ink);font-weight:600}
+  table.delta .up{color:var(--accent);font-weight:600} table.delta .dn{color:var(--decline);font-weight:600}
+  table.delta td.reads{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:normal;min-width:200px}
+  table.delta td.reads.moved{color:var(--ink)}
   table.data td.num{font-variant-numeric:tabular-nums;text-align:right}
   table.data tbody tr:hover td{background:color-mix(in srgb,var(--panel2) 60%,transparent)}
   .medtag{font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:6px}
@@ -339,6 +357,23 @@
         maturity — computed from the actual outputs. <b>Pricing</b> and <b>model size</b> are table
         columns left <span class="na">n/a</span>: these gateway models aren't publicly priced or
         sized — drop in real numbers to light them up.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="kicker">The harness effect</div>
+      <h2>What the harness moves — and what it doesn't</h2>
+      <p class="lede">The grid above shows the harness barely touches <b>medium</b> or <b>topic</b>.
+        But it does move <b>maturity, size, and reliability</b>. For the models run on
+        <em>both</em> harnesses, here is each one's Claude&nbsp;Code&nbsp;→&nbsp;codex delta —
+        struck-through = held, bold = moved.</p>
+      <div class="deltawrap" id="deltaView"></div>
+      <p class="lede" style="font-size:13px;margin-top:14px">
+        <b>Identity holds; execution bends.</b> Medium never changes; the topic/attractor holds.
+        What shifts is how much gets built and how reliably — codex packages sonnet-5 &amp;
+        minimax, and deepseek's LOC drop reflects a lower implement rate (3/5). gpt-5.6 rows are
+        <b>effort-confounded</b> (codex ran high, Claude Code default) — read those as indicative.</p>
     </div>
   </section>
 
@@ -615,6 +650,59 @@
     });
   }
 
+  // ---- harness-effect deltas (models run on both harnesses) ----
+  function dnum(a,b){
+    if(a===b) return '<span class="held">'+a+'</span>';
+    return '<span class="was">'+a+'</span><span class="arr">→</span><span class="now">'+b+'</span> '+
+      '<span class="'+(b>a?"up":"dn")+'">'+(b>a?"↑":"↓")+'</span>';
+  }
+  function dtxt(a,b){
+    if(a===b) return '<span class="held">'+a+'</span>';
+    return '<span class="was">'+a+'</span><span class="arr">→</span><span class="now">'+b+'</span>';
+  }
+  function dmed(a,b){
+    if(a.medium===b.medium)
+      return '<span class="held"><span class="d" style="background:'+medColor(a.medium)+'"></span>'+MEDLABEL[a.medium]+'</span>';
+    return '<span class="was">'+MEDLABEL[a.medium]+'</span><span class="arr">→</span>'+
+      '<span class="now" style="color:'+medColor(b.medium)+'">'+MEDLABEL[b.medium]+'</span>';
+  }
+  function shortTopic(t){return t.split(/[(/—+]/)[0].replace(/\s*·.*/,"").trim();}
+  function reads(a,b){
+    if(a.medium!==b.medium) return "medium / behaviour shifted";
+    if(b.mat>a.mat||b.tests>a.tests||b.loc>a.loc*1.4) return "same idea — more built on codex";
+    if(b.loc<a.loc*0.7||b.tests<a.tests) return "same idea — less built on codex";
+    return "held";
+  }
+  function renderDeltas(){
+    var by={}; DATA.forEach(function(d){(by[d.model]=by[d.model]||{})[d.harness]=d;});
+    var pairs=Object.keys(by).filter(function(m){return by[m][CC]&&by[m][CX];})
+      .sort(function(x,y){var fx=FAMS.indexOf(FAMOF[x]),fy=FAMS.indexOf(FAMOF[y]);return fx!==fy?fx-fy:morder(x)-morder(y);});
+    var h='<table class="delta"><thead><tr><th>Model</th><th>medium</th><th>topic / attractor</th>'+
+      '<th>avg LOC<small>CC → codex</small></th><th>tests /5</th><th>maturity</th><th>reads as</th></tr></thead><tbody>';
+    var lastFam=null;
+    pairs.forEach(function(m){
+      var a=by[m][CC], b=by[m][CX];
+      if(FAMOF[m]!==lastFam){lastFam=FAMOF[m]; h+='<tr class="famrow2"><td colspan="7">'+lastFam+'</td></tr>';}
+      var moved=reads(a,b)!=="held";
+      // topic holds across harness whenever the medium holds (the finding); only
+      // show a topic shift when behaviour genuinely changed (medium differs).
+      var topicCell = a.medium===b.medium
+        ? '<span class="held">'+esc(shortTopic(a.topic))+'</span>'
+        : dtxt(shortTopic(a.topic),shortTopic(b.topic));
+      h+='<tr>'+
+        '<td class="model">'+m+'</td>'+
+        '<td>'+dmed(a,b)+'</td>'+
+        '<td>'+topicCell+'</td>'+
+        '<td>'+dnum(a.loc,b.loc)+'</td>'+
+        '<td>'+dnum(a.tests,b.tests)+'</td>'+
+        '<td>'+dtxt(MATLAB[a.mat],MATLAB[b.mat])+'</td>'+
+        '<td class="reads'+(moved?" moved":"")+'">'+reads(a,b)+'</td>'+
+      '</tr>';
+    });
+    h+='</tbody></table>';
+    document.getElementById("deltaView").innerHTML=h;
+  }
+
   // ---- drawer ----
   var drawer=document.getElementById("drawer"), dBody=document.getElementById("dBody");
   function expLink(exp){var n=(exp.match(/E(\d+)/)||[])[1];return n?("../results"+n+"/RESULTS.md"):"../README.md";}
@@ -687,7 +775,7 @@
   var dt; window.addEventListener("resize",function(){clearTimeout(dt);dt=setTimeout(function(){resizeLife();draw();},180);});
 
   // boot
-  draw(); resizeLife();
+  draw(); renderDeltas(); resizeLife();
   if(!reduce) timer=setInterval(stepLife,220);
 })();
 </script>
