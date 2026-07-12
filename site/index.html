@@ -74,18 +74,17 @@
   h2{font-family:var(--mono);font-weight:600;font-size:clamp(20px,2.6vw,26px);letter-spacing:-.01em}
   .lede{color:var(--muted);max-width:74ch;margin:10px 0 0}
 
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
-  @media (max-width:900px){.cards{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow)}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 48px;margin-top:34px}
+  @media (max-width:900px){.cards{grid-template-columns:1fr;gap:30px}}
+  .card{padding-top:16px;border-top:2px solid var(--ink)}
   .card .n{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
-  .card h3{font-size:17px;margin:8px 0 8px;font-weight:600}
+  .card h3{font-size:18px;margin:10px 0 8px;font-weight:600}
   .card p{margin:0;color:var(--muted);font-size:14px}
 
-  /* ---- explorer ---- */
-  .explorer{background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    box-shadow:var(--shadow);overflow:hidden;margin-top:24px}
-  .bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:20px 30px;
-    padding:20px 24px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  /* ---- explorer (open / editorial) ---- */
+  .explorer{margin-top:30px;border-top:1px solid var(--line)}
+  .bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:20px 40px;
+    padding:22px 0;border-bottom:1px solid var(--line);background:transparent}
   .ctl{display:flex;flex-direction:column;gap:8px}
   .ctl .lab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
   select.axis{font-family:var(--mono);font-size:13px;background:var(--bg);color:var(--ink);
@@ -101,7 +100,7 @@
   .seg button:hover{color:var(--ink)}
   .spacer{margin-left:auto}
 
-  .legend{display:flex;flex-wrap:wrap;gap:8px 20px;padding:14px 24px;border-bottom:1px solid var(--line);
+  .legend{display:flex;flex-wrap:wrap;gap:8px 20px;padding:14px 0;border-bottom:1px solid var(--line);
     font-family:var(--mono);font-size:12px;color:var(--muted);align-items:center}
   .legend .grp{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center}
   .legend .sep{width:1px;height:16px;background:var(--line)}
@@ -109,6 +108,48 @@
   .legend i.sw{width:11px;height:11px;border-radius:50%;display:inline-block}
   .legend i.sq{width:11px;height:11px;border-radius:3px;display:inline-block;background:var(--muted)}
   .legend i.ci{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid var(--muted)}
+
+  .counter{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--muted);align-self:center}
+  .counter b{color:var(--ink)} .counter .gapn{color:var(--decline)}
+  .legend i.pip{width:9px;height:9px;border-radius:2px;display:inline-block;border:1.5px solid var(--muted);margin-right:1px}
+  .legend i.pip.on{background:var(--muted);border-color:var(--muted)}
+
+  /* grid / matrix */
+  .gridscroll{overflow-x:auto}
+  table.grid{border-collapse:separate;border-spacing:0;width:100%;min-width:620px;table-layout:fixed}
+  table.grid col.mcol{width:190px}
+  table.grid th{padding:14px 22px 14px 0;text-align:left;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:12px;color:var(--ink);font-weight:600}
+  table.grid th:first-child{padding-right:22px}
+  table.grid th small{display:block;color:var(--faint);font-weight:400;margin-top:2px}
+  table.grid td{padding:0;vertical-align:top}
+  .famrow td{padding:22px 0 8px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--faint)}
+  .grow td{border-top:1px solid var(--line)}
+  .gmodel{padding:18px 22px 18px 0;font-family:var(--mono);font-size:13.5px;color:var(--ink);white-space:nowrap}
+  .gmodel .fam{display:block;font-size:10.5px;color:var(--faint);margin-top:2px}
+  .gcellwrap{padding:0 26px 0 0}
+  .gcell{display:block;width:100%;text-align:left;cursor:pointer;color:inherit;font:inherit;
+    border:0;border-left:3px solid var(--mc,var(--gap));border-radius:0;
+    padding:16px 0 16px 16px;background:transparent;transition:background .12s}
+  .gcell:hover{background:color-mix(in srgb,var(--panel2) 50%,transparent)}
+  .gcell:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .gcell .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .gcell .med{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--mc);
+    display:inline-flex;align-items:center;gap:6px}
+  .gcell .med .dot{width:8px;height:8px;border-radius:2px;background:var(--mc)}
+  .gcell .built{font-size:14px;color:var(--ink);margin-top:7px;line-height:1.4}
+  .gcell .fixrow{display:flex;align-items:center;gap:9px;margin-top:10px}
+  .gcell .pips{display:inline-flex;gap:2.5px}
+  .gcell .pips i{width:15px;height:9px;border-radius:2px;border:1.5px solid var(--mc);display:inline-block;opacity:.5}
+  .gcell .pips i.on{background:var(--mc);opacity:1}
+  .gcell .fixlab{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .gcell .exp{font-family:var(--mono);font-size:10.5px;color:var(--faint);white-space:nowrap}
+  .gcell.gap{border-style:dashed;border-left-style:dashed;background:transparent;--mc:var(--gap);cursor:pointer}
+  .gcell.gap .med{color:var(--faint)} .gcell.gap .built{color:var(--faint);font-style:italic}
+  .gap{--gap:#3a444f}
+  @media (prefers-color-scheme:light){.gap{--gap:#c6d0d9}}
+  :root[data-theme="dark"] .gap{--gap:#3a444f} :root[data-theme="light"] .gap{--gap:#c6d0d9}
 
   .plotwrap{padding:12px 14px 6px}
   svg.plot{display:block;width:100%;height:auto;font-family:var(--mono)}
@@ -165,9 +206,9 @@
   .node .d{font-size:12.5px;color:var(--ink);margin-top:8px;line-height:1.4}
 
   /* hypotheses */
-  .hyp{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
+  .hyp{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 48px;margin-top:30px}
   @media (max-width:900px){.hyp{grid-template-columns:1fr}}
-  .hcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow)}
+  .hcard{padding:18px 0 0;border-top:1px solid var(--line)}
   .hcard.span2{grid-column:1/-1}
   .hhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
   .hcard h3{font-family:var(--mono);font-size:15.5px;font-weight:600}
@@ -256,32 +297,26 @@
   <section>
     <div class="wrap">
       <div class="kicker">Explore</div>
-      <h2>Map the models across any two variables</h2>
-      <p class="lede">Every point is one model on one harness under the goalless prompt. Choose what
-        the axes measure — output size, project maturity, medium, language — to see where the
-        families separate. The dashed <b>gaps</b> below are model × harness pairs never run.</p>
+      <h2>What each model builds — and where the gaps are</h2>
+      <p class="lede">One prompt, every model, both harnesses. Each cell shows the artifact, its
+        <b>medium</b>, and a <b>fixation bar</b> — filled pips are how many of the 5 runs landed on
+        the same idea (5/5 = total fixation, 1/5 = fully diverse). Dashed cells were
+        <b>never run</b>. Switch to <b>Table</b> for every variable at once.</p>
 
       <div class="explorer">
         <div class="bar">
           <div class="ctl">
             <span class="lab">View</span>
             <div class="seg" id="viewSeg" role="group" aria-label="View">
-              <button type="button" data-v="map" aria-pressed="true">Map</button>
+              <button type="button" data-v="grid" aria-pressed="true">Grid</button>
               <button type="button" data-v="table" aria-pressed="false">Table</button>
             </div>
-          </div>
-          <div class="ctl" id="xCtl">
-            <span class="lab">X axis</span>
-            <select class="axis" id="xSel" aria-label="X axis"></select>
-          </div>
-          <div class="ctl" id="yCtl">
-            <span class="lab">Y axis</span>
-            <select class="axis" id="ySel" aria-label="Y axis"></select>
           </div>
           <div class="ctl">
             <span class="lab">Family</span>
             <div class="seg" id="famSeg" role="group" aria-label="Model family"></div>
           </div>
+          <div class="counter" id="counter"></div>
         </div>
 
         <div class="legend">
@@ -292,22 +327,17 @@
           </div>
           <span class="sep"></span>
           <div class="grp">
-            <span class="k"><i class="ci"></i>Claude Code harness</span>
-            <span class="k"><i class="sq"></i>codex harness</span>
+            <span class="k"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i> &nbsp;fixation (runs on the dominant idea)</span>
           </div>
         </div>
 
-        <div class="plotwrap" id="mapView"><svg class="plot" id="plot" viewBox="0 0 1000 520" role="img"
-          aria-label="Scatter plot of models by the selected axes"></svg></div>
-
+        <div class="gridscroll" id="gridView"></div>
         <div class="tablewrap hide" id="tableView"></div>
-
-        <div class="gapstrip" id="gapStrip"></div>
       </div>
       <p class="lede" style="margin-top:14px;font-size:13px">
-        <b>Reported per run:</b> medium, primary language, avg LOC, tests, project maturity — all
-        computed from the actual outputs. <b>Pricing</b> and <b>model size</b> are shown as columns
-        but left <span class="na">n/a</span>: these gateway models aren't publicly priced or
+        <b>Reported per run:</b> medium, fixation, primary language, avg LOC, tests, project
+        maturity — computed from the actual outputs. <b>Pricing</b> and <b>model size</b> are table
+        columns left <span class="na">n/a</span>: these gateway models aren't publicly priced or
         sized — drop in real numbers to light them up.</p>
     </div>
   </section>
@@ -389,8 +419,6 @@
     <div><a href="../README.md">README</a> · <a href="../INTERPRETATION.md">INTERPRETATION</a></div>
   </div></footer>
 
-  <div class="tt" id="tt" role="tooltip"></div>
-
   <div class="drawer" id="drawer" aria-hidden="true">
     <div class="scrim" data-close></div>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dTitle">
@@ -410,38 +438,40 @@
 
   // one row per model × harness under the goalless prompt (p5). loc = avg LOC over
   // implementing runs; tests = runs with a test file /5; mat = 0 low / 1 med / 2 high.
-  function o(model,fam,harness,medium,loc,tests,mat,lang,topic,exp){
-    return {model:model,fam:fam,harness:harness,medium:medium,loc:loc,tests:tests,mat:mat,lang:lang,topic:topic,exp:exp};
+  // fix = how many of the 5 runs landed on the dominant topic (0 = declined /
+  // n.a., 1 = fully diverse, 5 = total fixation). Drives the fixation bar.
+  function o(model,fam,harness,medium,loc,tests,mat,lang,topic,fix,exp){
+    return {model:model,fam:fam,harness:harness,medium:medium,loc:loc,tests:tests,mat:mat,lang:lang,topic:topic,fix:fix,exp:exp};
   }
   var DATA=[
-    o("opus-4.6","Claude",CC,"terminal",37,0,0,"Python","Game of Life 5/5","E7/E8"),
-    o("opus-4.7","Claude",CC,"terminal",66,0,0,"Python","Mandelbrot → 5 distinct","E8"),
-    o("opus-4.8","Claude",CC,"terminal",145,1,1,"Python","Partial cluster + READMEs","E8"),
-    o("sonnet-4-6","Claude",CC,"terminal",138,0,0,"Python","4 distinct topics","E9"),
-    o("sonnet-5","Claude",CC,"terminal",69,0,0,"Python","Game of Life 5/5, terse","E9"),
-    o("fable-5","Claude",CC,"render",178,1,1,"Python","Flow fields → PNG/SVG 4/5","E8"),
-    o("gpt-5.6-sol","GPT",CC,"browser",116,0,0,"HTML/JS","Ambient breathing pages 5/5","E14"),
-    o("gpt-5.6-terra","GPT",CC,"decline",13,0,0,"—","Declines 4/5","E14"),
-    o("gpt-5.6-luna","GPT",CC,"browser",84,0,0,"HTML/JS","Reflection micro-apps 3/4","E14"),
-    o("glm-5.1","Open-weights",CC,"terminal",350,0,0,"Python","Generative ASCII art","E12"),
-    o("glm-5.2","Open-weights",CC,"terminal",147,0,0,"Python/JS","Rule-based visual (GoL, donut)","E12"),
-    o("qwen3.7-max","Open-weights",CC,"terminal",289,0,0,"Python/SVG","GoL-leaning (life ×3, boids)","E12"),
-    o("minimax-m3","Open-weights",CC,"terminal",244,1,1,"Python/SVG","Diverse: games, oracles, art","E12"),
-    o("deepseek-v4-pro","Open-weights",CC,"terminal",396,1,0,"Python/JS","Game of Life 4/5","E12"),
-    o("kimi-k2.7-code","Open-weights",CC,"terminal",218,2,2,"Python","Packaged CLIs + pytest","E12"),
-    o("opus-4.6","Claude",CX,"terminal",96,0,0,"Python","Game of Life 5/5 (unchanged)","E15"),
-    o("sonnet-5","Claude",CX,"terminal",331,4,2,"Python","Game of Life ~4/5, packaged","E15"),
-    o("gpt-5.5","GPT",CX,"browser",343,0,0,"HTML/JS","Browser productivity dashboards","E10"),
-    o("gpt-5.5-pro","GPT",CX,"split",498,3,2,"Python/HTML","Web apps + workspace CLIs","E10"),
-    o("gpt-5.6-sol","GPT",CX,"browser",172,0,0,"HTML/JS","Breathing / night-sky 5/5","E11"),
-    o("gpt-5.6-terra","GPT",CX,"browser",73,0,0,"HTML/JS","Focus timers 4/5","E11"),
-    o("gpt-5.6-luna","GPT",CX,"browser",174,0,0,"HTML/JS","Calm micro-apps 5/5","E11"),
-    o("glm-5.1","Open-weights",CX,"terminal",249,0,0,"Python","Terminal art / dungeon","E13"),
-    o("glm-5.2","Open-weights",CX,"terminal",146,0,0,"Python/JS","Terminal visual (+1 HTML)","E13"),
-    o("qwen3.7-max","Open-weights",CX,"terminal",257,0,0,"Python/JS","Snake / GoL (+1 HTML)","E13"),
-    o("minimax-m3","Open-weights",CX,"terminal",414,2,2,"Python/JS","Diverse (+1 HTML)","E13"),
-    o("deepseek-v4-pro","Open-weights",CX,"terminal",145,0,0,"Python/JS","Snake / GoL — 3/5 impl","E13"),
-    o("kimi-k2.7-code","Open-weights",CX,"terminal",167,2,2,"Python","Packaged CLIs + pytest","E13")
+    o("opus-4.6","Claude",CC,"terminal",37,0,0,"Python","Game of Life",5,"E7/E8"),
+    o("opus-4.7","Claude",CC,"terminal",66,0,0,"Python","5 distinct (Mandelbrot, GoL, Collatz, Lorenz, Ant)",1,"E8"),
+    o("opus-4.8","Claude",CC,"terminal",145,1,1,"Python","Maze / Mandelbrot / flow-field",2,"E8"),
+    o("sonnet-4-6","Claude",CC,"terminal",138,0,0,"Python","4 distinct (Mandelbrot, CA, GoL, rain)",2,"E9"),
+    o("sonnet-5","Claude",CC,"terminal",69,0,0,"Python","Game of Life",5,"E9"),
+    o("fable-5","Claude",CC,"render",178,1,1,"Python","Flow fields / raytracer → PNG·SVG",2,"E8"),
+    o("gpt-5.6-sol","GPT",CC,"browser",116,0,0,"HTML/JS","Ambient breathing / night-sky pages",5,"E14"),
+    o("gpt-5.6-terra","GPT",CC,"decline",13,0,0,"—","Declined — wrote a welcome README",0,"E14"),
+    o("gpt-5.6-luna","GPT",CC,"browser",84,0,0,"HTML/JS","Calm / reflection micro-apps",3,"E14"),
+    o("glm-5.1","Open-weights",CC,"terminal",350,0,0,"Python","Generative ASCII art / landscapes",1,"E12"),
+    o("glm-5.2","Open-weights",CC,"terminal",147,0,0,"Python/JS","Rule-based visual (flow field, GoL, donut)",1,"E12"),
+    o("qwen3.7-max","Open-weights",CC,"terminal",289,0,0,"Python/SVG","Game of Life (×3) + aquarium, boids",3,"E12"),
+    o("minimax-m3","Open-weights",CC,"terminal",244,1,1,"Python/SVG","Diverse: games, oracles, SVG art",1,"E12"),
+    o("deepseek-v4-pro","Open-weights",CC,"terminal",396,1,0,"Python/JS","Game of Life (+1 dev tool)",4,"E12"),
+    o("kimi-k2.7-code","Open-weights",CC,"terminal",218,2,2,"Python","Packaged CLIs + pytest (varied topics)",1,"E12"),
+    o("opus-4.6","Claude",CX,"terminal",96,0,0,"Python","Game of Life",5,"E15"),
+    o("sonnet-5","Claude",CX,"terminal",331,4,2,"Python","Game of Life, packaged + pytest",4,"E15"),
+    o("gpt-5.5","GPT",CX,"browser",343,0,0,"HTML/JS","Browser productivity dashboards",4,"E10"),
+    o("gpt-5.5-pro","GPT",CX,"split",498,3,2,"Python/HTML","Web apps + workspace-introspection CLIs",1,"E10"),
+    o("gpt-5.6-sol","GPT",CX,"browser",172,0,0,"HTML/JS","Breathing / night-sky pages",5,"E11"),
+    o("gpt-5.6-terra","GPT",CX,"browser",73,0,0,"HTML/JS","Focus timers / attention pages",4,"E11"),
+    o("gpt-5.6-luna","GPT",CX,"browser",174,0,0,"HTML/JS","Calm reflection micro-apps",5,"E11"),
+    o("glm-5.1","Open-weights",CX,"terminal",249,0,0,"Python","Terminal art / procedural dungeon",1,"E13"),
+    o("glm-5.2","Open-weights",CX,"terminal",146,0,0,"Python/JS","Terminal visual (+1 HTML of 5)",2,"E13"),
+    o("qwen3.7-max","Open-weights",CX,"terminal",257,0,0,"Python/JS","Snake / Game of Life (+1 HTML)",2,"E13"),
+    o("minimax-m3","Open-weights",CX,"terminal",414,2,2,"Python/JS","Diverse (game, oracle, packaged, SVG)",1,"E13"),
+    o("deepseek-v4-pro","Open-weights",CX,"terminal",145,0,0,"Python/JS","Snake / Game of Life — 3/5 implemented",2,"E13"),
+    o("kimi-k2.7-code","Open-weights",CX,"terminal",167,2,2,"Python","Packaged CLIs + pytest (varied topics)",1,"E13")
   ];
   // model × harness pairs never run under the goalless prompt
   var GAPS=[
@@ -451,19 +481,12 @@
   var FAMOF={}; DATA.forEach(function(d){FAMOF[d.model]=d.fam;});
 
   var MATLAB=["low","med","high"];
-  var AXES={
-    loc:{label:"avg LOC",type:"num",get:function(d){return d.loc;}},
-    mat:{label:"project maturity",type:"cat",cats:MATLAB,get:function(d){return MATLAB[d.mat];}},
-    tests:{label:"tests written (of 5)",type:"num",max:5,get:function(d){return d.tests;}},
-    medium:{label:"medium",type:"cat",cats:["terminal","render","split","browser","decline"],get:function(d){return d.medium;},fmt:function(v){return MEDLABEL[v];}},
-    lang:{label:"primary language",type:"cat",get:function(d){return d.lang;}},
-    harness:{label:"harness",type:"cat",cats:[CC,CX],get:function(d){return d.harness;}},
-    fam:{label:"model family",type:"cat",cats:FAMS,get:function(d){return d.fam;}},
-    price:{label:"price ($/M tok)  ·  n/a",type:"na"},
-    size:{label:"model size (params)  ·  n/a",type:"na"}
-  };
-
-  var state={view:"map",x:"loc",y:"mat",family:"all"};
+  // model order within a family (drives grid + table row order)
+  var MORDER=["opus-4.6","opus-4.7","opus-4.8","sonnet-4-6","sonnet-5","fable-5",
+    "gpt-5.5","gpt-5.5-pro","gpt-5.6-sol","gpt-5.6-terra","gpt-5.6-luna",
+    "glm-5.1","glm-5.2","qwen3.7-max","minimax-m3","deepseek-v4-pro","kimi-k2.7-code"];
+  function morder(m){var i=MORDER.indexOf(m);return i<0?99:i;}
+  var state={view:"grid",family:"all"};
 
   // theme
   document.getElementById("themeBtn").addEventListener("click",function(){
@@ -471,29 +494,14 @@
     root.setAttribute("data-theme",cur==="dark"?"light":"dark"); resizeLife(); draw();
   });
 
-  // axis selects
-  var xSel=document.getElementById("xSel"), ySel=document.getElementById("ySel");
-  Object.keys(AXES).forEach(function(k){
-    [xSel,ySel].forEach(function(sel){
-      var opt=document.createElement("option"); opt.value=k; opt.textContent=AXES[k].label;
-      if(AXES[k].type==="na") opt.disabled=true;
-      sel.appendChild(opt);
-    });
-  });
-  xSel.value=state.x; ySel.value=state.y;
-  xSel.addEventListener("change",function(){state.x=xSel.value;draw();});
-  ySel.addEventListener("change",function(){state.y=ySel.value;draw();});
-
   // view + family
   var viewSeg=document.getElementById("viewSeg");
   Array.prototype.forEach.call(viewSeg.children,function(b){
     b.addEventListener("click",function(){
       state.view=b.dataset.v;
       Array.prototype.forEach.call(viewSeg.children,function(x){x.setAttribute("aria-pressed",x===b);});
-      document.getElementById("mapView").classList.toggle("hide",state.view!=="map");
+      document.getElementById("gridView").classList.toggle("hide",state.view!=="grid");
       document.getElementById("tableView").classList.toggle("hide",state.view!=="table");
-      document.getElementById("xCtl").style.visibility=state.view==="map"?"visible":"hidden";
-      document.getElementById("yCtl").style.visibility=state.view==="map"?"visible":"hidden";
       draw();
     });
   });
@@ -512,107 +520,60 @@
   function rows(){ return DATA.filter(function(d){return state.family==="all"||d.fam===state.family;}); }
   function cvar(name){ return getComputedStyle(root).getPropertyValue(name).trim(); }
   function medColor(m){ return cvar(MEDV[m]); }
+  function idx(){ var o={}; DATA.forEach(function(d){o[d.model+"|"+d.harness]=d;}); return o; }
 
-  // ---- scale builder ----
-  function buildScale(axisKey, data, px0, px1){
-    var ax=AXES[axisKey];
-    if(ax.type==="num"){
-      var max=ax.max||Math.max.apply(null,data.map(ax.get));
-      // nice max
-      var step=Math.pow(10,Math.floor(Math.log(max)/Math.LN10));
-      var nice=Math.ceil(max/step)*step; if(nice/ (ax.max||nice) < 1.05 && !ax.max) nice+=step*0;
-      max=ax.max||nice;
-      var ticks=[]; var tstep=max/5; for(var i=0;i<=5;i++) ticks.push(Math.round(i*tstep));
-      return {kind:"num",px:function(v){return px0+(v/max)*(px1-px0);},ticks:ticks,tickpx:function(v){return px0+(v/max)*(px1-px0);},fmt:function(v){return v;}};
-    }
-    var cats=ax.cats?ax.cats.slice():[];
-    if(!ax.cats){ data.forEach(function(d){var v=ax.get(d); if(cats.indexOf(v)<0)cats.push(v);}); cats.sort(); }
-    var n=cats.length, pad=(px1-px0)/(n*2);
-    return {kind:"cat",cats:cats,px:function(v){var i=cats.indexOf(v); return px0+pad+(i)*((px1-px0-2*pad)/(Math.max(1,n-1)));},
-      ticks:cats,tickpx:function(v){var i=cats.indexOf(v);return px0+pad+(i)*((px1-px0-2*pad)/(Math.max(1,n-1)));},
-      fmt:function(v){return ax.fmt?ax.fmt(v):v;}};
-  }
-
-  var plot=document.getElementById("plot");
-  var W=1000,H=520, m={l:64,r:24,t:20,b:56};
   function draw(){
-    if(state.view==="table"){ renderTable(); renderGaps(); return; }
-    var data=rows();
-    var xs=buildScale(state.x,data,m.l,W-m.r);
-    var ys=buildScale(state.y,data,H-m.b,m.t); // inverted
-    var xa=AXES[state.x], ya=AXES[state.y];
-    var svg="";
-    // gridlines + ticks (y)
-    (ys.kind==="num"?ys.ticks:ys.cats).forEach(function(t){
-      var py=ys.tickpx(t);
-      svg+='<line class="grid" x1="'+m.l+'" y1="'+py.toFixed(1)+'" x2="'+(W-m.r)+'" y2="'+py.toFixed(1)+'"/>';
-      svg+='<text class="tick" x="'+(m.l-10)+'" y="'+(py+3.5).toFixed(1)+'" text-anchor="end">'+esc(ys.fmt(t))+'</text>';
-    });
-    // ticks (x)
-    (xs.kind==="num"?xs.ticks:xs.cats).forEach(function(t){
-      var pxv=xs.tickpx(t);
-      svg+='<line class="grid" x1="'+pxv.toFixed(1)+'" y1="'+m.t+'" x2="'+pxv.toFixed(1)+'" y2="'+(H-m.b)+'"/>';
-      svg+='<text class="tick" x="'+pxv.toFixed(1)+'" y="'+(H-m.b+20)+'" text-anchor="middle">'+esc(xs.fmt(t))+'</text>';
-    });
-    // axis lines
-    svg+='<line class="axis" x1="'+m.l+'" y1="'+(H-m.b)+'" x2="'+(W-m.r)+'" y2="'+(H-m.b)+'"/>';
-    svg+='<line class="axis" x1="'+m.l+'" y1="'+m.t+'" x2="'+m.l+'" y2="'+(H-m.b)+'"/>';
-    // axis labels
-    svg+='<text class="axlabel" x="'+((m.l+W-m.r)/2)+'" y="'+(H-10)+'" text-anchor="middle">'+esc(xa.label)+'</text>';
-    svg+='<text class="axlabel" transform="translate(16,'+((m.t+H-m.b)/2)+') rotate(-90)" text-anchor="middle">'+esc(ya.label)+'</text>';
-
-    // collision jitter: bucket by rounded px
-    var used={};
-    function place(px,py){
-      var key=Math.round(px/16)+"_"+Math.round(py/16), k=used[key]||0; used[key]=k+1;
-      if(k===0) return [px,py];
-      var ang=k*2.399, r=7+k*1.5; return [px+Math.cos(ang)*r, py+Math.sin(ang)*r];
-    }
-    data.forEach(function(d,i){
-      var vx=xa.get(d), vy=ya.get(d);
-      var p=place(xs.px(vx), ys.px(vy));
-      var col=medColor(d.medium), sq=(d.harness===CX);
-      var hollow=(d.medium==="render"||d.medium==="split");
-      var fill=hollow?"var(--surface)":col, stroke=col, sw=hollow?2.4:1.4;
-      var r=6.5;
-      var al=esc(d.model+' on '+d.harness+': '+MEDLABEL[d.medium]+', '+d.topic);
-      var shape= sq
-        ? '<rect class="pt" x="'+(p[0]-r).toFixed(1)+'" y="'+(p[1]-r).toFixed(1)+'" width="'+(2*r)+'" height="'+(2*r)+'" rx="2.5" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" tabindex="0" role="button" aria-label="'+al+'" data-i="'+i+'"></rect>'
-        : '<circle class="pt" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" tabindex="0" role="button" aria-label="'+al+'" data-i="'+i+'"></circle>';
-      svg+=shape;
-    });
-    plot.innerHTML=svg;
-    Array.prototype.forEach.call(plot.querySelectorAll(".pt"),function(el){
-      var d=data[+el.dataset.i];
-      el.addEventListener("click",function(){openObs(d);});
-      el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openObs(d);}});
-      el.addEventListener("mouseenter",function(ev){showTip(d,ev);});
-      el.addEventListener("mousemove",moveTip);
-      el.addEventListener("mouseleave",hideTip);
-      el.addEventListener("focus",function(){var b=el.getBoundingClientRect();showTip(d,{clientX:b.left+b.width/2,clientY:b.top});});
-      el.addEventListener("blur",hideTip);
-    });
-    renderGaps();
+    if(state.view==="table"){ renderTable(); return; }
+    renderGrid();
   }
 
-  // ---- hover tooltip ----
-  var tt=document.getElementById("tt");
-  function showTip(d,ev){
-    tt.innerHTML='<div class="h"><span class="d" style="background:'+medColor(d.medium)+'"></span>'+esc(d.model)+'</div>'+
-      '<div class="sub">'+esc(d.fam+' · '+d.harness+' · '+MEDLABEL[d.medium]+' · '+d.exp)+'</div>'+
-      '<div class="built">'+esc(d.topic)+'</div>'+
-      '<div class="meta">'+d.loc+' LOC · '+d.tests+'/5 tests · '+MATLAB[d.mat]+' maturity · '+esc(d.lang)+'</div>'+
-      '<div class="hint">click for source →</div>';
-    tt.classList.add("show"); moveTip(ev);
+  // pip glyph: `fix` filled of 5 (declined → crossed)
+  function pips(fix,medium){
+    if(medium==="decline") return '<span class="pips" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>';
+    var h='<span class="pips" aria-hidden="true">';
+    for(var i=0;i<5;i++) h+='<i class="'+(i<fix?"on":"")+'"></i>';
+    return h+'</span>';
   }
-  function moveTip(ev){
-    var pad=14, w=tt.offsetWidth, h=tt.offsetHeight;
-    var x=ev.clientX+16, y=ev.clientY+16;
-    if(x+w+pad>innerWidth) x=ev.clientX-w-16;
-    if(y+h+pad>innerHeight) y=ev.clientY-h-16;
-    tt.style.left=Math.max(pad,x)+"px"; tt.style.top=Math.max(pad,y)+"px";
+
+  function renderGrid(){
+    var data=rows(), ix=idx();
+    var models=[]; data.forEach(function(d){if(models.indexOf(d.model)<0)models.push(d.model);});
+    models.sort(function(a,b){var fa=FAMS.indexOf(FAMOF[a]),fb=FAMS.indexOf(FAMOF[b]);return fa!==fb?fa-fb:morder(a)-morder(b);});
+    var run=0,gaps=0;
+    var h='<table class="grid"><colgroup><col class="mcol"><col><col></colgroup>'+
+      '<thead><tr><th>Model</th><th>Claude Code<small>Anthropic Messages</small></th><th>codex<small>OpenAI Responses</small></th></tr></thead><tbody>';
+    var lastFam=null;
+    models.forEach(function(m){
+      if(FAMOF[m]!==lastFam){lastFam=FAMOF[m]; h+='<tr class="famrow"><td colspan="3">'+lastFam+'</td></tr>';}
+      h+='<tr class="grow"><td class="gmodel">'+m+'<span class="fam">'+FAMOF[m]+'</span></td>';
+      [CC,CX].forEach(function(hn){
+        var d=ix[m+"|"+hn];
+        h+='<td class="gcellwrap">';
+        if(d){ run++;
+          var mc=medColor(d.medium);
+          h+='<button class="gcell" data-k="'+m+'|'+hn+'" style="--mc:'+mc+'">'+
+              '<div class="top"><span class="med"><span class="dot"></span>'+MEDLABEL[d.medium].toUpperCase()+'</span><span class="exp">'+d.exp+'</span></div>'+
+              '<div class="built">'+esc(d.topic)+'</div>'+
+              '<div class="fixrow">'+pips(d.fix,d.medium)+'<span class="fixlab">'+(d.medium==="decline"?"declined":d.fix+"/5 on the dominant idea")+'</span></div>'+
+             '</button>';
+        } else { gaps++;
+          h+='<button class="gcell gap" data-gap="'+m+'|'+hn+'">'+
+              '<div class="top"><span class="med"><span class="dot"></span>NOT RUN</span></div>'+
+              '<div class="built">'+m+' × '+hn+' — never run under the goalless prompt</div>'+
+             '</button>';
+        }
+        h+='</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    var gv=document.getElementById("gridView"); gv.innerHTML=h;
+    Array.prototype.forEach.call(gv.querySelectorAll(".gcell"),function(el){
+      if(el.dataset.k) el.addEventListener("click",function(){openObs(ix[el.dataset.k]);});
+      else el.addEventListener("click",function(){var p=el.dataset.gap.split("|");openGap([p[0],p[1]]);});
+    });
+    document.getElementById("counter").innerHTML='<b>'+run+'</b> run · <span class="gapn">'+gaps+' gap'+(gaps===1?"":"s")+'</span>';
   }
-  function hideTip(){tt.classList.remove("show");}
 
   // ---- table view (also the comparison-variable report) ----
   var sortKey="fam", sortDir=1;
@@ -623,8 +584,8 @@
       return String(va).localeCompare(String(vb))*sortDir;
     });
     var cols=[["model","model"],["fam","family"],["harness","harness"],["medium","medium"],
-      ["topic","what it built"],["lang","language"],["loc","avg LOC"],["tests","tests /5"],
-      ["mat","maturity"],["price","price $/Mtok"],["size","model size"],["exp","exp"]];
+      ["topic","what it built"],["fix","fixation"],["lang","language"],["loc","avg LOC"],
+      ["tests","tests /5"],["mat","maturity"],["price","price $/Mtok"],["size","model size"],["exp","exp"]];
     var h='<table class="data"><thead><tr>';
     cols.forEach(function(c){h+='<th data-k="'+c[0]+'">'+c[1]+'</th>';});
     h+='</tr></thead><tbody>';
@@ -635,6 +596,7 @@
         '<td>'+d.harness+'</td>'+
         '<td><span class="medtag"><span class="d" style="background:'+medColor(d.medium)+'"></span>'+MEDLABEL[d.medium]+'</span></td>'+
         '<td class="topic">'+esc(d.topic)+'</td>'+
+        '<td class="num">'+(d.medium==="decline"?'<span class="na">decl</span>':d.fix+"/5")+'</td>'+
         '<td>'+(d.lang==="—"?'<span class="na">—</span>':d.lang)+'</td>'+
         '<td class="num">'+d.loc+'</td>'+
         '<td class="num">'+d.tests+'</td>'+
@@ -653,18 +615,6 @@
     });
   }
 
-  function renderGaps(){
-    var strip=document.getElementById("gapStrip");
-    var gaps=GAPS.filter(function(g){return state.family==="all"||FAMOF[g[0]]===state.family;});
-    var h='<span class="glab">'+gaps.length+' gap'+(gaps.length===1?"":"s")+' · never run:</span>';
-    if(!gaps.length) h+='<span>—</span>';
-    gaps.forEach(function(g,i){ h+='<button class="gapchip" data-i="'+i+'">'+g[0]+' × '+g[1]+'</button>'; });
-    strip.innerHTML=h;
-    Array.prototype.forEach.call(strip.querySelectorAll(".gapchip"),function(b){
-      b.addEventListener("click",function(){openGap(gaps[+b.dataset.i]);});
-    });
-  }
-
   // ---- drawer ----
   var drawer=document.getElementById("drawer"), dBody=document.getElementById("dBody");
   function expLink(exp){var n=(exp.match(/E(\d+)/)||[])[1];return n?("../results"+n+"/RESULTS.md"):"../README.md";}
@@ -674,6 +624,7 @@
       '<h3 id="dTitle">'+d.model+'</h3>'+
       '<div class="d-sub">'+d.fam+' · '+d.harness+' · '+d.exp+'</div>'+
       '<div class="d-row"><div class="k">What it built</div><div class="v">'+d.topic+'</div></div>'+
+      '<div class="d-row"><div class="k">Fixation</div><div class="v mono">'+(d.medium==="decline"?"declined":d.fix+"/5 runs on the dominant idea"+(d.fix>=5?" — total fixation":d.fix<=1?" — fully diverse":""))+'</div></div>'+
       '<div class="d-row"><div class="k">Primary language</div><div class="v mono">'+(d.lang==="—"?"—":d.lang)+'</div></div>'+
       '<div class="d-row"><div class="k">Avg LOC · tests · maturity</div><div class="v mono">'+d.loc+' · '+d.tests+'/5 · '+MATLAB[d.mat]+'</div></div>'+
       '<div class="d-row"><div class="k">Price · size</div><div class="v"><span class="na">n/a — gateway model, not publicly priced/sized</span></div></div>'+
