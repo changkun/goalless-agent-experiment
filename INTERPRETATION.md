@@ -269,22 +269,26 @@ harnesses (same models, same prompt) separates the two contributions cleanly:
   scaffold artifacts. (Reliability is not always: deepseek drove the agentic
   loop 5/5 on Claude Code but only 3/5 on codex — a scaffold-match cost, exactly
   what this section predicts.)
-- **Form is partly the harness's — but weakly, and only in one direction.** The
-  *rate* at which these models produce a graphical artifact is rare and about
-  equal on both harnesses; what changes is the *rendering*: the two models that
-  went graphical on both sides emitted static **SVG** under Claude Code and
-  interactive **HTML** under codex. Interactive browser pages appear only under
-  codex, and even there only ~1/9 for open-weights versus GPT's 4–5/5. So codex
-  *raises the ceiling* on browser output rather than *causing* it, and how close
-  a model comes to that ceiling is a model property (persona/RL medium, §4). The
-  one cell that would fully separate provider from scaffold — a GPT model on
-  Claude Code — remains blocked by a compat-plumbing limit (OpenAI reasoning
-  models require the Responses API for tool use), so the strongest medium claim
-  the data licenses is *within-codex* (GPT ≫ open-weights), not across the
-  Claude Code boundary. This is the empirical correction to any reading of §4
-  that treats "terminal vs browser" as purely a provider trait: it is a
-  model × harness interaction, with the model dominating content and the harness
-  nudging form.
+- **Medium is a model/family trait; the harness only nudges *form*.** Once the
+  last cell was filled (Exp14: gpt-5.6 on Claude Code, reachable after building
+  the Responses backend codec), the picture resolved. GPT ships **interactive
+  browser pages under *both* harnesses** — gpt-5.6-sol 5/5 on codex (Exp11) and
+  5/5 on Claude Code (Exp14), luna browser-leaning on both — on the exact
+  harness where every open-weights model (Exp12) and every Claude model (Exp7–9)
+  stays terminal. Open-weights stay terminal under *both* harnesses (Exp12/13),
+  producing a graphical artifact only rarely and, when they do, in a form the
+  harness shifts (static **SVG** under Claude Code ↔ interactive **HTML** under
+  codex). So "terminal vs browser" is dominated by the **model's** persona/RL
+  medium (§4): GPT wants the browser productivity app, everyone else defaults to
+  the terminal, and this survives a foreign scaffold. The harness contributes
+  two second-order effects, not the medium itself: it shifts the *form* of the
+  rare non-GPT graphical output, and it moves the *build-vs-decline rate*
+  (gpt-5.6 declines far more on Claude Code — though that comparison is
+  effort-confounded, codex having run at forced `high` and Claude Code at
+  default). Scope note: Claude models were never run on codex anywhere in the
+  study, so their terminal-ness is harness-confounded and is *not* itself
+  evidence for the model-trait claim — the clean cross-harness contrast is the
+  two families with data on both sides (GPT, open-weights).
 
 ## 8. What this data does not show
 
@@ -339,14 +343,16 @@ Each mechanism above implies an experiment this harness can run:
    decisive. Shared attractors across distant models (opus-4.6 and sonnet-5
    both → GoL) would additionally hint at shared post-training data lineage
    (H4) rather than coincidence.
-8. **The open medium cell (§7):** run a browser-happy GPT model (gpt-5.6-sol,
-   5/5 browser on codex) on the **Claude Code** harness — the one cell Exp12/13
-   leave empty. Currently blocked: OpenAI reasoning models need the Responses
-   API for tool use, which the anthropic→chat compat path doesn't route to
-   (fix: route reasoning-model tool calls to `/v1/responses`, or use a
-   non-reasoning GPT). Prediction, if H (model owns content, harness nudges
-   form) holds: GPT keeps its productivity/web *intent* but Claude Code pulls
-   the *rendering* toward terminal or static output — mirroring the open-weights
-   SVG↔HTML form-flip, in reverse. A GPT that still ships interactive browser
-   apps through Claude Code would instead argue the medium is a hard model
-   trait, not a harness-modulated one.
+8. **The open medium cell (§7) — resolved (Exp14).** We ran gpt-5.6-sol (5/5
+   browser on codex) on the **Claude Code** harness, after building the
+   `openairesp` Responses backend codec to unblock it (OpenAI reasoning models
+   need the Responses API for tool use). The prediction had two branches: if the
+   harness modulated the medium, Claude Code would pull the rendering toward
+   terminal; if the medium is a hard model trait, GPT keeps shipping browser
+   apps. **The second branch held** — sol produced interactive browser pages
+   5/5 (luna 3/4) through Claude Code, where all Claude and open-weights runs
+   stay terminal. So the medium is a model trait; the harness modulates only
+   form (for the rare non-GPT graphical output) and decline rate (confounded
+   with effort). The remaining follow-up is a *matched-effort* GPT × Claude Code
+   run (`high`, not default) to isolate the decline-rate shift from effort — the
+   analogue of the "gpt-5.5 at high" cell Exp10 wanted.
