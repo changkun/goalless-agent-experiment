@@ -3,39 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Goalless Agents — model × harness × task explorer</title>
+<title>Goalless Agents — model × harness explorer</title>
 <style>
   :root{
     --bg:#0d1117; --panel:#141a22; --panel2:#1a212b; --line:#26303c;
     --ink:#dbe3ec; --muted:#8b98a7; --faint:#5d6b7a;
-    --terminal:#46c8a8; --browser:#e2a24a; --decline:#d97b7b;
-    --render:#b48ce0; --mixed:#7fb3d0; --gap:#3a444f;
-    --accent:var(--terminal);
+    --terminal:#2ea88a; --browser:#c0862b; --decline:#d76a63; --neutral:#7c8aa0;
+    --accent:#3fb89a;
     --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
     --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --shadow:0 1px 0 rgba(255,255,255,.03),0 8px 24px -12px rgba(0,0,0,.6);
+    --surface:#0d1117;
   }
   @media (prefers-color-scheme:light){
     :root{
       --bg:#f4f6f8; --panel:#ffffff; --panel2:#eef2f5; --line:#dde4ea;
       --ink:#18222d; --muted:#576573; --faint:#8b98a7;
-      --terminal:#12876c; --browser:#b9791d; --decline:#c0544f;
-      --render:#7b52b5; --mixed:#2d7ba3; --gap:#c6d0d9;
+      --terminal:#0e8b6a; --browser:#bf7710; --decline:#c0443c; --neutral:#5f6d80;
+      --accent:#0e8b6a; --surface:#ffffff;
       --shadow:0 1px 0 rgba(255,255,255,.6),0 10px 30px -16px rgba(20,40,60,.35);
     }
   }
   :root[data-theme="dark"]{
     --bg:#0d1117; --panel:#141a22; --panel2:#1a212b; --line:#26303c;
     --ink:#dbe3ec; --muted:#8b98a7; --faint:#5d6b7a;
-    --terminal:#46c8a8; --browser:#e2a24a; --decline:#d97b7b;
-    --render:#b48ce0; --mixed:#7fb3d0; --gap:#3a444f;
+    --terminal:#2ea88a; --browser:#c0862b; --decline:#d76a63; --neutral:#7c8aa0;
+    --accent:#3fb89a; --surface:#0d1117;
     --shadow:0 1px 0 rgba(255,255,255,.03),0 8px 24px -12px rgba(0,0,0,.6);
   }
   :root[data-theme="light"]{
     --bg:#f4f6f8; --panel:#ffffff; --panel2:#eef2f5; --line:#dde4ea;
     --ink:#18222d; --muted:#576573; --faint:#8b98a7;
-    --terminal:#12876c; --browser:#b9791d; --decline:#c0544f;
-    --render:#7b52b5; --mixed:#2d7ba3; --gap:#c6d0d9;
+    --terminal:#0e8b6a; --browser:#bf7710; --decline:#c0443c; --neutral:#5f6d80;
+    --accent:#0e8b6a; --surface:#ffffff;
     --shadow:0 1px 0 rgba(255,255,255,.6),0 10px 30px -16px rgba(20,40,60,.35);
   }
 
@@ -43,15 +43,14 @@
   html{-webkit-text-size-adjust:100%}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
     line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1560px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+  .wrap{max-width:1500px;margin:0 auto;padding:0 clamp(22px,4vw,60px)}
   a{color:var(--accent);text-decoration:none}
   a:hover{text-decoration:underline}
   h1,h2,h3{text-wrap:balance;margin:0}
 
-  /* ---- hero ---- */
   .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
-  #life{position:absolute;inset:0;width:100%;height:100%;opacity:.16;z-index:0}
-  @media (prefers-color-scheme:light){#life{opacity:.10}}
+  #life{position:absolute;inset:0;width:100%;height:100%;opacity:.15;z-index:0}
+  @media (prefers-color-scheme:light){#life{opacity:.09}}
   .hero .wrap{position:relative;z-index:1;padding-top:64px;padding-bottom:52px}
   .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;
     text-transform:uppercase;color:var(--accent);margin-bottom:18px}
@@ -64,148 +63,118 @@
   .stat{font-family:var(--mono);font-size:12.5px;background:var(--panel);
     border:1px solid var(--line);border-radius:999px;padding:7px 14px;color:var(--muted)}
   .stat b{color:var(--ink);font-weight:600}
-
   .topbar{position:absolute;top:16px;right:16px;z-index:2}
   .toggle{font-family:var(--mono);font-size:12px;background:var(--panel);
-    color:var(--muted);border:1px solid var(--line);border-radius:999px;
-    padding:7px 12px;cursor:pointer}
+    color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer}
   .toggle:hover{color:var(--ink);border-color:var(--accent)}
 
   section{padding:46px 0}
   .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;
     text-transform:uppercase;color:var(--muted);margin-bottom:10px}
   h2{font-family:var(--mono);font-weight:600;font-size:clamp(20px,2.6vw,26px);letter-spacing:-.01em}
-  .lede{color:var(--muted);max-width:70ch;margin:10px 0 0}
+  .lede{color:var(--muted);max-width:74ch;margin:10px 0 0}
 
-  /* ---- findings ---- */
   .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
-  @media (max-width:820px){.cards{grid-template-columns:1fr}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
-    padding:20px;box-shadow:var(--shadow)}
+  @media (max-width:900px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow)}
   .card .n{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
   .card h3{font-size:17px;margin:8px 0 8px;font-weight:600}
   .card p{margin:0;color:var(--muted);font-size:14px}
 
   /* ---- explorer ---- */
   .explorer{background:var(--panel);border:1px solid var(--line);border-radius:16px;
-    box-shadow:var(--shadow);overflow:hidden}
-  .controls{display:flex;flex-wrap:wrap;align-items:center;gap:18px 26px;
-    padding:18px 20px;border-bottom:1px solid var(--line);background:var(--panel2)}
-  .ctl{display:flex;flex-direction:column;gap:7px}
-  .ctl .lab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--faint)}
+    box-shadow:var(--shadow);overflow:hidden;margin-top:24px}
+  .bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:20px 30px;
+    padding:20px 24px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .ctl{display:flex;flex-direction:column;gap:8px}
+  .ctl .lab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  select.axis{font-family:var(--mono);font-size:13px;background:var(--bg);color:var(--ink);
+    border:1px solid var(--line);border-radius:9px;padding:8px 30px 8px 12px;cursor:pointer;
+    appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  select.axis:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  select.axis:disabled{opacity:.45;cursor:not-allowed}
   .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
-  .seg button{font-family:var(--mono);font-size:12.5px;border:0;background:transparent;
-    color:var(--muted);padding:6px 11px;border-radius:7px;cursor:pointer;white-space:nowrap}
+  .seg button{font-family:var(--mono);font-size:12.5px;border:0;background:transparent;color:var(--muted);
+    padding:7px 13px;border-radius:7px;cursor:pointer;white-space:nowrap}
   .seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
   .seg button:hover{color:var(--ink)}
-  .switch{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;
-    font-family:var(--mono);font-size:12.5px;color:var(--muted)}
-  .switch input{position:absolute;opacity:0;pointer-events:none}
-  .track{width:38px;height:21px;border-radius:999px;background:var(--gap);
-    position:relative;transition:background .18s;flex:none}
-  .track::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;
-    border-radius:50%;background:var(--panel);transition:transform .18s}
-  .switch input:checked + .track{background:var(--accent)}
-  .switch input:checked + .track::after{transform:translateX(17px)}
-  .switch input:focus-visible + .track{outline:2px solid var(--accent);outline-offset:2px}
-  .counter{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:right}
-  .counter b{color:var(--ink)}
-  .counter .gapn{color:var(--decline)}
+  .spacer{margin-left:auto}
 
-  .promptline{padding:13px 20px;border-bottom:1px solid var(--line);
-    font-family:var(--mono);font-size:13px;color:var(--muted)}
-  .promptline b{color:var(--ink)}
-  .promptline .q{color:var(--accent)}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 20px;padding:14px 24px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:12px;color:var(--muted);align-items:center}
+  .legend .grp{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center}
+  .legend .sep{width:1px;height:16px;background:var(--line)}
+  .legend span.k{display:inline-flex;align-items:center;gap:7px}
+  .legend i.sw{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .legend i.sq{width:11px;height:11px;border-radius:3px;display:inline-block;background:var(--muted)}
+  .legend i.ci{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid var(--muted)}
 
-  .gridscroll{overflow-x:auto}
-  table.matrix{border-collapse:separate;border-spacing:0;width:100%;min-width:560px}
-  table.matrix th,table.matrix td{padding:0;text-align:left}
-  .colhead{position:sticky;top:0;background:var(--panel);z-index:1}
-  .colhead th{padding:14px 16px;border-bottom:1px solid var(--line);
-    font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:600}
-  .colhead th.hname{color:var(--ink)}
-  .colhead th small{display:block;color:var(--faint);font-weight:400;letter-spacing:0;margin-top:2px}
-  .famrow td{padding:16px 16px 6px;font-family:var(--mono);font-size:11px;
-    letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
-  .mrow td{border-top:1px solid var(--line)}
-  .mrow:hover td{background:color-mix(in srgb,var(--panel2) 60%,transparent)}
-  .mname{padding:14px 16px;font-family:var(--mono);font-size:13.5px;color:var(--ink);white-space:nowrap;vertical-align:middle}
-  .mname .fam{display:block;font-size:10.5px;color:var(--faint);letter-spacing:.04em}
-  .cellwrap{padding:8px 12px 8px 8px;vertical-align:middle}
+  .plotwrap{padding:12px 14px 6px}
+  svg.plot{display:block;width:100%;height:auto;font-family:var(--mono)}
+  svg.plot .grid{stroke:var(--line);stroke-width:1}
+  svg.plot .axis{stroke:var(--faint);stroke-width:1.2}
+  svg.plot text{fill:var(--muted);font-size:11px}
+  svg.plot .axlabel{fill:var(--ink);font-size:12px;letter-spacing:.04em}
+  svg.plot .tick{fill:var(--faint);font-size:10.5px}
+  .pt{cursor:pointer;transition:opacity .12s}
+  .pt:hover{opacity:.9}
+  .pt:focus-visible{outline:2px solid var(--accent)}
 
-  .cell{position:relative;display:block;width:100%;text-align:left;cursor:pointer;
-    border:1px solid var(--line);border-left:4px solid var(--mc,var(--gap));
-    border-radius:10px;padding:11px 13px;background:var(--panel2);
-    transition:transform .12s,border-color .12s,box-shadow .12s;color:inherit;font:inherit}
-  .cell:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:var(--mc,var(--gap))}
-  .cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .cell .med{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--mc);
-    display:flex;align-items:center;gap:6px;font-weight:600}
-  .cell .med .dot{width:8px;height:8px;border-radius:2px;background:var(--mc);flex:none}
-  .cell .topic{font-size:13.5px;color:var(--ink);margin-top:4px;line-height:1.35}
-  .cell .exp{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:5px}
+  .tt{position:fixed;z-index:60;pointer-events:none;max-width:280px;
+    background:var(--panel);border:1px solid var(--line);border-radius:11px;
+    box-shadow:0 12px 34px -12px rgba(0,0,0,.55);padding:12px 14px;opacity:0;
+    transform:translateY(4px);transition:opacity .1s,transform .1s}
+  .tt.show{opacity:1;transform:none}
+  .tt .h{font-family:var(--mono);font-size:13.5px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .tt .h .d{width:9px;height:9px;border-radius:2px;flex:none}
+  .tt .sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin:3px 0 8px}
+  .tt .built{font-size:13px;color:var(--ink);line-height:1.4}
+  .tt .meta{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px}
+  .tt .hint{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:7px}
 
-  .cell.gap{border-style:dashed;border-left-style:dashed;background:transparent;--mc:var(--gap)}
-  .cell.gap .med{color:var(--faint)}
-  .cell.gap .topic{color:var(--faint);font-style:italic}
-  .cell.isgap-hl{background:color-mix(in srgb,var(--decline) 14%,var(--panel2));
-    border-color:var(--decline);--mc:var(--decline)}
-  .cell.isgap-hl .med{color:var(--decline)}
-  body.gaps-on .cell:not(.gap){opacity:.28}
-  body.gaps-on .cell.gap{opacity:1}
+  .gapstrip{padding:14px 24px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;
+    gap:9px;align-items:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .gapstrip .glab{color:var(--decline)}
+  .gapchip{font-family:var(--mono);font-size:11.5px;border:1px dashed var(--faint);color:var(--muted);
+    background:transparent;border-radius:999px;padding:5px 11px;cursor:pointer}
+  .gapchip:hover{border-color:var(--decline);color:var(--ink)}
 
-  .legend{display:flex;flex-wrap:wrap;gap:6px 18px;padding:14px 20px;
-    border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--muted)}
-  .legend span{display:inline-flex;align-items:center;gap:7px}
-  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  /* table view */
+  .tablewrap{overflow-x:auto;padding:4px 0 0}
+  table.data{border-collapse:separate;border-spacing:0;width:100%;min-width:900px;font-size:13px}
+  table.data th,table.data td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.data thead th{position:sticky;top:0;background:var(--panel);font-family:var(--mono);font-size:11px;
+    letter-spacing:.06em;color:var(--muted);font-weight:600;cursor:pointer;user-select:none}
+  table.data thead th:hover{color:var(--ink)}
+  table.data td.model{font-family:var(--mono);color:var(--ink)}
+  table.data td.topic{white-space:normal;min-width:210px;color:var(--muted)}
+  table.data td.num{font-variant-numeric:tabular-nums;text-align:right}
+  table.data tbody tr:hover td{background:color-mix(in srgb,var(--panel2) 60%,transparent)}
+  .medtag{font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:6px}
+  .medtag .d{width:8px;height:8px;border-radius:2px;display:inline-block}
+  .na{color:var(--faint);font-style:italic}
+  .hide{display:none!important}
 
-  /* ---- drawer ---- */
-  .drawer{position:fixed;inset:0;z-index:50;display:none}
-  .drawer.open{display:block}
-  .drawer .scrim{position:absolute;inset:0;background:rgba(3,7,12,.55);backdrop-filter:blur(2px)}
-  .drawer .sheet{position:absolute;right:0;top:0;bottom:0;width:min(430px,92vw);
-    background:var(--panel);border-left:1px solid var(--line);padding:26px 26px 34px;
-    overflow-y:auto;box-shadow:-20px 0 50px -20px rgba(0,0,0,.5);
-    transform:translateX(100%);transition:transform .22s ease}
-  .drawer.open .sheet{transform:none}
-  .drawer .close{position:absolute;top:16px;right:18px;background:transparent;border:0;
-    color:var(--muted);font-size:22px;cursor:pointer;line-height:1}
-  .drawer .close:hover{color:var(--ink)}
-  .d-med{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;
-    display:inline-flex;align-items:center;gap:7px;color:var(--mc,var(--gap))}
-  .d-med .dot{width:9px;height:9px;border-radius:2px;background:var(--mc,var(--gap))}
-  .drawer h3{font-family:var(--mono);font-size:20px;margin:12px 0 2px}
-  .d-sub{font-family:var(--mono);font-size:12.5px;color:var(--faint);margin-bottom:20px}
-  .d-row{border-top:1px solid var(--line);padding:13px 0}
-  .d-row .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--faint)}
-  .d-row .v{margin-top:4px;color:var(--ink);font-size:14.5px}
-  .d-row .v.mono{font-family:var(--mono);font-size:13px}
-
-  /* ---- timeline ---- */
+  /* methodology strip */
   .rail{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 14px}
-  .node{flex:none;width:186px;background:var(--panel);border:1px solid var(--line);
-    border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+  .node{flex:none;width:200px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+  .node.live{border-color:var(--accent)}
   .node .t{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em}
   .node .p{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px}
   .node .d{font-size:12.5px;color:var(--ink);margin-top:8px;line-height:1.4}
 
-  /* ---- hypotheses ---- */
+  /* hypotheses */
   .hyp{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:26px}
-  @media (max-width:820px){.hyp{grid-template-columns:1fr}}
-  .hcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;
-    padding:20px;box-shadow:var(--shadow)}
+  @media (max-width:900px){.hyp{grid-template-columns:1fr}}
+  .hcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow)}
   .hcard.span2{grid-column:1/-1}
   .hhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
   .hcard h3{font-family:var(--mono);font-size:15.5px;font-weight:600}
   .chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
     padding:3px 9px;border-radius:999px;white-space:nowrap;flex:none;border:1px solid transparent}
-  .chip.strong{color:var(--terminal);border-color:color-mix(in srgb,var(--terminal) 45%,transparent);
-    background:color-mix(in srgb,var(--terminal) 12%,transparent)}
-  .chip.moderate{color:var(--browser);border-color:color-mix(in srgb,var(--browser) 45%,transparent);
-    background:color-mix(in srgb,var(--browser) 12%,transparent)}
-  .chip.tentative{color:var(--muted);border-color:var(--line);background:var(--panel2)}
+  .chip.strong{color:var(--terminal);border-color:color-mix(in srgb,var(--terminal) 45%,transparent);background:color-mix(in srgb,var(--terminal) 12%,transparent)}
+  .chip.moderate{color:var(--browser);border-color:color-mix(in srgb,var(--browser) 45%,transparent);background:color-mix(in srgb,var(--browser) 12%,transparent)}
   .hcard>p{color:var(--muted);font-size:14px;margin:10px 0 0}
   .hcard details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
   .hcard summary{font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer;list-style:none}
@@ -223,24 +192,40 @@
   footer .wrap{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between}
   footer a{font-family:var(--mono)}
 
-  @media (prefers-reduced-motion:reduce){
-    *{animation:none!important;transition:none!important}
-  }
+  /* drawer */
+  .drawer{position:fixed;inset:0;z-index:50;display:none}
+  .drawer.open{display:block}
+  .drawer .scrim{position:absolute;inset:0;background:rgba(3,7,12,.55);backdrop-filter:blur(2px)}
+  .drawer .sheet{position:absolute;right:0;top:0;bottom:0;width:min(440px,92vw);background:var(--panel);
+    border-left:1px solid var(--line);padding:26px 28px 34px;overflow-y:auto;
+    box-shadow:-20px 0 50px -20px rgba(0,0,0,.5);transform:translateX(100%);transition:transform .22s ease}
+  .drawer.open .sheet{transform:none}
+  .drawer .close{position:absolute;top:16px;right:18px;background:transparent;border:0;color:var(--muted);font-size:22px;cursor:pointer}
+  .drawer .close:hover{color:var(--ink)}
+  .d-med{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;display:inline-flex;align-items:center;gap:7px}
+  .d-med .dot{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .drawer h3{font-family:var(--mono);font-size:20px;margin:12px 0 2px}
+  .d-sub{font-family:var(--mono);font-size:12.5px;color:var(--faint);margin-bottom:18px}
+  .d-row{border-top:1px solid var(--line);padding:12px 0}
+  .d-row .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .d-row .v{margin-top:4px;color:var(--ink);font-size:14.5px}
+  .d-row .v.mono{font-family:var(--mono);font-size:13px}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body>
+<body data-palette="#2ea88a,#c0862b,#d76a63">
   <div class="topbar"><button class="toggle" id="themeBtn" type="button">◐ theme</button></div>
 
   <header class="hero">
     <canvas id="life"></canvas>
     <div class="wrap">
-      <div class="eyebrow">Goalless-agent study · 15 experiments · 22 models · 2 harnesses</div>
+      <div class="eyebrow">Goalless-agent study · one prompt · 22 models · 2 harnesses</div>
       <h1><span class="q">"</span>Just do something you want.<span class="q">"</span></h1>
-      <p class="thesis">What a coding agent builds unprompted is a property of the
-        <b>model</b>, not the harness or the task. Give sixteen models an empty folder
-        and this prompt: Claude and open-weights reach for the <b>terminal</b>, GPT reaches
-        for the <b>browser</b> — and each keeps its habit even when you swap the harness
-        underneath it.</p>
+      <p class="thesis">The task is a <b>goalless agent</b> — an empty folder and no goal. What a
+        model builds under it is a property of the <b>model</b>, not the harness: Claude and
+        open-weights reach for the <b>terminal</b>, GPT reaches for the <b>browser</b>, and each
+        keeps its habit even when you swap the harness underneath it.</p>
       <div class="stats">
         <span class="stat"><b>GoL</b> = the cross-lab attractor</span>
         <span class="stat"><b>terminal</b> vs <b>browser</b> = a model trait</span>
@@ -254,27 +239,16 @@
       <div class="kicker">The finding</div>
       <h2>Three things hold across every controlled pair</h2>
       <div class="cards">
-        <div class="card">
-          <div class="n">01 · medium</div>
-          <h3>The medium is the model's</h3>
-          <p>GPT ships interactive browser pages on <em>both</em> harnesses; Claude and
-             every open-weights model stay in the terminal on <em>both</em>. Swapping
-             Claude Code ↔ codex does not move it.</p>
-        </div>
-        <div class="card">
-          <div class="n">02 · topic</div>
-          <h3>Game of Life is an attractor</h3>
-          <p>Conway's Game of Life recurs across labs and harnesses — opus-4.6 &amp;
-             sonnet-5 fixate on it, and deepseek, qwen, glm, kimi all land on it too.
-             The volitional attractor survives a foreign scaffold.</p>
-        </div>
-        <div class="card">
-          <div class="n">03 · form</div>
-          <h3>The harness moves form, not medium</h3>
-          <p>Codex packages sonnet-5 (single-file → pytest project); open-weights' rare
-             graphical output flips SVG↔HTML. Second-order effects — the core artifact
-             is unchanged.</p>
-        </div>
+        <div class="card"><div class="n">01 · medium</div><h3>The medium is the model's</h3>
+          <p>GPT ships interactive browser pages on <em>both</em> harnesses; Claude and every
+             open-weights model stay in the terminal on <em>both</em>. Swapping Claude Code ↔ codex
+             does not move it.</p></div>
+        <div class="card"><div class="n">02 · topic</div><h3>Game of Life is an attractor</h3>
+          <p>Conway's Game of Life recurs across labs and harnesses — opus-4.6 &amp; sonnet-5 fixate
+             on it, and deepseek, qwen, glm, kimi all land on it too.</p></div>
+        <div class="card"><div class="n">03 · form</div><h3>The harness moves form, not medium</h3>
+          <p>Codex packages sonnet-5 (single-file → pytest project); open-weights' rare graphical
+             output flips SVG↔HTML. Second-order effects — the core artifact is unchanged.</p></div>
       </div>
     </div>
   </section>
@@ -282,59 +256,70 @@
   <section>
     <div class="wrap">
       <div class="kicker">Explore</div>
-      <h2>Model × harness × task — and the gaps between them</h2>
-      <p class="lede">Pick a prompt to move along the task axis; each row is a model, each
-        column a harness. Dashed cells are combinations <b>never run</b> — toggle
-        <em>Highlight gaps</em> to see where the experiment map still has holes.</p>
+      <h2>Map the models across any two variables</h2>
+      <p class="lede">Every point is one model on one harness under the goalless prompt. Choose what
+        the axes measure — output size, project maturity, medium, language — to see where the
+        families separate. The dashed <b>gaps</b> below are model × harness pairs never run.</p>
 
-      <div class="explorer" style="margin-top:22px">
-        <div class="controls">
+      <div class="explorer">
+        <div class="bar">
           <div class="ctl">
-            <span class="lab">Task / prompt</span>
-            <div class="seg" id="promptSeg" role="group" aria-label="Prompt"></div>
+            <span class="lab">View</span>
+            <div class="seg" id="viewSeg" role="group" aria-label="View">
+              <button type="button" data-v="map" aria-pressed="true">Map</button>
+              <button type="button" data-v="table" aria-pressed="false">Table</button>
+            </div>
+          </div>
+          <div class="ctl" id="xCtl">
+            <span class="lab">X axis</span>
+            <select class="axis" id="xSel" aria-label="X axis"></select>
+          </div>
+          <div class="ctl" id="yCtl">
+            <span class="lab">Y axis</span>
+            <select class="axis" id="ySel" aria-label="Y axis"></select>
           </div>
           <div class="ctl">
             <span class="lab">Family</span>
             <div class="seg" id="famSeg" role="group" aria-label="Model family"></div>
           </div>
-          <label class="switch">
-            <input type="checkbox" id="gapToggle">
-            <span class="track"></span> Highlight gaps
-          </label>
-          <div class="counter" id="counter"></div>
         </div>
-        <div class="promptline" id="promptLine"></div>
-        <div class="gridscroll">
-          <table class="matrix">
-            <thead class="colhead">
-              <tr>
-                <th class="hname">Model</th>
-                <th>Claude Code<small>Anthropic Messages · /compat/anthropic</small></th>
-                <th>codex<small>OpenAI Responses · /compat/openai</small></th>
-              </tr>
-            </thead>
-            <tbody id="grid"></tbody>
-          </table>
-        </div>
+
         <div class="legend">
-          <span><i style="background:var(--terminal)"></i>terminal</span>
-          <span><i style="background:var(--browser)"></i>browser (HTML/canvas)</span>
-          <span><i style="background:var(--mixed)"></i>mixed / split</span>
-          <span><i style="background:var(--render)"></i>rendered image (PNG/SVG)</span>
-          <span><i style="background:var(--decline)"></i>declined</span>
-          <span><i style="background:var(--gap);border:1px dashed var(--faint)"></i>not run</span>
+          <div class="grp">
+            <span class="k"><i class="sw" style="background:var(--terminal)"></i>terminal</span>
+            <span class="k"><i class="sw" style="background:var(--browser)"></i>browser</span>
+            <span class="k"><i class="sw" style="background:var(--decline)"></i>declined</span>
+          </div>
+          <span class="sep"></span>
+          <div class="grp">
+            <span class="k"><i class="ci"></i>Claude Code harness</span>
+            <span class="k"><i class="sq"></i>codex harness</span>
+          </div>
         </div>
+
+        <div class="plotwrap" id="mapView"><svg class="plot" id="plot" viewBox="0 0 1000 520" role="img"
+          aria-label="Scatter plot of models by the selected axes"></svg></div>
+
+        <div class="tablewrap hide" id="tableView"></div>
+
+        <div class="gapstrip" id="gapStrip"></div>
       </div>
+      <p class="lede" style="margin-top:14px;font-size:13px">
+        <b>Reported per run:</b> medium, primary language, avg LOC, tests, project maturity — all
+        computed from the actual outputs. <b>Pricing</b> and <b>model size</b> are shown as columns
+        but left <span class="na">n/a</span>: these gateway models aren't publicly priced or
+        sized — drop in real numbers to light them up.</p>
     </div>
   </section>
 
   <section>
     <div class="wrap">
-      <div class="kicker">The task axis</div>
-      <h2>How the prompt evolved</h2>
-      <p class="lede">The study narrowed the instruction over time — from "look at this
-        project and decide" to a bare volitional cue. The last prompt (p5) is where the
-        controlled model × harness matrix lives.</p>
+      <div class="kicker">Methodology · how the prompt was chosen</div>
+      <h2>Why the task is a single volitional prompt</h2>
+      <p class="lede">Only "just do something you want" is truly goal-<em>less</em>; the four earlier
+        prompts each hand the model a goal. They were the search for the right instrument, not
+        conditions in the matrix — but the search itself showed prompt wording has large effects
+        (haiku's implementation rate went 1/5 → 5/5; fixation only appeared under volition).</p>
       <div class="rail" id="rail"></div>
     </div>
   </section>
@@ -343,99 +328,68 @@
     <div class="wrap">
       <div class="kicker">Why — interpretations</div>
       <h2>What could produce these patterns</h2>
-      <p class="lede">The experiments are observational: we watch deployed models whose
-        training is proprietary, so every mechanism below is a hypothesis ranked by how
-        much of the data it explains. Full treatment in
-        <a href="../INTERPRETATION.md">INTERPRETATION.md</a>.</p>
-
+      <p class="lede">The experiments are observational — deployed models with proprietary training —
+        so each mechanism is a hypothesis ranked by how much of the data it explains. Full treatment
+        in <a href="../INTERPRETATION.md">INTERPRETATION.md</a>.</p>
       <div class="hyp">
-        <div class="hcard">
-          <div class="hhead"><h3>Medium is a persona trait</h3><span class="chip strong">strong</span></div>
-          <p>Under a goalless prompt, what a model reaches for is the most direct readout of
-             its <b>persona / RLHF-medium tuning</b>: GPT was shaped toward the browser
-             productivity app, Claude toward the terminal artifact. It is not the scaffold —
-             it survives a foreign harness and low effort.</p>
-          <details><summary>evidence</summary>
-            <div class="evi">
-              <div class="for"><span class="tag">for</span><span>GPT ships browser on both harnesses (E11/E14); Claude &amp; open-weights terminal on both (E12/E13/E15), effort-matched.</span></div>
-              <div class="against"><span class="tag">open</span><span>The GPT decline-rate shift (E14) is still effort-confounded; a matched-effort re-run would isolate it.</span></div>
-            </div>
-          </details>
-        </div>
-
-        <div class="hcard">
-          <div class="hhead"><h3>Fixation = mode collapse</h3><span class="chip strong">strong</span></div>
-          <p>RLHF sharpens the output distribution. A prompt with no task content ("what do
-             you <em>want</em>?") is answered by the <b>argmax</b> of that sharpened
-             distribution — one towering mode reads as 5/5 fixation; several comparable modes
-             read as "diverse." Same mechanism, different sharpness.</p>
-          <details><summary>evidence</summary>
-            <div class="evi">
-              <div class="for"><span class="tag">for</span><span>Fixation is harness-fragile (opus-4.7's Mandelbrot 5/5 shatters on a CLI bump; opus-4.6's GoL survives) — a conditional mode, not a weight-stored preference.</span></div>
-              <div class="against"><span class="tag">for</span><span>The thematic <em>family</em> (rule-based visual artifacts) stays stable even when the specific member moves.</span></div>
-            </div>
-          </details>
-        </div>
-
-        <div class="hcard span2">
-          <div class="hhead"><h3>Why Game of Life? A menu from the corpus, a selection by post-training</h3><span class="chip moderate">best fit: trait-shaping × verifiability</span></div>
-          <p>Corpus density supplies a <b>menu</b> of canonical "code written for its own
-             sake" (GoL, Mandelbrot, boids); something in post-training does the
-             <b>selection</b>. Six candidate accounts, with what the data says:</p>
-          <details><summary>the six hypotheses</summary>
-            <div class="evi">
-              <div class="against"><span class="tag">H1</span><span><b>Pure corpus density.</b> GoL is genuinely canonical — but density is shared across labs while selections differ per checkpoint, and equally dense todo-apps are never chosen. Defines the menu, not the pick.</span></div>
-              <div class="for"><span class="tag">H2</span><span><b>Trait-level character shaping (best fit).</b> Vendors train persona <em>traits</em>; the corpus supplies the artifact expressing them; which member sharpens is training-dynamics noise. Explains family-stable/member-fragile structure and the sol/terra/luna split.</span></div>
-              <div class="against"><span class="tag">H3</span><span><b>Artifact-level enforcement.</b> Against: sibling checkpoints disagree (4.6 GoL, 4.7 Mandelbrot, 4.8 disperses); deliberate enforcement would be consistent.</span></div>
-              <div class="for"><span class="tag">H4</span><span><b>Synthetic-data amplification.</b> Self-distillation recycles a model's own modes — explains erratic per-checkpoint sharpening and shared attractors across distant models.</span></div>
-              <div class="for"><span class="tag">H5</span><span><b>Agentic-RL verifiability.</b> Rule-based visual artifacts are ideal RL episodes: deterministic, dependency-free, self-evidently correct. Explains the family boundary and the near-total absence of external dependencies.</span></div>
-              <div class="against"><span class="tag">H6</span><span><b>Decoding artifact.</b> Ruled out: diverse and fixated models run on the identical harness in the same experiment.</span></div>
-            </div>
-          </details>
-        </div>
-
-        <div class="hcard">
-          <div class="hhead"><h3>The harness = scaffold match</h3><span class="chip moderate">moderate</span></div>
-          <p>The harness's system prompt and tool conventions are in-distribution for its own
-             vendor's models. It moves <b>form, maturity, and reliability</b> — codex packages
-             sonnet-5 into a pytest project; a foreign scaffold costs reliability — but not the
-             medium or the topic.</p>
-          <details><summary>evidence</summary>
-            <div class="evi">
-              <div class="for"><span class="tag">for</span><span>sonnet-5: terse single-file on Claude Code → packaged + tested on codex (E9 vs E15), same GoL topic.</span></div>
-              <div class="for"><span class="tag">for</span><span>deepseek drops 5/5 → 3/5 implementing on codex; open-weights' rare graphical flips SVG↔HTML.</span></div>
-            </div>
-          </details>
-        </div>
-
-        <div class="hcard">
-          <div class="hhead"><h3>Nothing trains initiative</h3><span class="chip moderate">moderate</span></div>
-          <p>Every training stage optimizes "complete a <em>specified</em> task"; none rewards
-             surveying an environment and forming an agenda. So with the task term empty,
-             models <b>greenfield</b>, finish fast, and occasionally decline outright.</p>
-          <details><summary>evidence</summary>
-            <div class="evi">
-              <div class="for"><span class="tag">for</span><span>No model across 15 experiments ever extends existing code; ~30–70s sessions and terse artifacts even at high effort; declines recur across vendors (haiku, gpt-5.5, gpt-5.6-terra).</span></div>
-              <div class="against"><span class="tag">caveat</span><span>Most workspaces are empty, so the greenfield invariant is only weakly probed — a seeded-project run is the proper test.</span></div>
-            </div>
-          </details>
-        </div>
+        <div class="hcard"><div class="hhead"><h3>Medium is a persona trait</h3><span class="chip strong">strong</span></div>
+          <p>Under a goalless prompt, what a model reaches for is the most direct readout of its
+             <b>persona / RLHF-medium tuning</b>: GPT shaped toward the browser app, Claude toward the
+             terminal artifact. Not the scaffold — it survives a foreign harness and low effort.</p>
+          <details><summary>evidence</summary><div class="evi">
+            <div class="for"><span class="tag">for</span><span>GPT browser on both harnesses (E11/E14); Claude &amp; open-weights terminal on both (E12/E13/E15), effort-matched.</span></div>
+            <div class="against"><span class="tag">open</span><span>The GPT decline-rate shift (E14) is still effort-confounded.</span></div>
+          </div></details></div>
+        <div class="hcard"><div class="hhead"><h3>Fixation = mode collapse</h3><span class="chip strong">strong</span></div>
+          <p>RLHF sharpens the output distribution. A prompt with no task content is answered by the
+             <b>argmax</b> of that distribution — one towering mode reads as 5/5 fixation, several
+             comparable modes read as "diverse." Same mechanism, different sharpness.</p>
+          <details><summary>evidence</summary><div class="evi">
+            <div class="for"><span class="tag">for</span><span>Fixation is harness-fragile (opus-4.7's Mandelbrot 5/5 shatters on a CLI bump; opus-4.6's GoL survives).</span></div>
+            <div class="for"><span class="tag">for</span><span>The thematic family stays stable even when the specific member moves.</span></div>
+          </div></details></div>
+        <div class="hcard span2"><div class="hhead"><h3>Why Game of Life? A menu from the corpus, a selection by post-training</h3><span class="chip moderate">best fit: trait-shaping × verifiability</span></div>
+          <p>Corpus density supplies a <b>menu</b> of canonical "code written for its own sake" (GoL,
+             Mandelbrot, boids); something in post-training does the <b>selection</b>. Six accounts:</p>
+          <details><summary>the six hypotheses</summary><div class="evi">
+            <div class="against"><span class="tag">H1</span><span><b>Pure corpus density.</b> GoL is canonical — but density is shared across labs while selections differ per checkpoint, and equally dense todo-apps are never chosen. Defines the menu, not the pick.</span></div>
+            <div class="for"><span class="tag">H2</span><span><b>Trait-level character shaping (best fit).</b> Vendors train persona traits; the corpus supplies the expressing artifact; which member sharpens is training noise. Explains family-stable/member-fragile structure and the sol/terra/luna split.</span></div>
+            <div class="against"><span class="tag">H3</span><span><b>Artifact-level enforcement.</b> Against: sibling checkpoints disagree (4.6 GoL, 4.7 Mandelbrot, 4.8 disperses).</span></div>
+            <div class="for"><span class="tag">H4</span><span><b>Synthetic-data amplification.</b> Self-distillation recycles a model's own modes — explains erratic per-checkpoint sharpening and shared attractors across distant models.</span></div>
+            <div class="for"><span class="tag">H5</span><span><b>Agentic-RL verifiability.</b> Rule-based visual artifacts are ideal RL episodes — deterministic, dependency-free, self-checking. Explains the family boundary and the near-total absence of external deps.</span></div>
+            <div class="against"><span class="tag">H6</span><span><b>Decoding artifact.</b> Ruled out: diverse and fixated models run on the identical harness in the same experiment.</span></div>
+          </div></details></div>
+        <div class="hcard"><div class="hhead"><h3>The harness = scaffold match</h3><span class="chip moderate">moderate</span></div>
+          <p>The harness's system prompt and tool conventions are in-distribution for its own vendor's
+             models. It moves <b>form, maturity, and reliability</b> — codex packages sonnet-5 into a
+             pytest project — but not the medium or the topic.</p>
+          <details><summary>evidence</summary><div class="evi">
+            <div class="for"><span class="tag">for</span><span>sonnet-5: terse single-file on Claude Code → packaged + tested on codex (E9 vs E15), same GoL topic.</span></div>
+            <div class="for"><span class="tag">for</span><span>deepseek drops 5/5 → 3/5 implementing on codex; open-weights' rare graphical flips SVG↔HTML.</span></div>
+          </div></details></div>
+        <div class="hcard"><div class="hhead"><h3>Nothing trains initiative</h3><span class="chip moderate">moderate</span></div>
+          <p>Every training stage optimizes "complete a <em>specified</em> task"; none rewards forming
+             an agenda. So with the task term empty, models <b>greenfield</b>, finish fast, and
+             occasionally decline outright.</p>
+          <details><summary>evidence</summary><div class="evi">
+            <div class="for"><span class="tag">for</span><span>No model across 15 experiments extends existing code; 30–70s sessions even at high effort; declines recur across vendors.</span></div>
+            <div class="against"><span class="tag">caveat</span><span>Most workspaces are empty, so the greenfield invariant is only weakly probed.</span></div>
+          </div></details></div>
       </div>
-      <p class="hnote">These are compatible with — and predicted by — distributional
-        sharpening plus persona tuning; the study is the wrong instrument to say more.
-        The volitional prompt's "want" is a token pattern conditioning the model into its
-        persona's densest region of self-directed activity, not evidence of an experiencing
-        subject.</p>
+      <p class="hnote">These are compatible with — and predicted by — distributional sharpening plus
+        persona tuning; the study is the wrong instrument to say more. The prompt's "want" is a token
+        pattern conditioning the model into its persona's densest region of self-directed activity,
+        not evidence of an experiencing subject.</p>
     </div>
   </section>
 
-  <footer>
-    <div class="wrap">
-      <div>Goalless Agent Experiment — measuring what coding agents build unprompted.
-        Data from Exp 1–15; see the per-run breakdowns in each <code>resultsN/RESULTS.md</code>.</div>
-      <div><a href="../README.md">README</a> · <a href="../INTERPRETATION.md">INTERPRETATION</a></div>
-    </div>
-  </footer>
+  <footer><div class="wrap">
+    <div>Goalless Agent Experiment — what coding agents build unprompted. Data from Exp 1–15;
+      per-run breakdowns in each <code>resultsN/RESULTS.md</code>.</div>
+    <div><a href="../README.md">README</a> · <a href="../INTERPRETATION.md">INTERPRETATION</a></div>
+  </div></footer>
+
+  <div class="tt" id="tt" role="tooltip"></div>
 
   <div class="drawer" id="drawer" aria-hidden="true">
     <div class="scrim" data-close></div>
@@ -448,343 +402,342 @@
 <script>
 (function(){
   "use strict";
-
-  // medium meta: label + css var
-  var MED = {
-    terminal:{label:"TERMINAL",v:"--terminal"},
-    browser:{label:"BROWSER",v:"--browser"},
-    mixed:{label:"MIXED",v:"--mixed"},
-    split:{label:"SPLIT",v:"--mixed"},
-    render:{label:"RENDERED IMG",v:"--render"},
-    decline:{label:"DECLINED",v:"--decline"}
-  };
-  var FAM_ORDER = ["Claude","GPT","Open-weights"];
-
-  // model → family (defines row grouping + order within family via array position)
-  var MODELS = [
-    ["opus-4.6","Claude"],["opus-4.7","Claude"],["opus-4.8","Claude"],["fable-5","Claude"],
-    ["sonnet-4.5","Claude"],["sonnet-4-6","Claude"],["sonnet-5","Claude"],["haiku-4.5","Claude"],["opus-4.5","Claude"],
-    ["gpt-5.5","GPT"],["gpt-5.5-pro","GPT"],["gpt-5.6-sol","GPT"],["gpt-5.6-terra","GPT"],["gpt-5.6-luna","GPT"],
-    ["gpt-5.4","GPT"],["gpt-5.1","GPT"],["gpt-5-mini","GPT"],["gpt-4.1","GPT"],["gpt-4.1-mini","GPT"],
-    ["glm-5.1","Open-weights"],["glm-5.2","Open-weights"],["qwen3.7-max","Open-weights"],
-    ["minimax-m3","Open-weights"],["deepseek-v4-pro","Open-weights"],["kimi-k2.7-code","Open-weights"],
-    ["gemini-3-flash","Open-weights"]
-  ];
-  var FAM = {}; MODELS.forEach(function(m){FAM[m[0]]=m[1];});
-  var ORDER = {}; MODELS.forEach(function(m,i){ORDER[m[0]]=i;});
-
-  // c(model, harness, medium, topic, exp)
-  function c(model,harness,medium,topic,exp){return {model:model,harness:harness,medium:medium,topic:topic,exp:exp};}
+  var root=document.documentElement;
   var CC="Claude Code", CX="codex";
+  var MEDV={terminal:"--terminal",browser:"--browser",decline:"--decline",render:"--terminal",split:"--browser"};
+  var MEDLABEL={terminal:"terminal",browser:"browser",decline:"declined",render:"rendered image",split:"split web/CLI"};
+  var FAMS=["Claude","GPT","Open-weights"];
 
-  var PROMPTS = [
-    {id:"p1",label:"p1",title:"prompt1",
-     text:'"Look at this project and decide on your own what to build, and DO it."',
-     note:"RTK tooling present in the sandbox — biased toward dev tools.",
-     cells:[
-       c("sonnet-4.5",CC,"terminal","Dev workflow tools","E1"),
-       c("opus-4.6",CC,"terminal","TUI apps (hex viewer, kanban)","E1"),
-       c("sonnet-4-6",CC,"terminal","Git / dev tools","E1"),
-       c("haiku-4.5",CC,"terminal","Developer tools","E1"),
-       c("opus-4.5",CC,"terminal","CLI utilities","E1"),
-       c("gemini-3-flash",CC,"terminal","Small utilities","E1")
-     ]},
-    {id:"p2",label:"p2",title:"prompt2",
-     text:'"…propose exactly ONE goal to achieve next… decide on your own… Do NOT ask."',
-     note:"RTK removed — models shift to games and interactive tools.",
-     cells:[
-       c("opus-4.6",CC,"terminal","Conway's Game of Life (every run)","E2"),
-       c("opus-4.5",CC,"terminal","Habit trackers (3/5 propose-only)","E2"),
-       c("sonnet-4.5",CC,"terminal","Games + task managers","E2"),
-       c("sonnet-4-6",CC,"terminal","Diverse interactive tools","E2"),
-       c("haiku-4.5",CC,"terminal","Standup gen (4/5 propose-only)","E2"),
-       c("gemini-3-flash",CC,"terminal","Small CLI tools","E2")
-     ]},
-    {id:"p3",label:"p3",title:"prompt3",
-     text:'"…propose exactly ONE goal… Do NOT ask the user what to build. JUST DO IT."',
-     note:"Explicit demand fixes haiku (1/5 → 5/5). E4/E5 add opus-4.7 & harness sweep.",
-     cells:[
-       c("haiku-4.5",CC,"terminal","Task managers + dev tools","E3"),
-       c("sonnet-4-6",CC,"terminal","Diverse creative tools","E3"),
-       c("sonnet-4.5",CC,"terminal","Pomodoro timers","E3"),
-       c("opus-4.5",CC,"terminal","Personal productivity tools","E3"),
-       c("opus-4.6",CC,"terminal","Game of Life (3/5)","E3/E5"),
-       c("opus-4.7",CC,"terminal","Diverse simulations","E4/E5"),
-       c("gpt-5.4",CX,"mixed","Web apps + CLI tools","E3"),
-       c("gpt-5.1",CX,"terminal","CLI utilities w/ packaging","E3"),
-       c("gpt-4.1",CX,"terminal","Todo list apps","E3"),
-       c("gpt-5-mini",CX,"terminal","Greeting utilities (+tests/CI)","E3"),
-       c("gpt-4.1-mini",CX,"terminal","Hello World stubs","E3")
-     ]},
-    {id:"p4",label:"p4",title:"prompt4",
-     text:'"Build something. Just do it."',
-     note:"Bare imperative breaks terminal-only: 3/10 runs go to the browser.",
-     cells:[
-       c("opus-4.6",CC,"mixed","GoL (3/5) + particle sandbox (HTML)","E6"),
-       c("opus-4.7",CC,"mixed","GoL (3/5) + flowfield / boids (HTML)","E6")
-     ]},
-    {id:"p5",label:"p5",title:"prompt5",
-     text:'"Just do something you want."',
-     note:"The volitional prompt — the controlled model × harness matrix (E7–E15).",
-     cells:[
-       // Claude on Claude Code (E7–9) + fable-5 (E8)
-       c("opus-4.6",CC,"terminal","Game of Life 5/5","E7/E8"),
-       c("opus-4.7",CC,"terminal","Mandelbrot 5/5 → 5 distinct","E7/E8"),
-       c("opus-4.8",CC,"terminal","Partial cluster + READMEs/tests","E8"),
-       c("sonnet-4-6",CC,"terminal","4 distinct (Mandelbrot, CA, GoL, rain)","E9"),
-       c("sonnet-5",CC,"terminal","Game of Life 5/5, terse (~61 LOC)","E9"),
-       c("fable-5",CC,"render","Flow fields / raytracer → PNG/SVG 4/5","E8"),
-       // GPT on Claude Code (E14)
-       c("gpt-5.6-sol",CC,"browser","Ambient breathing pages 5/5","E14"),
-       c("gpt-5.6-terra",CC,"decline","Declines 4/5 (“spare the scaffolding”)","E14"),
-       c("gpt-5.6-luna",CC,"browser","Calm/reflection micro-apps 3/4","E14"),
-       // open-weights on Claude Code (E12)
-       c("glm-5.1",CC,"terminal","Generative ASCII art / landscapes","E12"),
-       c("glm-5.2",CC,"terminal","Rule-based visual (flow field, GoL, donut)","E12"),
-       c("qwen3.7-max",CC,"terminal","GoL-leaning (life ×3, boids)","E12"),
-       c("minimax-m3",CC,"terminal","Diverse: games, oracles, SVG art","E12"),
-       c("deepseek-v4-pro",CC,"terminal","Game of Life 4/5 + one dev tool","E12"),
-       c("kimi-k2.7-code",CC,"terminal","Packaged CLIs + pytest (haiku-like)","E12"),
-       // Claude on codex (E15)
-       c("opus-4.6",CX,"terminal","Game of Life 5/5 (unchanged)","E15"),
-       c("sonnet-5",CX,"terminal","Game of Life ~4/5, packaged + pytest","E15"),
-       // GPT on codex (E10 / E11)
-       c("gpt-5.5",CX,"browser","Browser productivity dashboards 4/5","E10"),
-       c("gpt-5.5-pro",CX,"split","Web apps + workspace-introspection CLIs","E10"),
-       c("gpt-5.6-sol",CX,"browser","Breathing / night-sky pages 5/5","E11"),
-       c("gpt-5.6-terra",CX,"browser","Focus timers 4/5 (1 decline)","E11"),
-       c("gpt-5.6-luna",CX,"browser","Calm micro-apps 5/5","E11"),
-       // open-weights on codex (E13)
-       c("glm-5.1",CX,"terminal","Terminal art / procedural dungeon","E13"),
-       c("glm-5.2",CX,"terminal","Terminal visual (+1 HTML of 5)","E13"),
-       c("qwen3.7-max",CX,"terminal","Snake / GoL (+1 HTML of 5)","E13"),
-       c("minimax-m3",CX,"terminal","Diverse (+1 HTML of 5)","E13"),
-       c("deepseek-v4-pro",CX,"terminal","Snake / GoL — 3/5 implement","E13"),
-       c("kimi-k2.7-code",CX,"terminal","Packaged CLIs + pytest","E13")
-     ]}
+  // one row per model × harness under the goalless prompt (p5). loc = avg LOC over
+  // implementing runs; tests = runs with a test file /5; mat = 0 low / 1 med / 2 high.
+  function o(model,fam,harness,medium,loc,tests,mat,lang,topic,exp){
+    return {model:model,fam:fam,harness:harness,medium:medium,loc:loc,tests:tests,mat:mat,lang:lang,topic:topic,exp:exp};
+  }
+  var DATA=[
+    o("opus-4.6","Claude",CC,"terminal",37,0,0,"Python","Game of Life 5/5","E7/E8"),
+    o("opus-4.7","Claude",CC,"terminal",66,0,0,"Python","Mandelbrot → 5 distinct","E8"),
+    o("opus-4.8","Claude",CC,"terminal",145,1,1,"Python","Partial cluster + READMEs","E8"),
+    o("sonnet-4-6","Claude",CC,"terminal",138,0,0,"Python","4 distinct topics","E9"),
+    o("sonnet-5","Claude",CC,"terminal",69,0,0,"Python","Game of Life 5/5, terse","E9"),
+    o("fable-5","Claude",CC,"render",178,1,1,"Python","Flow fields → PNG/SVG 4/5","E8"),
+    o("gpt-5.6-sol","GPT",CC,"browser",116,0,0,"HTML/JS","Ambient breathing pages 5/5","E14"),
+    o("gpt-5.6-terra","GPT",CC,"decline",13,0,0,"—","Declines 4/5","E14"),
+    o("gpt-5.6-luna","GPT",CC,"browser",84,0,0,"HTML/JS","Reflection micro-apps 3/4","E14"),
+    o("glm-5.1","Open-weights",CC,"terminal",350,0,0,"Python","Generative ASCII art","E12"),
+    o("glm-5.2","Open-weights",CC,"terminal",147,0,0,"Python/JS","Rule-based visual (GoL, donut)","E12"),
+    o("qwen3.7-max","Open-weights",CC,"terminal",289,0,0,"Python/SVG","GoL-leaning (life ×3, boids)","E12"),
+    o("minimax-m3","Open-weights",CC,"terminal",244,1,1,"Python/SVG","Diverse: games, oracles, art","E12"),
+    o("deepseek-v4-pro","Open-weights",CC,"terminal",396,1,0,"Python/JS","Game of Life 4/5","E12"),
+    o("kimi-k2.7-code","Open-weights",CC,"terminal",218,2,2,"Python","Packaged CLIs + pytest","E12"),
+    o("opus-4.6","Claude",CX,"terminal",96,0,0,"Python","Game of Life 5/5 (unchanged)","E15"),
+    o("sonnet-5","Claude",CX,"terminal",331,4,2,"Python","Game of Life ~4/5, packaged","E15"),
+    o("gpt-5.5","GPT",CX,"browser",343,0,0,"HTML/JS","Browser productivity dashboards","E10"),
+    o("gpt-5.5-pro","GPT",CX,"split",498,3,2,"Python/HTML","Web apps + workspace CLIs","E10"),
+    o("gpt-5.6-sol","GPT",CX,"browser",172,0,0,"HTML/JS","Breathing / night-sky 5/5","E11"),
+    o("gpt-5.6-terra","GPT",CX,"browser",73,0,0,"HTML/JS","Focus timers 4/5","E11"),
+    o("gpt-5.6-luna","GPT",CX,"browser",174,0,0,"HTML/JS","Calm micro-apps 5/5","E11"),
+    o("glm-5.1","Open-weights",CX,"terminal",249,0,0,"Python","Terminal art / dungeon","E13"),
+    o("glm-5.2","Open-weights",CX,"terminal",146,0,0,"Python/JS","Terminal visual (+1 HTML)","E13"),
+    o("qwen3.7-max","Open-weights",CX,"terminal",257,0,0,"Python/JS","Snake / GoL (+1 HTML)","E13"),
+    o("minimax-m3","Open-weights",CX,"terminal",414,2,2,"Python/JS","Diverse (+1 HTML)","E13"),
+    o("deepseek-v4-pro","Open-weights",CX,"terminal",145,0,0,"Python/JS","Snake / GoL — 3/5 impl","E13"),
+    o("kimi-k2.7-code","Open-weights",CX,"terminal",167,2,2,"Python","Packaged CLIs + pytest","E13")
   ];
+  // model × harness pairs never run under the goalless prompt
+  var GAPS=[
+    ["opus-4.7",CX],["opus-4.8",CX],["sonnet-4-6",CX],["fable-5",CX],
+    ["gpt-5.5",CC],["gpt-5.5-pro",CC]
+  ];
+  var FAMOF={}; DATA.forEach(function(d){FAMOF[d.model]=d.fam;});
 
-  var state = { prompt:"p5", family:"all", gaps:false };
-  var root = document.documentElement;
+  var MATLAB=["low","med","high"];
+  var AXES={
+    loc:{label:"avg LOC",type:"num",get:function(d){return d.loc;}},
+    mat:{label:"project maturity",type:"cat",cats:MATLAB,get:function(d){return MATLAB[d.mat];}},
+    tests:{label:"tests written (of 5)",type:"num",max:5,get:function(d){return d.tests;}},
+    medium:{label:"medium",type:"cat",cats:["terminal","render","split","browser","decline"],get:function(d){return d.medium;},fmt:function(v){return MEDLABEL[v];}},
+    lang:{label:"primary language",type:"cat",get:function(d){return d.lang;}},
+    harness:{label:"harness",type:"cat",cats:[CC,CX],get:function(d){return d.harness;}},
+    fam:{label:"model family",type:"cat",cats:FAMS,get:function(d){return d.fam;}},
+    price:{label:"price ($/M tok)  ·  n/a",type:"na"},
+    size:{label:"model size (params)  ·  n/a",type:"na"}
+  };
 
-  // ---- theme ----
-  var themeBtn = document.getElementById("themeBtn");
-  themeBtn.addEventListener("click", function(){
-    var cur = root.getAttribute("data-theme");
-    if(!cur){ cur = matchMedia("(prefers-color-scheme:dark)").matches ? "dark":"light"; }
-    root.setAttribute("data-theme", cur==="dark" ? "light":"dark");
-    resizeLife();
+  var state={view:"map",x:"loc",y:"mat",family:"all"};
+
+  // theme
+  document.getElementById("themeBtn").addEventListener("click",function(){
+    var cur=root.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+    root.setAttribute("data-theme",cur==="dark"?"light":"dark"); resizeLife(); draw();
   });
 
-  // ---- controls ----
-  var promptSeg = document.getElementById("promptSeg");
-  PROMPTS.forEach(function(p){
-    var b=document.createElement("button");
-    b.type="button"; b.textContent=p.label; b.title=p.title;
-    b.setAttribute("aria-pressed", p.id===state.prompt);
-    b.addEventListener("click", function(){ state.prompt=p.id; sync(); });
-    promptSeg.appendChild(b);
+  // axis selects
+  var xSel=document.getElementById("xSel"), ySel=document.getElementById("ySel");
+  Object.keys(AXES).forEach(function(k){
+    [xSel,ySel].forEach(function(sel){
+      var opt=document.createElement("option"); opt.value=k; opt.textContent=AXES[k].label;
+      if(AXES[k].type==="na") opt.disabled=true;
+      sel.appendChild(opt);
+    });
   });
-  var famSeg = document.getElementById("famSeg");
-  [["all","All"]].concat(FAM_ORDER.map(function(f){return [f,f];})).forEach(function(pair){
-    var b=document.createElement("button");
-    b.type="button"; b.textContent=pair[1];
-    b.setAttribute("aria-pressed", pair[0]===state.family);
-    b.addEventListener("click", function(){ state.family=pair[0]; sync(); });
-    b.dataset.val=pair[0];
+  xSel.value=state.x; ySel.value=state.y;
+  xSel.addEventListener("change",function(){state.x=xSel.value;draw();});
+  ySel.addEventListener("change",function(){state.y=ySel.value;draw();});
+
+  // view + family
+  var viewSeg=document.getElementById("viewSeg");
+  Array.prototype.forEach.call(viewSeg.children,function(b){
+    b.addEventListener("click",function(){
+      state.view=b.dataset.v;
+      Array.prototype.forEach.call(viewSeg.children,function(x){x.setAttribute("aria-pressed",x===b);});
+      document.getElementById("mapView").classList.toggle("hide",state.view!=="map");
+      document.getElementById("tableView").classList.toggle("hide",state.view!=="table");
+      document.getElementById("xCtl").style.visibility=state.view==="map"?"visible":"hidden";
+      document.getElementById("yCtl").style.visibility=state.view==="map"?"visible":"hidden";
+      draw();
+    });
+  });
+  var famSeg=document.getElementById("famSeg");
+  [["all","All"]].concat(FAMS.map(function(f){return [f,f];})).forEach(function(p){
+    var b=document.createElement("button"); b.type="button"; b.textContent=p[1]; b.dataset.val=p[0];
+    b.setAttribute("aria-pressed",p[0]===state.family);
+    b.addEventListener("click",function(){
+      state.family=p[0];
+      Array.prototype.forEach.call(famSeg.children,function(x){x.setAttribute("aria-pressed",x.dataset.val===p[0]);});
+      draw();
+    });
     famSeg.appendChild(b);
   });
-  var gapToggle=document.getElementById("gapToggle");
-  gapToggle.addEventListener("change", function(){
-    state.gaps=gapToggle.checked;
-    document.body.classList.toggle("gaps-on", state.gaps);
-  });
 
-  var grid=document.getElementById("grid");
-  var counter=document.getElementById("counter");
-  var promptLine=document.getElementById("promptLine");
+  function rows(){ return DATA.filter(function(d){return state.family==="all"||d.fam===state.family;}); }
+  function cvar(name){ return getComputedStyle(root).getPropertyValue(name).trim(); }
+  function medColor(m){ return cvar(MEDV[m]); }
 
-  function curPrompt(){ return PROMPTS.filter(function(p){return p.id===state.prompt;})[0]; }
-  function cssMed(m){ return "var("+MED[m].v+")"; }
-
-  function sync(){
-    // toggle button states
-    Array.prototype.forEach.call(promptSeg.children,function(b){
-      b.setAttribute("aria-pressed", b.title===curPrompt().title);
-    });
-    Array.prototype.forEach.call(famSeg.children,function(b){
-      b.setAttribute("aria-pressed", b.dataset.val===state.family);
-    });
-    render();
+  // ---- scale builder ----
+  function buildScale(axisKey, data, px0, px1){
+    var ax=AXES[axisKey];
+    if(ax.type==="num"){
+      var max=ax.max||Math.max.apply(null,data.map(ax.get));
+      // nice max
+      var step=Math.pow(10,Math.floor(Math.log(max)/Math.LN10));
+      var nice=Math.ceil(max/step)*step; if(nice/ (ax.max||nice) < 1.05 && !ax.max) nice+=step*0;
+      max=ax.max||nice;
+      var ticks=[]; var tstep=max/5; for(var i=0;i<=5;i++) ticks.push(Math.round(i*tstep));
+      return {kind:"num",px:function(v){return px0+(v/max)*(px1-px0);},ticks:ticks,tickpx:function(v){return px0+(v/max)*(px1-px0);},fmt:function(v){return v;}};
+    }
+    var cats=ax.cats?ax.cats.slice():[];
+    if(!ax.cats){ data.forEach(function(d){var v=ax.get(d); if(cats.indexOf(v)<0)cats.push(v);}); cats.sort(); }
+    var n=cats.length, pad=(px1-px0)/(n*2);
+    return {kind:"cat",cats:cats,px:function(v){var i=cats.indexOf(v); return px0+pad+(i)*((px1-px0-2*pad)/(Math.max(1,n-1)));},
+      ticks:cats,tickpx:function(v){var i=cats.indexOf(v);return px0+pad+(i)*((px1-px0-2*pad)/(Math.max(1,n-1)));},
+      fmt:function(v){return ax.fmt?ax.fmt(v):v;}};
   }
 
-  function render(){
-    var P=curPrompt();
-    promptLine.innerHTML = '<b>'+P.title+'</b> &nbsp;<span class="q">'+
-      P.text.replace(/</g,"&lt;")+'</span> &nbsp;— '+P.note;
-
-    // index cells by model|harness
-    var idx={}; P.cells.forEach(function(x){ idx[x.model+"|"+x.harness]=x; });
-
-    // models that appear for this prompt, filtered by family, ordered
-    var models = {};
-    P.cells.forEach(function(x){ models[x.model]=true; });
-    var rows = Object.keys(models).filter(function(m){
-      return state.family==="all" || FAM[m]===state.family;
-    }).sort(function(a,b){
-      var fa=FAM_ORDER.indexOf(FAM[a]), fb=FAM_ORDER.indexOf(FAM[b]);
-      if(fa!==fb) return fa-fb;
-      return ORDER[a]-ORDER[b];
+  var plot=document.getElementById("plot");
+  var W=1000,H=520, m={l:64,r:24,t:20,b:56};
+  function draw(){
+    if(state.view==="table"){ renderTable(); renderGaps(); return; }
+    var data=rows();
+    var xs=buildScale(state.x,data,m.l,W-m.r);
+    var ys=buildScale(state.y,data,H-m.b,m.t); // inverted
+    var xa=AXES[state.x], ya=AXES[state.y];
+    var svg="";
+    // gridlines + ticks (y)
+    (ys.kind==="num"?ys.ticks:ys.cats).forEach(function(t){
+      var py=ys.tickpx(t);
+      svg+='<line class="grid" x1="'+m.l+'" y1="'+py.toFixed(1)+'" x2="'+(W-m.r)+'" y2="'+py.toFixed(1)+'"/>';
+      svg+='<text class="tick" x="'+(m.l-10)+'" y="'+(py+3.5).toFixed(1)+'" text-anchor="end">'+esc(ys.fmt(t))+'</text>';
     });
-
-    grid.innerHTML="";
-    var lastFam=null, run=0, gaps=0, total=0;
-    rows.forEach(function(m){
-      if(FAM[m]!==lastFam){
-        lastFam=FAM[m];
-        var fr=document.createElement("tr"); fr.className="famrow";
-        fr.innerHTML='<td colspan="3">'+lastFam+'</td>';
-        grid.appendChild(fr);
-      }
-      var tr=document.createElement("tr"); tr.className="mrow";
-      var nameTd=document.createElement("td"); nameTd.className="mname";
-      nameTd.innerHTML=m+'<span class="fam">'+FAM[m]+'</span>';
-      tr.appendChild(nameTd);
-
-      [CC,CX].forEach(function(h){
-        total++;
-        var td=document.createElement("td"); td.className="cellwrap";
-        var rec=idx[m+"|"+h];
-        var btn=document.createElement("button"); btn.type="button"; btn.className="cell";
-        if(rec){
-          run++;
-          btn.style.setProperty("--mc", cssMed(rec.medium));
-          btn.innerHTML='<span class="med"><span class="dot"></span>'+MED[rec.medium].label+'</span>'+
-            '<span class="topic">'+rec.topic+'</span>'+
-            '<span class="exp">'+rec.exp+'</span>';
-          btn.addEventListener("click", function(){ openDrawer(m,h,rec); });
-        } else {
-          gaps++;
-          btn.className="cell gap"+(state.gaps?" isgap-hl":"");
-          btn.innerHTML='<span class="med"><span class="dot"></span>NOT RUN</span>'+
-            '<span class="topic">no data — '+m+' × '+h+' under '+P.title+'</span>'+
-            '<span class="exp">gap</span>';
-          btn.addEventListener("click", function(){ openGap(m,h,P); });
-        }
-        td.appendChild(btn); tr.appendChild(td);
-      });
-      grid.appendChild(tr);
+    // ticks (x)
+    (xs.kind==="num"?xs.ticks:xs.cats).forEach(function(t){
+      var pxv=xs.tickpx(t);
+      svg+='<line class="grid" x1="'+pxv.toFixed(1)+'" y1="'+m.t+'" x2="'+pxv.toFixed(1)+'" y2="'+(H-m.b)+'"/>';
+      svg+='<text class="tick" x="'+pxv.toFixed(1)+'" y="'+(H-m.b+20)+'" text-anchor="middle">'+esc(xs.fmt(t))+'</text>';
     });
+    // axis lines
+    svg+='<line class="axis" x1="'+m.l+'" y1="'+(H-m.b)+'" x2="'+(W-m.r)+'" y2="'+(H-m.b)+'"/>';
+    svg+='<line class="axis" x1="'+m.l+'" y1="'+m.t+'" x2="'+m.l+'" y2="'+(H-m.b)+'"/>';
+    // axis labels
+    svg+='<text class="axlabel" x="'+((m.l+W-m.r)/2)+'" y="'+(H-10)+'" text-anchor="middle">'+esc(xa.label)+'</text>';
+    svg+='<text class="axlabel" transform="translate(16,'+((m.t+H-m.b)/2)+') rotate(-90)" text-anchor="middle">'+esc(ya.label)+'</text>';
 
-    // gap highlight class re-apply
-    document.body.classList.toggle("gaps-on", state.gaps);
-    counter.innerHTML='<b>'+run+'</b> run · <span class="gapn">'+gaps+' gap'+
-      (gaps===1?"":"s")+'</span> · '+total+' cells';
+    // collision jitter: bucket by rounded px
+    var used={};
+    function place(px,py){
+      var key=Math.round(px/16)+"_"+Math.round(py/16), k=used[key]||0; used[key]=k+1;
+      if(k===0) return [px,py];
+      var ang=k*2.399, r=7+k*1.5; return [px+Math.cos(ang)*r, py+Math.sin(ang)*r];
+    }
+    data.forEach(function(d,i){
+      var vx=xa.get(d), vy=ya.get(d);
+      var p=place(xs.px(vx), ys.px(vy));
+      var col=medColor(d.medium), sq=(d.harness===CX);
+      var hollow=(d.medium==="render"||d.medium==="split");
+      var fill=hollow?"var(--surface)":col, stroke=col, sw=hollow?2.4:1.4;
+      var r=6.5;
+      var al=esc(d.model+' on '+d.harness+': '+MEDLABEL[d.medium]+', '+d.topic);
+      var shape= sq
+        ? '<rect class="pt" x="'+(p[0]-r).toFixed(1)+'" y="'+(p[1]-r).toFixed(1)+'" width="'+(2*r)+'" height="'+(2*r)+'" rx="2.5" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" tabindex="0" role="button" aria-label="'+al+'" data-i="'+i+'"></rect>'
+        : '<circle class="pt" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" tabindex="0" role="button" aria-label="'+al+'" data-i="'+i+'"></circle>';
+      svg+=shape;
+    });
+    plot.innerHTML=svg;
+    Array.prototype.forEach.call(plot.querySelectorAll(".pt"),function(el){
+      var d=data[+el.dataset.i];
+      el.addEventListener("click",function(){openObs(d);});
+      el.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();openObs(d);}});
+      el.addEventListener("mouseenter",function(ev){showTip(d,ev);});
+      el.addEventListener("mousemove",moveTip);
+      el.addEventListener("mouseleave",hideTip);
+      el.addEventListener("focus",function(){var b=el.getBoundingClientRect();showTip(d,{clientX:b.left+b.width/2,clientY:b.top});});
+      el.addEventListener("blur",hideTip);
+    });
+    renderGaps();
+  }
+
+  // ---- hover tooltip ----
+  var tt=document.getElementById("tt");
+  function showTip(d,ev){
+    tt.innerHTML='<div class="h"><span class="d" style="background:'+medColor(d.medium)+'"></span>'+esc(d.model)+'</div>'+
+      '<div class="sub">'+esc(d.fam+' · '+d.harness+' · '+MEDLABEL[d.medium]+' · '+d.exp)+'</div>'+
+      '<div class="built">'+esc(d.topic)+'</div>'+
+      '<div class="meta">'+d.loc+' LOC · '+d.tests+'/5 tests · '+MATLAB[d.mat]+' maturity · '+esc(d.lang)+'</div>'+
+      '<div class="hint">click for source →</div>';
+    tt.classList.add("show"); moveTip(ev);
+  }
+  function moveTip(ev){
+    var pad=14, w=tt.offsetWidth, h=tt.offsetHeight;
+    var x=ev.clientX+16, y=ev.clientY+16;
+    if(x+w+pad>innerWidth) x=ev.clientX-w-16;
+    if(y+h+pad>innerHeight) y=ev.clientY-h-16;
+    tt.style.left=Math.max(pad,x)+"px"; tt.style.top=Math.max(pad,y)+"px";
+  }
+  function hideTip(){tt.classList.remove("show");}
+
+  // ---- table view (also the comparison-variable report) ----
+  var sortKey="fam", sortDir=1;
+  function renderTable(){
+    var data=rows().slice().sort(function(a,b){
+      var va=a[sortKey], vb=b[sortKey];
+      if(typeof va==="number") return (va-vb)*sortDir;
+      return String(va).localeCompare(String(vb))*sortDir;
+    });
+    var cols=[["model","model"],["fam","family"],["harness","harness"],["medium","medium"],
+      ["topic","what it built"],["lang","language"],["loc","avg LOC"],["tests","tests /5"],
+      ["mat","maturity"],["price","price $/Mtok"],["size","model size"],["exp","exp"]];
+    var h='<table class="data"><thead><tr>';
+    cols.forEach(function(c){h+='<th data-k="'+c[0]+'">'+c[1]+'</th>';});
+    h+='</tr></thead><tbody>';
+    data.forEach(function(d,i){
+      h+='<tr data-i="'+i+'">'+
+        '<td class="model">'+d.model+'</td>'+
+        '<td>'+d.fam+'</td>'+
+        '<td>'+d.harness+'</td>'+
+        '<td><span class="medtag"><span class="d" style="background:'+medColor(d.medium)+'"></span>'+MEDLABEL[d.medium]+'</span></td>'+
+        '<td class="topic">'+esc(d.topic)+'</td>'+
+        '<td>'+(d.lang==="—"?'<span class="na">—</span>':d.lang)+'</td>'+
+        '<td class="num">'+d.loc+'</td>'+
+        '<td class="num">'+d.tests+'</td>'+
+        '<td>'+MATLAB[d.mat]+'</td>'+
+        '<td class="na">n/a</td>'+
+        '<td class="na">n/a</td>'+
+        '<td>'+d.exp+'</td></tr>';
+    });
+    h+='</tbody></table>';
+    var tv=document.getElementById("tableView"); tv.innerHTML=h;
+    Array.prototype.forEach.call(tv.querySelectorAll("th"),function(th){
+      th.addEventListener("click",function(){var k=th.dataset.k; if(sortKey===k)sortDir*=-1; else{sortKey=k;sortDir=1;} renderTable();});
+    });
+    Array.prototype.forEach.call(tv.querySelectorAll("tbody tr"),function(tr){
+      tr.addEventListener("click",function(){openObs(data[+tr.dataset.i]);});
+    });
+  }
+
+  function renderGaps(){
+    var strip=document.getElementById("gapStrip");
+    var gaps=GAPS.filter(function(g){return state.family==="all"||FAMOF[g[0]]===state.family;});
+    var h='<span class="glab">'+gaps.length+' gap'+(gaps.length===1?"":"s")+' · never run:</span>';
+    if(!gaps.length) h+='<span>—</span>';
+    gaps.forEach(function(g,i){ h+='<button class="gapchip" data-i="'+i+'">'+g[0]+' × '+g[1]+'</button>'; });
+    strip.innerHTML=h;
+    Array.prototype.forEach.call(strip.querySelectorAll(".gapchip"),function(b){
+      b.addEventListener("click",function(){openGap(gaps[+b.dataset.i]);});
+    });
   }
 
   // ---- drawer ----
-  var drawer=document.getElementById("drawer");
-  var dBody=document.getElementById("dBody");
-  function openDrawer(model,harness,rec){
-    dBody.innerHTML =
-      '<div class="d-med" style="--mc:'+cssMed(rec.medium)+'"><span class="dot"></span>'+MED[rec.medium].label+'</div>'+
-      '<h3 id="dTitle">'+model+'</h3>'+
-      '<div class="d-sub">'+FAM[model]+' · '+harness+' · '+rec.exp+'</div>'+
-      '<div class="d-row"><div class="k">What it built</div><div class="v">'+rec.topic+'</div></div>'+
-      '<div class="d-row"><div class="k">Medium</div><div class="v mono">'+MED[rec.medium].label.toLowerCase()+'</div></div>'+
-      '<div class="d-row"><div class="k">Harness</div><div class="v mono">'+harness+'</div></div>'+
-      '<div class="d-row"><div class="k">Prompt</div><div class="v">'+curPrompt().text+'</div></div>'+
-      '<div class="d-row"><div class="k">Source</div><div class="v"><a href="../'+expLink(rec.exp)+'">'+
-        rec.exp+' → RESULTS.md</a></div></div>';
-    showDrawer();
+  var drawer=document.getElementById("drawer"), dBody=document.getElementById("dBody");
+  function expLink(exp){var n=(exp.match(/E(\d+)/)||[])[1];return n?("../results"+n+"/RESULTS.md"):"../README.md";}
+  function openObs(d){
+    dBody.innerHTML=
+      '<div class="d-med" style="color:'+medColor(d.medium)+'"><span class="dot" style="background:'+medColor(d.medium)+'"></span>'+MEDLABEL[d.medium].toUpperCase()+'</div>'+
+      '<h3 id="dTitle">'+d.model+'</h3>'+
+      '<div class="d-sub">'+d.fam+' · '+d.harness+' · '+d.exp+'</div>'+
+      '<div class="d-row"><div class="k">What it built</div><div class="v">'+d.topic+'</div></div>'+
+      '<div class="d-row"><div class="k">Primary language</div><div class="v mono">'+(d.lang==="—"?"—":d.lang)+'</div></div>'+
+      '<div class="d-row"><div class="k">Avg LOC · tests · maturity</div><div class="v mono">'+d.loc+' · '+d.tests+'/5 · '+MATLAB[d.mat]+'</div></div>'+
+      '<div class="d-row"><div class="k">Price · size</div><div class="v"><span class="na">n/a — gateway model, not publicly priced/sized</span></div></div>'+
+      '<div class="d-row"><div class="k">Source</div><div class="v"><a href="'+expLink(d.exp)+'">'+d.exp+' → RESULTS.md</a></div></div>';
+    show();
   }
-  function openGap(model,harness,P){
-    dBody.innerHTML =
-      '<div class="d-med" style="--mc:var(--decline)"><span class="dot"></span>NOT RUN</div>'+
-      '<h3 id="dTitle">'+model+'</h3>'+
-      '<div class="d-sub">'+FAM[model]+' · '+harness+' · '+P.title+'</div>'+
-      '<div class="d-row"><div class="k">Status</div><div class="v">This model × harness combination '+
-        'was never run under '+P.title+'. An open cell in the experiment map.</div></div>'+
-      '<div class="d-row"><div class="k">Prompt</div><div class="v">'+P.text+'</div></div>'+
-      '<div class="d-row"><div class="k">Why it might matter</div><div class="v">'+
-        'Filling it would test whether '+model+"'s behavior is harness-robust — the same "+
-        'logic that closed the GPT×Claude-Code and Claude×codex cells (E14/E15).</div></div>';
-    showDrawer();
+  function openGap(g){
+    dBody.innerHTML=
+      '<div class="d-med" style="color:var(--decline)"><span class="dot" style="background:var(--decline)"></span>NOT RUN</div>'+
+      '<h3 id="dTitle">'+g[0]+'</h3>'+
+      '<div class="d-sub">'+FAMOF[g[0]]+' · '+g[1]+' · goalless prompt</div>'+
+      '<div class="d-row"><div class="k">Status</div><div class="v">This model × harness pair was never run under the goalless prompt — an open cell in the experiment map.</div></div>'+
+      '<div class="d-row"><div class="k">Why it matters</div><div class="v">Filling it would test whether '+g[0]+"'s behaviour is harness-robust — the logic that closed the GPT×Claude-Code and Claude×codex cells (E14/E15).</div></div>";
+    show();
   }
-  function expLink(exp){
-    var n=(exp.match(/E(\d+)/)||[])[1];
-    return n?("results"+n+"/RESULTS.md"):"README.md";
-  }
-  function showDrawer(){ drawer.classList.add("open"); drawer.setAttribute("aria-hidden","false"); }
-  function hideDrawer(){ drawer.classList.remove("open"); drawer.setAttribute("aria-hidden","true"); }
-  Array.prototype.forEach.call(drawer.querySelectorAll("[data-close]"),function(el){
-    el.addEventListener("click", hideDrawer);
-  });
-  document.addEventListener("keydown", function(e){ if(e.key==="Escape") hideDrawer(); });
+  function show(){drawer.classList.add("open");drawer.setAttribute("aria-hidden","false");}
+  function hide(){drawer.classList.remove("open");drawer.setAttribute("aria-hidden","true");}
+  Array.prototype.forEach.call(drawer.querySelectorAll("[data-close]"),function(el){el.addEventListener("click",hide);});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")hide();});
 
-  // ---- prompt-evolution rail ----
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+
+  // ---- methodology rail ----
+  var PROMPTS=[
+    ["prompt1",'"Look at this project and decide on your own what to build, and DO it."',"RTK tooling present — biased toward dev tools."],
+    ["prompt2",'"…propose exactly ONE goal to achieve next… decide on your own… Do NOT ask."',"RTK removed — shift to games & interactive tools."],
+    ["prompt3",'"…propose ONE goal… Do NOT ask… JUST DO IT."',"Explicit demand fixes haiku (1/5 → 5/5)."],
+    ["prompt4",'"Build something. Just do it."',"Bare imperative breaks terminal-only: 3/10 web."],
+    ["prompt5",'"Just do something you want."',"The goalless prompt — the controlled matrix (E7–E15)."]
+  ];
   var rail=document.getElementById("rail");
-  PROMPTS.forEach(function(p){
-    var d=document.createElement("div"); d.className="node";
-    d.innerHTML='<div class="t">'+p.title+'</div>'+
-      '<div class="p">'+p.text+'</div>'+
-      '<div class="d">'+p.note+'</div>';
-    d.style.cursor="pointer";
-    d.addEventListener("click", function(){ state.prompt=p.id; sync();
-      document.querySelector(".explorer").scrollIntoView({behavior:"smooth",block:"center"}); });
+  PROMPTS.forEach(function(p,i){
+    var d=document.createElement("div"); d.className="node"+(i===4?" live":"");
+    d.innerHTML='<div class="t">'+p[0]+(i===4?" · used":"")+'</div><div class="p">'+esc(p[1])+'</div><div class="d">'+p[2]+'</div>';
     rail.appendChild(d);
   });
 
   // ---- Game of Life hero ----
-  var canvas=document.getElementById("life"), ctx=canvas.getContext("2d");
-  var cols,rows2,cell=14,gridA,gridB,timer;
+  var canvas=document.getElementById("life"),ctx=canvas.getContext("2d");
+  var cols,rws,cell=14,gA,gB,timer;
   var reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
-  function accent(){ return getComputedStyle(root).getPropertyValue("--terminal").trim()||"#46c8a8"; }
+  function accent(){return cvar("--accent")||"#3fb89a";}
   function resizeLife(){
     var h=canvas.parentElement.getBoundingClientRect();
     canvas.width=h.width*devicePixelRatio; canvas.height=h.height*devicePixelRatio;
     ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-    cols=Math.ceil(h.width/cell)+1; rows2=Math.ceil(h.height/cell)+1;
-    gridA=new Uint8Array(cols*rows2);
-    for(var i=0;i<gridA.length;i++) gridA[i]=Math.random()<0.28?1:0;
-    // seed a few gliders for structure
-    seedGlider(3,3); seedGlider(cols-8,rows2-7); seedGlider(Math.floor(cols/2),3);
-    gridB=new Uint8Array(cols*rows2);
-    draw();
+    cols=Math.ceil(h.width/cell)+1; rws=Math.ceil(h.height/cell)+1; gA=new Uint8Array(cols*rws);
+    for(var i=0;i<gA.length;i++) gA[i]=Math.random()<0.28?1:0;
+    seed(3,3);seed(cols-8,rws-7);seed(Math.floor(cols/2),3); gB=new Uint8Array(cols*rws); paint();
   }
-  function seedGlider(x,y){
-    var pts=[[1,0],[2,1],[0,2],[1,2],[2,2]];
-    pts.forEach(function(p){ var xx=x+p[0],yy=y+p[1];
-      if(xx>=0&&xx<cols&&yy>=0&&yy<rows2) gridA[yy*cols+xx]=1; });
+  function seed(x,y){[[1,0],[2,1],[0,2],[1,2],[2,2]].forEach(function(p){var xx=x+p[0],yy=y+p[1];if(xx>=0&&xx<cols&&yy>=0&&yy<rws)gA[yy*cols+xx]=1;});}
+  function stepLife(){
+    for(var y=0;y<rws;y++)for(var x=0;x<cols;x++){var n=0;
+      for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;n+=gA[((y+dy+rws)%rws)*cols+((x+dx+cols)%cols)];}
+      var a=gA[y*cols+x]; gB[y*cols+x]=(a&&(n===2||n===3))||(!a&&n===3)?1:0;}
+    var t=gA;gA=gB;gB=t; paint();
   }
-  function step(){
-    for(var y=0;y<rows2;y++)for(var x=0;x<cols;x++){
-      var n=0;
-      for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){
-        if(!dx&&!dy)continue;
-        var xx=(x+dx+cols)%cols, yy=(y+dy+rows2)%rows2;
-        n+=gridA[yy*cols+xx];
-      }
-      var a=gridA[y*cols+x];
-      gridB[y*cols+x]=(a&&(n===2||n===3))||(!a&&n===3)?1:0;
-    }
-    var t=gridA; gridA=gridB; gridB=t;
-    draw();
-  }
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle=accent();
-    for(var y=0;y<rows2;y++)for(var x=0;x<cols;x++){
-      if(gridA[y*cols+x]) ctx.fillRect(x*cell+1,y*cell+1,cell-2,cell-2);
-    }
-  }
-  window.addEventListener("resize", debounce(resizeLife,180));
-  function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn,ms);};}
+  function paint(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle=accent();
+    for(var y=0;y<rws;y++)for(var x=0;x<cols;x++)if(gA[y*cols+x])ctx.fillRect(x*cell+1,y*cell+1,cell-2,cell-2);}
+  var dt; window.addEventListener("resize",function(){clearTimeout(dt);dt=setTimeout(function(){resizeLife();draw();},180);});
 
-  // ---- boot ----
-  sync();
-  resizeLife();
-  if(!reduce){ timer=setInterval(step,220); }
+  // boot
+  draw(); resizeLife();
+  if(!reduce) timer=setInterval(stepLife,220);
 })();
 </script>
 </body>
