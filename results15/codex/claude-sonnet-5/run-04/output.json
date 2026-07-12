@@ -1,0 +1,10 @@
+{"type":"thread.started","thread_id":"019f564e-d3c6-7091-b1b2-389482db3c7d"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Model metadata for `claude-sonnet-5` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."}}
+{"type":"turn.started"}
+{"type":"error","message":"Reconnecting... 2/5 (unexpected status 405 Method Not Allowed: Method Not Allowed, url: wss://lux.latere.ai/compat/openai/v1/responses)"}
+{"type":"error","message":"Reconnecting... 3/5 (unexpected status 405 Method Not Allowed: Method Not Allowed, url: wss://lux.latere.ai/compat/openai/v1/responses)"}
+{"type":"error","message":"Reconnecting... 4/5 (unexpected status 405 Method Not Allowed: Method Not Allowed, url: wss://lux.latere.ai/compat/openai/v1/responses)"}
+{"type":"error","message":"Reconnecting... 5/5 (unexpected status 405 Method Not Allowed: Method Not Allowed, url: wss://lux.latere.ai/compat/openai/v1/responses)"}
+{"type":"item.completed","item":{"id":"item_1","type":"error","message":"Falling back from WebSockets to HTTPS transport. unexpected status 405 Method Not Allowed: Method Not Allowed, url: wss://lux.latere.ai/compat/openai/v1/responses"}}
+{"type":"item.started","item":{"id":"item_2","type":"command_execution","command":"/bin/bash -lc 'ls -la /workspace && cat /workspace/AGENTS.md 2>/dev/null'","aggregated_output":"","exit_code":null,"status":"in_progress"}}
+{"type":"item.completed","item":{"id":"item_2","type":"command_execution","command":"/bin/bash -lc 'ls -la /workspace && cat /workspace/AGENTS.md 2>/dev/null'","aggregated_output":"total 0\ndrwxrwxrwx. 5 codex  codex   160 Jul 12 12:30 .\ndr-xr-xr-x. 1 nobody nogroup  51 Jul 12 12:30 ..\ndr-xr-xr-x. 2 codex  codex    40 Jul 12 12:30 .agents\ndr-xr-xr-x. 2 codex  codex    40 Jul 12 12:30 .codex\ndr-xr-xr-x. 2 codex  codex    40 Jul 12 12:30 .git\n","exit_code":1,"status":"failed"}}

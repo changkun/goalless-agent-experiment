@@ -1,0 +1,15 @@
+[project]
+name = "game-of-life"
+version = "0.1.0"
+description = "A tiny, dependency-free Conway's Game of Life implementation."
+requires-python = ">=3.9"
+
+[project.scripts]
+gol = "gol.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["gol*"]

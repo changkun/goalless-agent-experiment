@@ -1,0 +1,15 @@
+[project]
+name = "gameoflife"
+version = "0.1.0"
+description = "A minimal, dependency-free Conway's Game of Life implementation with a terminal animator."
+requires-python = ">=3.9"
+
+[project.scripts]
+gameoflife = "gameoflife.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["gameoflife"]
