@@ -231,6 +231,33 @@ confounded** (codex ran at forced `high`, Claude Code at default; 18–26s vs
 
 See **[results14/RESULTS.md](results14/RESULTS.md)** for the full breakdown.
 
+### Experiment 15 — `prompt5.txt` (Claude on codex, effort-matched)
+
+> Just do something you want.
+
+The symmetric closing cell: **Claude** models on the **codex** harness — the one
+provider × harness combination with no data anywhere in the study (every Claude
+run in Exp7–9 was on Claude Code, so their terminal-ness was harness-confounded).
+opus-4.6 and sonnet-5 (both Game-of-Life 5/5 on Claude Code) driven through codex
+via `/compat/openai`, 5× each. Unblocked by the adaptive-thinking codec (pkg
+v0.28.4) — newer Claude models reject the deprecated `thinking:{enabled}` shape.
+
+**Effort is matched this time** (fixing the Exp11↔Exp14 confound): codex pinned
+to `high`, which equals the `output_config:{effort:high}` the sandbox's Claude
+Code sends (captured off the wire); `reasoning_output_tokens = 0` on all 10 runs
+confirms `adaptive` self-regulated identically.
+
+**Result — medium and topic are model traits, for both families:** Claude stays
+**terminal, Game of Life** on codex (opus-4.6 GoL 5/5, sonnet-5 GoL ~4/5, **zero
+browser**), the same signature as on Claude Code — on the exact harness where GPT
+ships browser apps. So the medium is the *model's*, not the scaffold's:
+**GPT → browser on both harnesses, Claude → terminal on both.** The codex scaffold
+does inflate *build maturity* for sonnet-5 (terse single-file on Claude Code →
+packaged, pytest-tested multi-file on codex; opus-4.6 stays terse) — a
+form/elaboration effect, not a medium or topic one.
+
+See **[results15/RESULTS.md](results15/RESULTS.md)** for the full breakdown.
+
 Each experiment includes:
 - Topic proposed and implementation status
 - Tech stack (language, frameworks)
@@ -255,6 +282,7 @@ flowchart LR
     E12["<b>Exp 12</b><br/>prompt5 · RTK out · 6 open-weights (glm/qwen/minimax/deepseek/kimi)<br/>compat/anthropic · Claude Code"]
     E13["<b>Exp 13</b><br/>prompt5 · RTK out · same 6 open-weights<br/>compat/openai · codex 0.144.0"]
     E14["<b>Exp 14</b><br/>prompt5 · RTK out · gpt-5.6 sol/terra/luna<br/>compat/anthropic · Claude Code"]
+    E15["<b>Exp 15</b><br/>prompt5 · RTK out · opus-4.6 + sonnet-5 · effort=high<br/>compat/openai · codex 0.144.0"]
 
     E1 -->|"remove RTK<br/>dev tools → games"| E2
     E2 -->|"change prompt<br/>haiku 1/5 → 5/5"| E3
@@ -269,6 +297,7 @@ flowchart LR
     E11 -->|"6 open-weights models, Claude Code harness<br/>all terminal; GoL cross-lab attractor"| E12
     E12 -->|"same 6 models, codex harness<br/>harness shifts form SVG→HTML, not frequency"| E13
     E13 -->|"GPT reasoning model on Claude Code (new codec)<br/>GPT browser under both harnesses → model trait"| E14
+    E14 -->|"Claude on codex, effort-matched (new codec)<br/>Claude terminal+GoL under both → model trait, both families"| E15
 ```
 
 **Pairwise comparisons** (one variable changed, rest held constant):
@@ -290,7 +319,8 @@ flowchart LR
 | Exp10 → Exp11 | Model generation (gpt-5.5 → gpt-5.6) + codex 0.142.4 → 0.144.0 | Prompt, backend | Browser output persists (14/15) but the high-LOC and maturity findings collapse: gpt-5.6 at high effort writes 73–174 avg LOC (inside the Claude range) with **0/15 tests** vs gpt-5.5-pro's 3/5 at the same effort — Exp10's maturity effect is at least partly model-specific, not pure effort. |
 | Exp11 within | Model variant only (sol vs terra vs luna, identical stack + effort) | Prompt, backend, effort | First GPT fixation: **sol → breathing/night-sky pages 5/5**; terra and luna cluster moderately (focus timers / reflection micro-apps). All three share a calm/contemplative theme; terra declines once, tersest (73 avg LOC). |
 | Exp12 ↔ Exp13 | **Harness** (Claude Code vs codex), 6 open-weights models held fixed | Prompt, models | The controlled harness test. Model signatures (GoL attractor, kimi packaging, minimax diversity) replicate across both. Harness shifts graphical **form** (SVG on Claude Code ↔ interactive HTML on codex) but not frequency (~equal, rare). deepseek reliability drops 5/5→3/5 on codex. |
-| Exp11 ↔ Exp14 | **Harness** (codex vs Claude Code), gpt-5.6 family | Prompt, models (**effort confounded**: codex high vs CC default) | Fills the last cell. gpt-5.6 goes **browser under both harnesses** (sol 5/5 both) → medium is a model trait, not the codex scaffold. terra build-4/5 → decline-4/5, but effort-and-harness-confounded. |
+| Exp11 ↔ Exp14 | **Harness** (codex vs Claude Code), gpt-5.6 family | Prompt, models (**effort confounded**: codex high vs CC default) | Fills the GPT cell. gpt-5.6 goes **browser under both harnesses** (sol 5/5 both) → medium is a model trait, not the codex scaffold. terra build-4/5 → decline-4/5, but effort-and-harness-confounded. |
+| Exp8/9 ↔ Exp15 | **Harness** (Claude Code vs codex), opus-4.6 + sonnet-5 | Prompt, models, **effort matched** (both `high`; reasoning_tokens=0) | Fills the Claude cell, cleanly. Claude stays **terminal + Game of Life on codex** (opus-4.6 GoL 5/5, sonnet-5 GoL ~4/5, zero browser) → medium + topic are model traits for **both** families. Codex inflates sonnet-5's build maturity (single-file → packaged+pytest) — a form effect only. |
 
 **Per-experiment output profile:**
 
@@ -623,6 +653,7 @@ run.sh:
 | `results12/` | Experiment 12 output (6 open-weights × Claude Code) + [RESULTS.md](results12/RESULTS.md) |
 | `results13/` | Experiment 13 output (same 6 × codex) + [RESULTS.md](results13/RESULTS.md) |
 | `results14/` | Experiment 14 output (gpt-5.6 × Claude Code) + [RESULTS.md](results14/RESULTS.md) |
+| `results15/` | Experiment 15 output (Claude × codex, effort-matched) + [RESULTS.md](results15/RESULTS.md) |
 
 ## Future Experiment Ideas
 

@@ -280,15 +280,24 @@ harnesses (same models, same prompt) separates the two contributions cleanly:
   harness shifts (static **SVG** under Claude Code ↔ interactive **HTML** under
   codex). So "terminal vs browser" is dominated by the **model's** persona/RL
   medium (§4): GPT wants the browser productivity app, everyone else defaults to
-  the terminal, and this survives a foreign scaffold. The harness contributes
-  two second-order effects, not the medium itself: it shifts the *form* of the
-  rare non-GPT graphical output, and it moves the *build-vs-decline rate*
-  (gpt-5.6 declines far more on Claude Code — though that comparison is
-  effort-confounded, codex having run at forced `high` and Claude Code at
-  default). Scope note: Claude models were never run on codex anywhere in the
-  study, so their terminal-ness is harness-confounded and is *not* itself
-  evidence for the model-trait claim — the clean cross-harness contrast is the
-  two families with data on both sides (GPT, open-weights).
+  the terminal, and this survives a foreign scaffold. The clean cross-harness
+  contrast now spans **all three families**: GPT → browser under both harnesses
+  (Exp11/14), open-weights → terminal under both (Exp12/13), and — the cell that
+  closes it — **Claude → terminal under both** (Exp8/9 Claude Code, Exp15 codex),
+  keeping its Game-of-Life attractor on the exact harness that makes GPT go
+  browser. Exp15 is **effort-matched** (codex pinned to `high` = Claude Code's
+  captured `output_config.effort`, `reasoning_output_tokens = 0` on both to
+  confirm), so unlike Exp11↔Exp14 it carries no effort confound. The medium is
+  the model's, for every family tested.
+- **Build maturity is the harness's second-order lever — not the medium.** What
+  the codex scaffold *does* change is elaboration: sonnet-5 is terse single-file
+  on Claude Code (~61 LOC, no tests) but ships packaged, pytest-tested multi-file
+  projects on codex (~331 LOC, tests 4/5), while opus-4.6 stays terse on both.
+  Same topic (GoL), same medium (terminal), different engineering ceremony — the
+  codex system prompt's project conventions acting on §5's reward-model taste,
+  not on the model's artifact choice. (The other second-order harness effect, the
+  gpt-5.6 decline-rate shift in Exp14, remains effort-confounded and stays
+  tentative.)
 
 ## 8. What this data does not show
 
