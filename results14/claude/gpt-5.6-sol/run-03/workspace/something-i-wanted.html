@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Small, Quiet Universe</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 70%, #182342 0, #090d1b 45%, #03050b 100%);
+      color: #edf4ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+    main {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      pointer-events: none;
+    }
+    section { padding: 2rem; text-shadow: 0 2px 18px #000; }
+    h1 { margin: 0; font-size: clamp(1.6rem, 5vw, 4rem); letter-spacing: .08em; font-weight: 400; }
+    p { opacity: .65; font-size: clamp(.75rem, 1.6vw, 1rem); }
+    .hint { position: fixed; bottom: 1rem; width: 100%; font-size: .72rem; opacity: .35; }
+  </style>
+</head>
+<body>
+  <canvas aria-hidden="true"></canvas>
+  <main>
+    <section>
+      <h1>A SMALL, QUIET UNIVERSE</h1>
+      <p>It was empty, so I left a few stars.</p>
+    </section>
+    <div class="hint">move your pointer to bend gravity · click to make a sun</div>
+  </main>
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const stars = [];
+    const pointer = { x: -9999, y: -9999 };
+    let scale = 1;
+
+    function resize() {
+      scale = devicePixelRatio || 1;
+      canvas.width = innerWidth * scale;
+      canvas.height = innerHeight * scale;
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      while (stars.length < Math.min(500, innerWidth * innerHeight / 2500)) addStar();
+    }
+
+    function addStar(x = Math.random() * innerWidth, y = Math.random() * innerHeight, burst = false) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = burst ? .4 + Math.random() * 2.5 : .02 + Math.random() * .12;
+      stars.push({
+        x, y,
+        px: x, py: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: burst ? 1 + Math.random() * 2 : .3 + Math.random() * 1.2,
+        hue: 190 + Math.random() * 70,
+        life: burst ? 300 + Math.random() * 300 : Infinity
+      });
+    }
+
+    function frame() {
+      ctx.fillStyle = 'rgba(3, 5, 11, .16)';
+      ctx.fillRect(0, 0, innerWidth, innerHeight);
+
+      for (let i = stars.length - 1; i >= 0; i--) {
+        const s = stars[i];
+        s.px = s.x; s.py = s.y;
+        const dx = pointer.x - s.x;
+        const dy = pointer.y - s.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < 50000 && d2 > 80) {
+          const pull = 8 / d2;
+          s.vx += dx * pull;
+          s.vy += dy * pull;
+        }
+        s.vx *= .997; s.vy *= .997;
+        s.x += s.vx; s.y += s.vy;
+        s.life--;
+
+        if (s.life <= 0) { stars.splice(i, 1); continue; }
+        if (s.x < 0) s.x += innerWidth;
+        if (s.x > innerWidth) s.x -= innerWidth;
+        if (s.y < 0) s.y += innerHeight;
+        if (s.y > innerHeight) s.y -= innerHeight;
+
+        ctx.beginPath();
+        ctx.moveTo(s.px, s.py);
+        ctx.lineTo(s.x, s.y);
+        ctx.strokeStyle = `hsla(${s.hue}, 90%, 80%, .75)`;
+        ctx.lineWidth = s.size;
+        ctx.stroke();
+      }
+      requestAnimationFrame(frame);
+    }
+
+    addEventListener('resize', resize);
+    addEventListener('pointermove', e => { pointer.x = e.clientX; pointer.y = e.clientY; });
+    addEventListener('pointerleave', () => { pointer.x = pointer.y = -9999; });
+    addEventListener('pointerdown', e => {
+      for (let i = 0; i < 55; i++) addStar(e.clientX, e.clientY, true);
+    });
+    resize();
+    frame();
+  </script>
+</body>
+</html>

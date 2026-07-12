@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Small Universe</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #11162d, #03050d 70%);
+      color: #eaf2ff;
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+    canvas { display: block; }
+    .note {
+      position: fixed;
+      left: 50%;
+      bottom: 2rem;
+      transform: translateX(-50%);
+      padding: .65rem 1rem;
+      border: 1px solid #ffffff26;
+      border-radius: 999px;
+      background: #05081699;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      opacity: .8;
+    }
+  </style>
+</head>
+<body>
+  <canvas aria-label="An interactive field of stars"></canvas>
+  <div class="note">Move your pointer through the stars · click to make a constellation</div>
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const pointer = { x: -1e3, y: -1e3 };
+    let stars = [];
+
+    function resize() {
+      canvas.width = innerWidth * devicePixelRatio;
+      canvas.height = innerHeight * devicePixelRatio;
+      canvas.style.width = `${innerWidth}px`;
+      canvas.style.height = `${innerHeight}px`;
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      stars = Array.from({ length: Math.min(220, innerWidth * innerHeight / 5500) }, () => ({
+        x: Math.random() * innerWidth,
+        y: Math.random() * innerHeight,
+        r: Math.random() * 1.6 + .4,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * .012 + .003
+      }));
+    }
+
+    addEventListener('resize', resize);
+    addEventListener('pointermove', event => Object.assign(pointer, { x: event.clientX, y: event.clientY }));
+    addEventListener('pointerleave', () => Object.assign(pointer, { x: -1e3, y: -1e3 }));
+    addEventListener('click', event => {
+      for (let i = 0; i < 9; i++) {
+        const angle = i / 9 * Math.PI * 2 + Math.random();
+        const distance = 25 + Math.random() * 100;
+        stars.push({
+          x: event.clientX + Math.cos(angle) * distance,
+          y: event.clientY + Math.sin(angle) * distance,
+          r: Math.random() * 1.8 + 1,
+          phase: Math.random() * Math.PI * 2,
+          speed: .01
+        });
+      }
+    });
+
+    function draw(time) {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+      for (const star of stars) {
+        const distance = Math.hypot(star.x - pointer.x, star.y - pointer.y);
+        if (distance < 130) {
+          ctx.beginPath();
+          ctx.moveTo(star.x, star.y);
+          ctx.lineTo(pointer.x, pointer.y);
+          ctx.strokeStyle = `rgba(126, 180, 255, ${(.18 * (1 - distance / 130)).toFixed(3)})`;
+          ctx.stroke();
+        }
+
+        const glow = .55 + Math.sin(time * star.speed + star.phase) * .35;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(220, 235, 255, ${glow})`;
+        ctx.shadowColor = '#87bfff';
+        ctx.shadowBlur = star.r * 5;
+        ctx.fill();
+      }
+
+      ctx.shadowBlur = 0;
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>

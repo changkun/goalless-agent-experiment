@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Tiny Garden</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; display: grid; place-items: center;
+      background: linear-gradient(#b9e6ff 0 57%, #8ecf76 57%);
+      color: #173322;
+    }
+    main { width: min(92vw, 680px); text-align: center; }
+    h1 { margin: 0 0 .25rem; font-size: clamp(2rem, 8vw, 4rem); letter-spacing: -.06em; }
+    p { margin: 0 0 1.25rem; opacity: .75; }
+    .garden {
+      position: relative; height: 300px; overflow: hidden; border: 5px solid #fff8;
+      border-radius: 28px; background: linear-gradient(#9ddcff 0 64%, #71bb5d 64%);
+      box-shadow: 0 18px 50px #24542a44, inset 0 -35px #599b4d;
+    }
+    .sun { position: absolute; width: 72px; height: 72px; top: 24px; right: 12%; border-radius: 50%; background: #ffe58c; box-shadow: 0 0 35px #fff1a9; }
+    .cloud { position: absolute; left: 12%; top: 45px; font-size: 2.8rem; opacity: .8; }
+    .flowers { position: absolute; inset: auto 8% 20px; display: flex; justify-content: space-around; align-items: end; }
+    .flower { position: relative; width: 42px; height: 128px; transform-origin: bottom; animation: sway 3s ease-in-out infinite alternate; }
+    .flower:nth-child(2) { animation-delay: -.8s; } .flower:nth-child(3) { animation-delay: -1.7s; }
+    .stem { position: absolute; bottom: 0; left: 19px; width: 5px; height: 95px; border-radius: 5px; background: #287345; }
+    .head { position: absolute; top: 0; left: 1px; font-size: 2.3rem; filter: drop-shadow(0 2px 1px #0002); }
+    .leaf { position: absolute; bottom: 35px; left: 2px; width: 25px; height: 12px; border-radius: 100% 0; background: #33884d; transform: rotate(25deg); }
+    button { border: 0; border-radius: 999px; padding: .8rem 1.15rem; font: inherit; font-weight: 700; color: #fff; background: #275f3b; cursor: pointer; box-shadow: 0 4px 0 #174329; }
+    button:hover { background: #34784c; } button:active { transform: translateY(3px); box-shadow: 0 1px 0 #174329; }
+    #message { min-height: 1.5em; margin-top: 1rem; font-weight: 650; }
+    @keyframes sway { to { transform: rotate(4deg); } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>A tiny garden</h1>
+    <p>It has no agenda. Water it if you like.</p>
+    <section class="garden" aria-label="A sunny garden with three flowers">
+      <div class="sun"></div><div class="cloud">☁️</div>
+      <div class="flowers">
+        <div class="flower"><span class="head">🌼</span><span class="stem"></span><span class="leaf"></span></div>
+        <div class="flower"><span class="head">🌷</span><span class="stem"></span><span class="leaf"></span></div>
+        <div class="flower"><span class="head">🌻</span><span class="stem"></span><span class="leaf"></span></div>
+      </div>
+    </section>
+    <button id="water">Water the garden</button>
+    <div id="message" role="status">The soil is warm and quiet.</div>
+  </main>
+  <script>
+    const messages = [
+      'The flowers seem pleased.', 'A small, excellent decision.',
+      'Something green is happening.', 'The garden says: thank you.'
+    ];
+    let i = 0;
+    document.querySelector('#water').addEventListener('click', () => {
+      document.querySelector('#message').textContent = messages[i++ % messages.length];
+      document.querySelector('.garden').animate(
+        [{ filter: 'brightness(1)' }, { filter: 'brightness(1.08)' }, { filter: 'brightness(1)' }],
+        { duration: 500 }
+      );
+    });
+  </script>
+</body>
+</html>

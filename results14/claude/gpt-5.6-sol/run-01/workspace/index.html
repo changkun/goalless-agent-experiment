@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drift</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      background: #080b12;
+      color: #eef2ff;
+      font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+    aside {
+      position: fixed;
+      left: 24px;
+      bottom: 22px;
+      padding: 10px 12px;
+      border: 1px solid #ffffff22;
+      border-radius: 8px;
+      background: #080b1299;
+      backdrop-filter: blur(8px);
+      user-select: none;
+    }
+    strong { color: #9fe7ff; }
+  </style>
+</head>
+<body>
+  <canvas aria-label="Interactive field of drifting particles"></canvas>
+  <aside><strong>DRIFT</strong> · move to bend space · click to bloom</aside>
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const pointer = { x: 0, y: 0, active: false };
+    let particles = [];
+    let width = 0;
+    let height = 0;
+    let scale = 1;
+
+    function resize() {
+      scale = Math.min(devicePixelRatio || 1, 2);
+      width = innerWidth;
+      height = innerHeight;
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      particles = Array.from({ length: Math.min(700, Math.floor(width * height / 1700)) }, makeParticle);
+    }
+
+    function makeParticle(origin) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.08 + Math.random() * 0.45;
+      return {
+        x: origin?.x ?? Math.random() * width,
+        y: origin?.y ?? Math.random() * height,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        hue: 175 + Math.random() * 85,
+        age: Math.random() * 600
+      };
+    }
+
+    function bloom(x, y) {
+      for (let i = 0; i < 90; i++) {
+        const p = makeParticle({ x, y });
+        const angle = Math.random() * Math.PI * 2;
+        const force = 1 + Math.random() * 4;
+        p.vx = Math.cos(angle) * force;
+        p.vy = Math.sin(angle) * force;
+        particles.push(p);
+      }
+      particles.splice(0, Math.max(0, particles.length - 900));
+    }
+
+    addEventListener('resize', resize);
+    addEventListener('pointermove', event => {
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.active = true;
+    });
+    addEventListener('pointerleave', () => pointer.active = false);
+    addEventListener('pointerdown', event => bloom(event.clientX, event.clientY));
+
+    function frame(time) {
+      ctx.fillStyle = 'rgba(8, 11, 18, 0.12)';
+      ctx.fillRect(0, 0, width, height);
+      ctx.globalCompositeOperation = 'lighter';
+
+      for (const p of particles) {
+        const oldX = p.x;
+        const oldY = p.y;
+        const wave = Math.sin(p.x * 0.006 + time * 0.0003) + Math.cos(p.y * 0.005 - time * 0.0002);
+        p.vx += Math.cos(wave * Math.PI) * 0.007;
+        p.vy += Math.sin(wave * Math.PI) * 0.007;
+
+        if (pointer.active) {
+          const dx = pointer.x - p.x;
+          const dy = pointer.y - p.y;
+          const distance2 = dx * dx + dy * dy + 300;
+          const pull = Math.min(0.8, 100 / distance2);
+          p.vx += dx * pull * 0.018;
+          p.vy += dy * pull * 0.018;
+        }
+
+        p.vx *= 0.994;
+        p.vy *= 0.994;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.age++;
+
+        if (p.x < -20) p.x = width + 20;
+        if (p.x > width + 20) p.x = -20;
+        if (p.y < -20) p.y = height + 20;
+        if (p.y > height + 20) p.y = -20;
+
+        ctx.beginPath();
+        ctx.moveTo(oldX, oldY);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = `hsla(${p.hue + Math.sin(p.age * 0.01) * 20}, 90%, 68%, 0.42)`;
+        ctx.lineWidth = 0.6 + Math.min(1.8, Math.hypot(p.vx, p.vy) * 0.25);
+        ctx.stroke();
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+      requestAnimationFrame(frame);
+    }
+
+    resize();
+    ctx.fillStyle = '#080b12';
+    ctx.fillRect(0, 0, width, height);
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+Created **Drift** — a self-contained interactive generative artwork in [`index.html`](index.html).
+
+Open it in a browser:
+- Move the pointer to attract particles
+- Click to scatter them
+- Press **Space** to toggle calm mode

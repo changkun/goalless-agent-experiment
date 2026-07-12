@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drift</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      background: #080b12;
+      color: #e8edf7;
+      font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+    aside {
+      position: fixed;
+      left: 24px;
+      bottom: 22px;
+      pointer-events: none;
+      opacity: .72;
+      text-shadow: 0 1px 12px #000;
+    }
+    strong { display: block; margin-bottom: 4px; letter-spacing: .18em; text-transform: uppercase; }
+    small { color: #aab6ca; }
+  </style>
+</head>
+<body>
+  <canvas aria-label="Interactive field of drifting light"></canvas>
+  <aside><strong>Drift</strong><small>move · click to scatter · space to breathe</small></aside>
+  <script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    const pointer = { x: 0, y: 0, active: false };
+    let motes = [];
+    let calm = false;
+
+    function resize() {
+      const dpr = Math.min(devicePixelRatio, 2);
+      canvas.width = innerWidth * dpr;
+      canvas.height = innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      pointer.x ||= innerWidth / 2;
+      pointer.y ||= innerHeight / 2;
+      const count = Math.min(320, Math.floor(innerWidth * innerHeight / 5000));
+      motes = Array.from({ length: count }, (_, i) => motes[i] || makeMote());
+    }
+
+    function makeMote() {
+      return {
+        x: Math.random() * innerWidth,
+        y: Math.random() * innerHeight,
+        vx: 0,
+        vy: 0,
+        size: .5 + Math.random() * 1.8,
+        hue: 190 + Math.random() * 90,
+        phase: Math.random() * Math.PI * 2
+      };
+    }
+
+    function scatter() {
+      for (const m of motes) {
+        const dx = m.x - pointer.x;
+        const dy = m.y - pointer.y;
+        const force = 24 / Math.max(18, Math.hypot(dx, dy));
+        m.vx += dx * force;
+        m.vy += dy * force;
+      }
+    }
+
+    function frame(time) {
+      ctx.fillStyle = calm ? 'rgba(8,11,18,.16)' : 'rgba(8,11,18,.09)';
+      ctx.fillRect(0, 0, innerWidth, innerHeight);
+
+      for (const m of motes) {
+        const dx = pointer.x - m.x;
+        const dy = pointer.y - m.y;
+        const distance = Math.max(40, Math.hypot(dx, dy));
+        const pull = pointer.active ? (calm ? .08 : .22) / distance : 0;
+        const flow = time * .00018 + m.phase;
+
+        m.vx += Math.cos(flow + m.y * .004) * .012 + dx * pull;
+        m.vy += Math.sin(flow + m.x * .004) * .012 + dy * pull;
+        m.vx *= calm ? .965 : .982;
+        m.vy *= calm ? .965 : .982;
+        m.x += m.vx;
+        m.y += m.vy;
+
+        if (m.x < -10) m.x = innerWidth + 10;
+        if (m.x > innerWidth + 10) m.x = -10;
+        if (m.y < -10) m.y = innerHeight + 10;
+        if (m.y > innerHeight + 10) m.y = -10;
+
+        const glow = .45 + Math.sin(time * .0015 + m.phase) * .25;
+        ctx.beginPath();
+        ctx.fillStyle = `hsla(${m.hue}, 85%, 72%, ${glow})`;
+        ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    addEventListener('resize', resize);
+    addEventListener('pointermove', event => {
+      pointer.x = event.clientX;
+      pointer.y = event.clientY;
+      pointer.active = true;
+    });
+    addEventListener('pointerleave', () => pointer.active = false);
+    addEventListener('pointerdown', scatter);
+    addEventListener('keydown', event => {
+      if (event.code === 'Space') {
+        event.preventDefault();
+        calm = !calm;
+      }
+    });
+
+    resize();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+I made you a tiny dependency-free Python tool: `/workspace/focus.py`.
+
+Run it with:
+
+```bash
+python3 /workspace/focus.py
+```
+
+It prints a daily focus prompt with four questions to help choose one meaningful outcome, define the next 10-minute action, set boundaries, and decide when to stop.
