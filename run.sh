@@ -90,11 +90,14 @@ if [[ -z "$BACKEND" ]]; then
 fi
 
 # --- Image selection ---
-# IMAGE_TAG can be overridden via env (default: v0.0.9)
-IMAGE_TAG="${IMAGE_TAG:-v0.0.9}"
+# Both backends run in the shared sandbox-harness image (claude + codex
+# CLIs preinstalled); the backend picks the entrypoint script mounted
+# below. IMAGE_TAG can be overridden via env (default: v0.0.14).
+IMAGE_TAG="${IMAGE_TAG:-v0.0.14}"
+IMAGE="ghcr.io/latere-ai/sandbox-harness:${IMAGE_TAG}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 case "$BACKEND" in
-    claude) IMAGE="ghcr.io/latere-ai/sandbox-claude:${IMAGE_TAG}" ;;
-    codex)  IMAGE="ghcr.io/latere-ai/sandbox-codex:${IMAGE_TAG}"  ;;
+    claude|codex) ENTRYPOINT_SH="$SCRIPT_DIR/entrypoint-$BACKEND.sh" ;;
     *)      echo "Error: unknown backend '$BACKEND' (use claude or codex)" >&2; exit 1 ;;
 esac
 
@@ -115,6 +118,12 @@ fi
 
 # Mount workspace as the container's working directory
 RUN_ARGS+=(-v "$WORKSPACE:/workspace" -w /workspace)
+
+# The harness image has no entrypoint of its own; mount the
+# backend-specific entry script (ported from the retired sandbox-claude
+# and sandbox-codex images) and run through it.
+RUN_ARGS+=(-v "$ENTRYPOINT_SH:/usr/local/bin/agent-entry:ro")
+RUN_ARGS+=(--entrypoint /usr/local/bin/agent-entry)
 
 # Optional extra CA bundle for the gateway, mounted for Node/Claude Code.
 # Set LLM_GW_CA_FILE to point at it; skipped if the file is absent.
@@ -157,12 +166,12 @@ case "$BACKEND" in
         # Use a fresh config dir per run to avoid RTK/environment bias
         CLAUDE_HOME_DIR=$(mktemp -d)
         chmod 777 "$CLAUDE_HOME_DIR"
-        RUN_ARGS+=(-v "$CLAUDE_HOME_DIR:/home/claude/.claude")
+        RUN_ARGS+=(-v "$CLAUDE_HOME_DIR:/home/agent/.claude")
         # Disable RTK to prevent environment bias in experiments
         RTK_NOOP=$(mktemp)
         printf '#!/bin/sh\nexit 0\n' > "$RTK_NOOP"
         chmod 755 "$RTK_NOOP"
-        RUN_ARGS+=(-v "$RTK_NOOP:/home/claude/.local/bin/rtk")
+        RUN_ARGS+=(-v "$RTK_NOOP:/home/agent/.local/bin/rtk")
         ;;
     codex)
         if [[ -n "$LLM_GW_API_KEY" ]]; then
@@ -196,12 +205,12 @@ case "$BACKEND" in
             printf '%s' "$CODEX_TOML" > "$CODEX_HOME_DIR/config.toml"
             chmod 666 "$CODEX_HOME_DIR/config.toml"
         fi
-        RUN_ARGS+=(-v "$CODEX_HOME_DIR:/home/codex/.codex")
+        RUN_ARGS+=(-v "$CODEX_HOME_DIR:/home/agent/.codex")
         # Disable RTK to prevent environment bias in experiments
         RTK_NOOP=$(mktemp)
         printf '#!/bin/sh\nexit 0\n' > "$RTK_NOOP"
         chmod 755 "$RTK_NOOP"
-        RUN_ARGS+=(-v "$RTK_NOOP:/home/codex/.local/bin/rtk")
+        RUN_ARGS+=(-v "$RTK_NOOP:/home/agent/.local/bin/rtk")
         ;;
 esac
 

@@ -36,7 +36,7 @@ endif
 
 RUN_FLAGS += --workspace $(WORKSPACE)
 
-.PHONY: help claude codex experiment experiment-dry pull pull-claude pull-codex models paper paper-clean
+.PHONY: help claude codex experiment experiment-dry pull models paper paper-clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -94,13 +94,10 @@ models: ## List available models
 	@echo "  azure/gpt-4o"
 	@echo "  azure/gpt-4o-mini"
 
-pull: pull-claude pull-codex ## Pull both sandbox images
+IMAGE_TAG ?= v0.0.14
 
-pull-claude: ## Pull Claude sandbox image
-	$(RUNTIME) pull ghcr.io/latere-ai/sandbox-claude:latest
-
-pull-codex: ## Pull Codex sandbox image
-	$(RUNTIME) pull ghcr.io/latere-ai/sandbox-codex:latest
+pull: ## Pull the sandbox harness image (both backends run in it)
+	$(RUNTIME) pull ghcr.io/latere-ai/sandbox-harness:$(IMAGE_TAG)
 
 paper: ## Build papers/paper.pdf (forces rebuild)
 	$(MAKE) -B -C papers
