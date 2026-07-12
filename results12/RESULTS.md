@@ -156,46 +156,47 @@ Same sharpness spectrum documented within the Opus/Sonnet families.
 
 ---
 
-## The harness confound (read before citing "terminal vs browser")
+## Medium and the harness — what Exp12 alone can and can't say
 
-The tempting headline — "browser output is GPT-specific; every non-GPT model
-stays terminal" — **does not follow from this experiment alone**, and the data
-is arranged to make the confound obvious:
+All six Exp12 models ran on the **Claude Code** harness, and all 30 runs are
+terminal (no browser HTML). It is tempting to read this against the GPT browser
+output of Exp10/11 and conclude "browser is GPT-specific." **Exp12 alone cannot
+support that** — every GPT browser run was on the *codex* harness, so "medium"
+co-varies with the harness, not just the model. Exp12 holds the harness fixed
+and swaps the models; it can't separate the two.
 
-- All six Exp12 models ran on the **Claude Code** harness → all terminal.
-- Every GPT browser run (Exp10/11) ran on the **codex** harness → browser.
+**Exp13 runs the missing cell** — the same six models on the **codex** harness
+(via `/compat/openai`, Responses API) — turning this into a 6-model × 2-harness
+matrix. See [../results13/RESULTS.md](../results13/RESULTS.md). The corrected
+reading:
 
-So "medium" co-varies *perfectly* with the harness, and Exp12 swapped the
-models while holding the harness fixed. Six labs' models all going terminal on
-Claude Code is, if anything, stronger evidence that **the harness dominates
-medium** than that anything is GPT-specific (cf. [INTERPRETATION.md](../INTERPRETATION.md)
-§7, scaffold match; and Exp3, where GPT-on-codex produced web apps but
-GPT-on-claude-backend produced terminal CLIs).
+- **Interactive HTML appears only under codex, and only weakly:** 0/30 here
+  (Claude Code) vs 3/27 implementing runs on codex (glm-5.2, minimax, qwen each
+  once). GPT-on-codex reached 4–5/5 (Exp10/11), so within codex browser
+  tendency is strongly *model*-dependent (GPT ≫ open-weights).
+- **But graphical output overall is ~equal across harnesses.** These models
+  produced 2 graphical artifacts on Claude Code (both **SVG** — `aurora.svg`,
+  `flock.svg`) vs 3 on codex (all **HTML**). The harness shifts the *form*
+  (static SVG ↔ interactive HTML), not *whether* the model goes graphical
+  (rare, ~equal, under both). The two models graphical on both sides (qwen,
+  minimax) flipped SVG→HTML — a clean but n=2 observation.
+- **The GPT × Claude Code cell is still untested.** Driving gpt-5.6-sol through
+  Claude Code via `/compat/anthropic` is blocked: `400 Function tools with
+  reasoning_effort are not supported for gpt-5.6-sol in /v1/chat/completions`.
+  The anthropic→OpenAI translation targets Chat Completions, but OpenAI
+  reasoning models need the Responses API for tools (filed as a compat fix).
+  So we cannot yet say whether GPT's browser habit is the model or the codex
+  scaffold — the one cell that would settle it is open.
 
-**Discriminating probe (`_harness_probe/`).** The clean test holds a
-browser-producing model fixed and swaps only the harness. We tried both
-directions:
-
-- **gpt-5.6-sol on Claude Code (blocked).** Driving gpt-5.6-sol — browser 5/5
-  on codex in Exp11 — through Claude Code via `/compat/anthropic` fails before
-  it starts: `400 Function tools with reasoning_effort are not supported for
-  gpt-5.6-sol in /v1/chat/completions`. The anthropic→OpenAI translation
-  targets Chat Completions, but OpenAI reasoning models require the Responses
-  API for tool use. This is a compat-surface plumbing limit, not a behavior —
-  it means the first direction is untestable on the current stack (and is
-  itself a fix worth filing: route reasoning-model tool calls to
-  `/v1/responses`).
-- **glm-5.2 on codex (the usable mirror).** So we ran the symmetric test:
-  glm-5.2 — **terminal 5/5 on Claude Code** in this experiment — through the
-  **codex** harness via `/compat/openai` (Responses API), same volitional
-  prompt, 4 runs. One variable (the harness), model held fixed.
-
-<!-- PROBE_RESULT -->
+**Bottom line for citation:** report the model-signature findings above
+(GoL attractor, kimi packaging, minimax diversity) as robust; report the
+open-weights cross-harness medium shift as *suggestive* (small-N); and treat
+"harness sets the medium" as demonstrated *strongly* only for GPT-vs-open-weights
+*within* codex, not across the Claude Code boundary.
 
 ---
 
 ## Files
 
 Per run: `output.json` (Claude Code stream), `log.txt` (stderr), `meta.md`
-(backend/model/exit/duration), `workspace/` (the artifact). The harness probe
-lives under `_harness_probe/claude/gpt-5.6-sol/`.
+(backend/model/exit/duration), `workspace/` (the artifact).
