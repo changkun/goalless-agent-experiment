@@ -180,19 +180,23 @@ reading:
   (static SVG ↔ interactive HTML), not *whether* the model goes graphical
   (rare, ~equal, under both). The two models graphical on both sides (qwen,
   minimax) flipped SVG→HTML — a clean but n=2 observation.
-- **The GPT × Claude Code cell is still untested.** Driving gpt-5.6-sol through
-  Claude Code via `/compat/anthropic` is blocked: `400 Function tools with
-  reasoning_effort are not supported for gpt-5.6-sol in /v1/chat/completions`.
-  The anthropic→OpenAI translation targets Chat Completions, but OpenAI
-  reasoning models need the Responses API for tools (filed as a compat fix).
-  So we cannot yet say whether GPT's browser habit is the model or the codex
-  scaffold — the one cell that would settle it is open.
+- **The GPT × Claude Code cell is now filled (Exp14) and settles it.** After
+  building the `openairesp` backend codec so Lux routes OpenAI reasoning models
+  to the Responses API, gpt-5.6-sol was driven through Claude Code via
+  `/compat/anthropic`: it produced an **interactive browser page 5/5** (luna
+  browser 3/4), on the same harness where every Claude and open-weights run
+  stayed terminal. So **GPT's browser habit is a model trait, not the codex
+  scaffold** — it survives a foreign harness (and low effort). See
+  [../results14/RESULTS.md](../results14/RESULTS.md).
 
-**Bottom line for citation:** report the model-signature findings above
-(GoL attractor, kimi packaging, minimax diversity) as robust; report the
-open-weights cross-harness medium shift as *suggestive* (small-N); and treat
-"harness sets the medium" as demonstrated *strongly* only for GPT-vs-open-weights
-*within* codex, not across the Claude Code boundary.
+**Bottom line for citation:** the medium is primarily a **model/family trait**,
+not the harness — GPT goes browser under *both* codex and Claude Code
+(Exp11/14), open-weights stay terminal under *both* (Exp12/13). The harness
+modulates only *form* for the rare graphical open-weights output (SVG on Claude
+Code ↔ HTML on codex) and *build-vs-decline rate* (confounded with effort).
+Report the model-signature findings (GoL attractor, kimi packaging, minimax
+diversity) as robust. Claude models have no codex runs anywhere in the study, so
+their terminal-ness is harness-confounded and is not itself model-trait evidence.
 
 ---
 

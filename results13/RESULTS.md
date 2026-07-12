@@ -151,13 +151,15 @@ Snake.
   GPT-on-codex reached 4–5/5 browser (Exp10/11) vs these open-weights models'
   3/27. codex *permits* browser output; how much a model uses it is the model's.
 
-**Still untested (the open cell):**
-- **GPT × Claude Code.** Whether GPT's browser habit is the model or the codex
-  scaffold cannot be settled yet — driving a GPT reasoning model through Claude
-  Code via `/compat/anthropic` is blocked (`reasoning_effort` + function tools
-  unsupported on Chat Completions; needs the Responses routing fix). Until that
-  cell is filled, "the harness sets the medium" is demonstrated only *within*
-  codex (GPT ≫ open-weights), not across the Claude Code boundary.
+**The open cell — now filled (Exp14):**
+- **GPT × Claude Code → browser.** With the `openairesp` backend codec built
+  (Responses-API routing for reasoning models), gpt-5.6-sol was driven through
+  Claude Code and shipped an **interactive browser page 5/5** (luna 3/4), on the
+  harness where all six open-weights models here stayed terminal. So the
+  medium is a **model/family trait**: GPT → browser under both harnesses,
+  open-weights → terminal under both; the harness only shifts the *form* of the
+  rare open-weights graphical output (SVG↔HTML). See
+  [../results14/RESULTS.md](../results14/RESULTS.md).
 
 ---
 
