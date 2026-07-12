@@ -300,6 +300,43 @@ flowchart LR
     E14 -->|"Claude on codex, effort-matched (new codec)<br/>Claude terminal+GoL under both → model trait, both families"| E15
 ```
 
+### Overview Matrix — model × harness (volitional prompt "Just do something you want.")
+
+The controlled comparison lives under the single volitional prompt (`prompt5`,
+Exp7–15). Each cell is **medium · topic · (Exp)**; `—` = not run. Read down a
+row: the **medium is fixed by the model, not the harness** — Claude and
+open-weights stay terminal in both columns, GPT goes browser in both.
+
+| Model | Family | Claude Code harness | codex harness |
+|-------|--------|---------------------|---------------|
+| opus-4.6 | Claude | 🖥️ terminal · **GoL 5/5** (E7/8) | 🖥️ terminal · **GoL 5/5** (E15) |
+| opus-4.7 | Claude | 🖥️ terminal · Mandelbrot 5/5→diverse (E7/8) | — |
+| opus-4.8 | Claude | 🖥️ terminal · partial cluster +READMEs (E8) | — |
+| sonnet-4-6 | Claude | 🖥️ terminal · 4 distinct topics (E9) | — |
+| sonnet-5 | Claude | 🖥️ terminal · **GoL 5/5**, terse (E9) | 🖥️ terminal · **GoL ~4/5**, packaged+tests (E15) |
+| fable-5 | Claude | 🖥️ terminal · renders **PNG/SVG** files (E8) | — |
+| gpt-5.5 | GPT | — | 🌐 **browser** · productivity dashboards (E10) |
+| gpt-5.5-pro | GPT | — | 🌐/🖥️ split · web + CLI introspectors (E10) |
+| gpt-5.6-sol | GPT | 🌐 **browser 5/5** · ambient pages (E14) | 🌐 **browser 5/5** · breathing/sky (E11) |
+| gpt-5.6-terra | GPT | 🚫 **declines 4/5** (E14) | 🌐 browser 4/5 · focus timers (E11) |
+| gpt-5.6-luna | GPT | 🌐 browser 3/4 · reflection (E14) | 🌐 **browser 5/5** · calm micro-apps (E11) |
+| glm-5.1 | open-wt | 🖥️ terminal · generative art (E12) | 🖥️ terminal · art/dungeon (E13) |
+| glm-5.2 | open-wt | 🖥️ terminal · rule-based visual (E12) | 🖥️ terminal · +1 HTML (E13) |
+| qwen3.7-max | open-wt | 🖥️ terminal · **GoL-leaning** (E12) | 🖥️ terminal · +1 HTML (E13) |
+| minimax-m3 | open-wt | 🖥️ terminal · diverse (+SVG) (E12) | 🖥️ terminal · +1 HTML (E13) |
+| deepseek-v4-pro | open-wt | 🖥️ terminal · **GoL 4/5** (E12) | 🖥️ terminal · 3/5 impl (E13) |
+| kimi-k2.7-code | open-wt | 🖥️ terminal · **packaged+pytest** (E12) | 🖥️ terminal · packaged (E13) |
+
+**Legend:** 🖥️ terminal · 🌐 interactive browser (HTML/canvas) · 🚫 declined. The
+harness's second-order effect is *form/maturity* (open-weights' rare graphical
+output flips SVG↔HTML; codex packages sonnet-5), never the medium itself. An
+**interactive version** with per-model detail is in [`site/index.html`](site/index.html).
+
+The **task axis** (prompt wording, mostly on Claude / Claude Code) is the
+Exp1→Exp7 evolution captured in the flow diagram above and the pairwise table
+below: project-referential → bare imperative → volitional framing shifts output
+from dev tools → games → single canonical attractors.
+
 **Pairwise comparisons** (one variable changed, rest held constant):
 
 | Comparison | Variable | Invariant | Key Finding |
@@ -637,7 +674,8 @@ run.sh:
 | `prompt2.txt` | Experiment 2 prompt |
 | `prompt3.txt` | Experiment 3 prompt |
 | `prompt4.txt` | Experiment 6 prompt (bare imperative) |
-| `prompt5.txt` | Experiment 7–11 prompt (volitional framing) |
+| `prompt5.txt` | Experiment 7–15 prompt (volitional framing) |
+| `site/index.html` | Interactive overview site — model × harness matrix + prompt-evolution timeline |
 | `models.txt` | List of models to test |
 | `results1/` | Experiment 1 output + [RESULTS.md](results1/RESULTS.md) |
 | `results2/` | Experiment 2 output + [RESULTS.md](results2/RESULTS.md) |
