@@ -1,0 +1,22 @@
+[project]
+name = "serendipity"
+version = "0.1.0"
+description = "A tiny CLI for random curiosity prompts and micro-adventures."
+requires-python = ">=3.10"
+dependencies = ["rich>=13.0.0"]
+
+[project.scripts]
+serendipity = "serendipity.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0.0", "ruff>=0.4.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]

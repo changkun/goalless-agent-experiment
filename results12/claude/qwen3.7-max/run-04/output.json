@@ -1,0 +1,23 @@
+Perfect! I've created a fully interactive terminal-based Conway's Game of Life. Here's what you can do:
+
+```bash
+cd /workspace
+python3 life.py
+```
+
+**Controls:**
+- `SPACE` — pause/resume
+- `N` — step forward one generation (when paused)
+- `R` — reset with random pattern
+- `1-6` — load preset patterns (gliders, pulsars, glider guns, etc.)
+- `.` — toggle cell under cursor (when paused)
+- Arrow keys — move cursor
+- `Q` — quit
+
+The cells are color-coded by age — newborn cells glow green, then age through cyan, yellow, red, and finally magenta for ancient cells.
+
+Want me to add more features? I could:
+- Add pattern saving/loading
+- Implement zoom controls
+- Add a trail effect to show where cells have been
+- Include more exotic patterns (R-pentomino, diehard, acorn)

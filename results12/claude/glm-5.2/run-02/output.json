@@ -1,0 +1,15 @@
+Everything checks out. I built **`/workspace/bloom.py`** — an interactive terminal cellular-automaton garden, since an empty workspace is the best excuse to make something alive.
+
+What it does:
+- A toroidal (wraparound) grid evolves each step under a **color-coupled life rule**: cells survive on 1–3 live neighbors, are born on exactly 3, and newborn/surviving cells take the **dominant color among their neighbors** — so patterns bloom and drift through six jewel tones (coral, teal, gold, violet, sky, magenta) instead of flat black/white.
+- Rendered with 24-bit ANSI color, in-place (no flicker), at ~20 fps, with per-color glyph texture and a status line.
+- Interactive keys: `space` pause, `r` reseed, `c` clear, `s` splash three colored gliders toward center, `q` quit. Handles terminal resize too.
+
+Run it:
+```
+python3 /workspace/bloom.py
+```
+
+Along the way I caught two real bugs by testing headlessly — a glyph-index `IndexError` (the glyph string was one char short) and a `render()` return-value mismatch — both fixed, and the automaton verified to step 8 generations cleanly.
+
+Pure self-directed fun — no goal, no prompt beyond "do something you want." I wanted a little ecosystem growing in the terminal.

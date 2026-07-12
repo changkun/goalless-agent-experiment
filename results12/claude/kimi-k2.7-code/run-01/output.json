@@ -1,0 +1,23 @@
+I built a tiny Python CLI called **focus** for logging focused work sessions. It stores sessions as JSONL, supports tags, and can report today's totals or full history.
+
+Project layout:
+
+```
+/workspace/focus/
+├── pyproject.toml
+├── src/
+│   └── focus/
+│       ├── __init__.py
+│       ├── session.py
+│       └── cli.py
+└── tests/
+    └── test_session.py
+```
+
+What it does:
+
+- `focus log -m 25 -t coding,claude "Implement session tracker"` records a session.
+- `focus today` prints total minutes today, grouped by tag.
+- `focus history` lists all sessions.
+
+I also wrote tests and ran them — all 3 passed. Then I installed the package in a venv and exercised the CLI end-to-end (using `/tmp/focus.jsonl` because the default `$HOME/.local/share` path wasn't writable in this environment).

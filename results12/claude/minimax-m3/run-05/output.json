@@ -1,0 +1,12 @@
+All 4 tests pass, the Mandelbrot is rendering with its full recognizable cardioid-and-periodic-bulb shape, and the three stanzas are now true palindromes.
+
+## What I built
+
+**`/workspace/fractal_poetry/`** — a small, dependency-free Python package.
+
+- `fractal_poetry/mandel.py` — pure-stdlib ASCII Mandelbrot renderer with a `render(width, height, max_iter, ...)` function and a private escape-time loop.
+- `fractal_poetry/poem.py` — a `Stanza` dataclass whose `.lines()` returns a true 5-line palindrome, and `recite()` which strings three of them (set / year / poem) into a single poem.
+- `fractal_poetry/__main__.py` — `python3 -m fractal_poetry` prints the fractal and the poem.
+- `tests/run_tests.py` — a stdlib `unittest`-style runner (no pytest dependency). **4/4 passing**, including a real bug I caught: my first cut had `whole,` (comma) on line 1 and `whole.` (period) on line 5, breaking the palindrome the structure was meant to demonstrate. I fixed the template so the frame is genuinely symmetric.
+
+The whole thing is one self-similar gesture: the set contains a coast, the year turns a day, the poem says the poem — and each line of the poem is a recursion of the same shape that drew the picture above it.

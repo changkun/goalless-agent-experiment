@@ -1,0 +1,18 @@
+I made `wisdom.py` — a small terminal fortune dispenser in `/workspace/`.
+
+What it does, in one breath: prints a banner, the date, a fortune, a koan, and a set of lucky numbers, all seeded by `(date, locale)` so the same day always returns the same reading. No dependencies, no network, ~120 lines.
+
+**Run it**
+- `python3 wisdom.py` — today's wisdom
+- `python3 wisdom.py --date 2026-01-01 --locale fr` — pick a day and a tongue
+- `python3 wisdom.py --out fortune.txt` — write to a file
+
+**Verified**
+- Ran for today (2026-07-12, Sunday) and got a clean banner with a fortune, koan, and 6 lucky numbers plus a bonus ball.
+- Re-ran `2026-01-01 / fr` twice in a row — output is byte-identical, confirming the deterministic seed.
+
+The reading for today, since you asked:
+
+> **Fortune.** A small commit today is worth a heroic rebase tomorrow.
+> **Koan.** There are two hard things: cache invalidation, naming, and off-by-one errors.
+> **Lucky numbers.** 8 · 31 · 36 · 37 · 50 · 66 — bonus 1.

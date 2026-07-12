@@ -1,0 +1,36 @@
+Here's what I built — a fully interactive **Conway's Game of Life** TUI (terminal user interface):
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| **Arrow keys** or `hjkl` | Move cursor |
+| **Space** / **Enter** | Toggle cell at cursor |
+| `p` | Play / Pause simulation |
+| `s` | Step one generation (paused) |
+| `c` | Clear grid |
+| `r` | Randomize (30% density) |
+| `1`–`5` | Load preset patterns |
+| `+` / `-` | Adjust simulation speed |
+| `q` | Quit |
+
+### Preset patterns
+1. **Glider** — the classic spaceship
+2. **LWSS** — lightweight spaceship
+3. **Pulsar** — oscillating period-3 pattern
+4. **Gosper Glider Gun** — endlessly fires gliders
+5. **R-Pentomino** — chaotic long-lived methuselah
+
+### Features
+- Real-time status bar showing generation, population, speed, and state
+- Cell cursor with `[ ]` brackets for visual editing
+- Idle message system (temporary hints that fade)
+- Terminal-resize handling
+- Auto-detects extinction and stops
+
+Run it with:
+```bash
+python3 /workspace/game_of_life.py
+```
+
+The grid auto-sizes to your terminal. You can draw cells in pause mode, then hit `p` to watch them evolve!

@@ -1,0 +1,20 @@
+There it is! 🌌
+
+**Cosmic Weather Report** — a fully-functional, colorized, randomized space weather terminal app. Here's what it does:
+
+- **Randomized forecasts** across 12 celestial locations with 15 weather conditions (from "Solar Flare Warning" to "Warp Field Distortion")
+- **Absurd temperatures** ranging from absolute zero to Planck temperature
+- **Detailed conditions** — UV index, wind, visibility, and even "space sea" state
+- **Cosmic metrics** with progress bars for Chaos Index, Vibe Alignment, Existential Doom, and Hope Quotient
+- **ASCII art** — black holes, nebulae, rockets, aliens, and planets
+- **Cosmic advice** — horoscope-style wisdom like *"Do NOT look directly at the supernova"*
+- **Loading animation** with a spinner and randomized status messages
+- **Interactive mode** — press Enter for another report, or `q` to quit
+- **Full 24-bit color** with a custom cosmic palette (gracefully degrades if not in a terminal)
+
+Run it with:
+```bash
+python3 cosmic_weather.py
+```
+
+Every report is completely different. May your orbits be stable and your skies be clear. ✨

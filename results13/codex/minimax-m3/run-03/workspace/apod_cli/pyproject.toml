@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "apod-cli"
+version = "0.1.0"
+description = "Show NASA's Astronomy Picture of the Day in your terminal."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{name = "apod-cli"}]
+license = {text = "MIT"}
+dependencies = []
+
+[project.scripts]
+apod = "apod_cli:apod_main"
+
+[tool.setuptools.packages.find]
+include = ["apod*"]

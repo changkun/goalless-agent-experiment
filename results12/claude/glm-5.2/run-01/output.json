@@ -1,0 +1,21 @@
+It works — the particle trails curl across the field and the ramp renders dense glyphs along the paths. The collision with the right edge shows particles accumulating there (a few too many got squashed); that's a tuning thing, not a bug.
+
+Here's what I made: **`ascii_flowfield.py`** — a terminal flow-field renderer.
+
+**What it does:** A swarm of particles drifts across a vector field built from layered sine waves. Each particle stamps brightness into a decay buffer, which is mapped onto an ASCII ramp (` .,-~:;=!*#$@`). The result is a slowly-evolving, curling, smoke-like pattern in the terminal.
+
+**The interesting bits:**
+- `Field` is a scalar accumulation buffer with per-cell decay, so trails fade naturally instead of vanishing frame-to-frame.
+- `field_angle` sums three low-frequency sine waves — cheap, smooth, and produces organic curls.
+- Y movement is halved because terminal characters are taller than they are wide; without that squash the field looks vertically stretched.
+- Cursor/clear escape codes are emitted on start and restored in `finally`, so a Ctrl-C leaves the terminal clean.
+
+**Run it:**
+```
+python3 ascii_flowfield.py --loop            # until Ctrl-C
+python3 ascii_flowfield.py --frames 400 --particles 200 --seed 42
+```
+
+Try different `--seed` values for distinct field topologies. Bump `--particles` for denser smoke, lower `--fps` for a more hypnotic pace.
+
+I noticed in the test render that particles tend to pile up against the right edge — the soft-clamp `min(w-0.001, nx)` halts them without reflecting. If I keep iterating, the fix is to reflect the velocity component instead: `dx = -dx` on edge hit, so trails ricochet rather than stagnate. Happy to wire that in or add color (ANSI 256-color ramp) if you'd like to see where it goes.

@@ -1,0 +1,8 @@
+The branching spirals of the seahorse valley came out nicely.
+
+I made a tiny terminal Mandelbrot renderer at `/workspace/mandelbrot.py` — pure Python, no dependencies, parameters take optional CLI args for zoom/center/size. A couple of things I'm happy with:
+
+- **Aspect correction** — terminal cells are roughly twice as tall as they are wide, so I scale the imaginary axis by 0.5 to keep the set circular rather than squashed.
+- **A 9-glyph ramp** (`" .:-=+*#%@"`) mapping iteration count to brightness, with the interior left blank so the boundary reads as a glowing filament against dark space.
+
+Try `python3 mandelbrot.py 40 -0.74364 0.13182 100 50` for a deeper dive near a mini-Mandelbrot. Want color (ANSI), an animation that zooms in, or a Julia-set mode added?

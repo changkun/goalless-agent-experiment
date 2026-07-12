@@ -1,0 +1,11 @@
+It works! Here's your **ASCII Aquarium** 🐠🐟
+
+The fish swim left and right with different colors and body shapes, seaweed sways at the bottom, bubbles float up, and there's a sandy floor. All rendered in ANSI color right in your terminal.
+
+Run it yourself with:
+
+```bash
+python3 /workspace/aquarium.py
+```
+
+`Ctrl+C` to exit gracefully. Enjoy the vibes! 🐡

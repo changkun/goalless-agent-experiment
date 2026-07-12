@@ -1,0 +1,10 @@
+Done. I built **2048 in your terminal** at `/workspace/twenty48.py`:
+
+- **Game logic** — clean 4×4 board, slide/merge, spawn (90% a `2`, 10% a `4`), win at 2048, game-over detection.
+- **Terminal UI** — ANSI-colored tiles per power-of-two, raw `tty` keypresses (arrow keys + vim `hjkl` + WASD), restart, quit, clear-screen redraw.
+- **No-color path** — `NO_COLOR=1` and non-TTY output stay clean (no escape codes leaking).
+- **`--ai` mode** — a greedy AI that picks moves maximizing mergeable-pair count with a corner bias. Across 11 seeds it scored 3.4k–11.9k in 280–700 moves.
+- **`--seed N`** for reproducible runs.
+- **`--test`** — 18 self-tests covering slide/merge, all four directions, game-over detection, win detection, and spawn behavior. All passing.
+
+To play: `python3 /workspace/twenty48.py`. To watch the AI: `python3 /workspace/twenty48.py --ai`.

@@ -1,0 +1,18 @@
+The pulsar renders correctly. The empty workspace was a good prompt — I built Conway's Game of Life.
+
+**What I made** (`/workspace/life.py`):
+
+A self-contained terminal Game of Life. Run `python3 life.py` and a Gosper glider gun in the corner fires gliders across the screen while a pulsar pulses in the opposite corner. Ctrl-C stops it.
+
+**Things I'm happy with:**
+- The engine operates on a sparse set of live cells rather than a fixed grid, so patterns can drift off into unbounded space — the gun's gliders actually fly away forever.
+- `step()` only iterates over the *frontier* (live cells + their neighbours), which is where any state change can happen — not the whole plane.
+- Pattern seeds are defined as readable ASCII `#`/`.` art in a small library.
+
+**And I verified it rather than trusting the animation:**
+- Blinker and beacon return to shape after 2 steps (period-2 oscillators) ✔
+- Glider returns to shape shifted by (+1,+1) every 4 generations ✔
+- Pulsar returns after 3 steps ✔
+- Gosper gun's population grows unboundedly over 120 generations (it's spawning gliders) ✔
+
+If you'd rather it seed with a different pattern, a random soup, or run a fixed number of generations to a file, say the word.

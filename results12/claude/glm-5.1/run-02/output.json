@@ -1,0 +1,25 @@
+These look great! The ocean scene is really nice, and the desert with rain creates an interesting effect. The night forest with snow is atmospheric. Here's what I built:
+
+## ASCII Landscape Generator
+
+A procedural landscape generator that creates unique ASCII art scenes. Each seed produces a different combination of:
+
+- **5 biomes**: mountain, forest, desert, plains, ocean
+- **3 times of day**: clear, cloudy, night
+- **3 weather types**: none, rain, snow
+
+Features:
+- **Fractal Brownian Motion (FBM)** noise for natural-looking terrain silhouettes
+- **Layered terrain** — background and foreground with different depths
+- **Celestial bodies** — sun (☉) in clear weather, moon (☾) and stars at night
+- **Clouds** rendered in cloudy weather
+- **Weather particles** — rain drops (│╎┊) or snowflakes (*•✧)
+- **Deterministic** — same seed always produces the same scene
+
+Try it yourself:
+```bash
+python3 ascii_landscape.py          # random seed
+python3 ascii_landscape.py 7        # ocean at clear skies
+python3 ascii_landscape.py 42       # snowy forest night
+python3 ascii_landscape.py 888      # rainy desert
+```

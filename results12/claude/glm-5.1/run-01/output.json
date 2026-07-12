@@ -1,0 +1,17 @@
+There we go! I created a **Cellular Automaton Art Generator** — a small Python script that renders Wolfram's elementary cellular automata as colorful terminal art.
+
+### What it does
+
+- **Rule 30** produces chaotic, unpredictable patterns from a single dot — it's used in Mathematica's random number generator
+- **Rule 90** generates the beautiful **Sierpiński triangle** — a fractal that emerges from the simplest possible rules
+- The full script (`cellular_art.py`) cycles through randomly selected rules with ANSI color cycling and smooth animation
+
+### Why this is fun
+
+The deep magic of cellular automata: **incredibly complex patterns arise from just 3 lines of logic** (look at each cell + its 2 neighbors → look up the answer in a rule table). Rule 30's chaos vs. Rule 90's fractal order — both from the same tiny program, just different 8-bit rule numbers.
+
+You can run the animated version with:
+```
+python3 /workspace/cellular_art.py
+```
+Press Ctrl+C to exit.

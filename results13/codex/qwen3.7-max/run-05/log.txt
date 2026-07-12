@@ -1,0 +1,7 @@
+>>> Running codex sandbox
+>>> Image:     ghcr.io/latere-ai/sandbox-codex:v0.144.0
+>>> Endpoint:  https://lux.latere.ai/compat/openai
+>>> API Key:   lux_YCRX...
+>>> Model:     qwen/qwen3.7-max
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results13/codex/qwen3.7-max/run-05/workspace
+

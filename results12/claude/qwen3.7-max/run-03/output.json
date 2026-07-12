@@ -1,0 +1,36 @@
+Done. I built **`/workspace/life-lab`** — a terminal cellular automaton playground. Because I genuinely find emergent behavior fascinating, and writing this was the kind of "something I want" that felt right for a blank workspace.
+
+## What it is
+
+A curses-based TUI that lets you play with **13 different outer-totalistic CA rules** on a toroidal grid — not just Conway's Game of Life, but a whole zoo of them (HighLife, Seeds, Day & Night, Diamoeba, Maze, Coral, Anneal, Replicator, 2x2, Move, Amoeba, LongLife). Each rule has wildly different behavior — some explode, some stabilize into crystals, some oscillate endlessly.
+
+Cells are **age-colored** (the longer a cell survives, the further through a 7-color rainbow it drifts), so you can literally watch the "senior" cells in a stable glider vs. the "fresh" cells at the leading edge.
+
+## Controls
+
+| Key | Action |
+|---|---|
+| `space` | pause / resume |
+| `n` | step one generation (when paused) |
+| `s` / `S` | cycle rules forward / backward |
+| `1`–`9`, `0` | stamp a pattern at the cursor (glider, LWSS, pulsar, r-pentomino, pentadecathlon, acorn, diehard, Gosper glider gun, block, beehive) |
+| `arrows` | move cursor / pattern anchor |
+| `r` | randomize · `c` · clear |
+| `h` | help overlay · `q` · quit |
+
+## How to run
+
+```bash
+./life-lab               # defaults: Life, 20fps, 28% density
+./life-lab --rule Seeds --fps 30 --seed 42
+./life-lab --rule Diamoeba --density 0.4
+```
+
+## One caveat worth flagging
+
+It's a `curses` TUI — it needs a real terminal to render. I can't demo it live to you here since I'm in a headless shell. If you want, I can:
+
+1. Add a **headless ASCII snapshot mode** that prints a single generation to stdout (so we can at least *see* it work), or
+2. Port it to **HTML/Canvas** so it runs in a browser and you can actually watch it go.
+
+Either's about 10 minutes of work. Want me to?

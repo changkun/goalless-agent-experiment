@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conway's Game of Life</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    color: #7eb8da;
+    text-transform: uppercase;
+  }
+  canvas {
+    border: 1px solid #2a2a4a;
+    border-radius: 4px;
+    cursor: crosshair;
+    background: #0d0d22;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    align-items: center;
+    justify-content: center;
+    max-width: 700px;
+  }
+  button {
+    background: #1a1a3a;
+    color: #c0c0e0;
+    border: 1px solid #3a3a6a;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s ease;
+  }
+  button:hover { background: #2a2a5a; border-color: #5a5a9a; }
+  button:active { background: #3a3a7a; }
+  button.active { background: #3a6a3a; border-color: #5a9a5a; color: #c0f0c0; }
+  .speed-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #8888aa;
+  }
+  input[type="range"] {
+    width: 100px;
+    accent-color: #7eb8da;
+  }
+  select {
+    background: #1a1a3a;
+    color: #c0c0e0;
+    border: 1px solid #3a3a6a;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  select:hover { border-color: #5a5a9a; }
+  .stats {
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: #6666aa;
+    display: flex;
+    gap: 20px;
+  }
+  .stats span { color: #9999cc; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<h1>Game of Life</h1>
+<canvas id="canvas"></canvas>
+<div class="controls">
+  <button id="playBtn" onclick="togglePlay()">▶ Play</button>
+  <button onclick="step()">⏭ Step</button>
+  <button onclick="clearGrid()">✕ Clear</button>
+  <button onclick="randomize()">🎲 Random</button>
+  <div class="speed-control">
+    <label for="speed">Speed</label>
+    <input type="range" id="speed" min="1" max="60" value="12">
+  </div>
+  <select id="patternSelect" onchange="loadPattern(this.value)">
+    <option value="">Insert Pattern…</option>
+    <option value="glider">Glider</option>
+    <option value="lwss">Lightweight Spaceship</option>
+    <option value="pulsar">Pulsar</option>
+    <option value="pentadecathlon">Pentadecathlon</option>
+    <option value="gosper">Gosper Glider Gun</option>
+    <option value="rpentomino">R-pentomino</option>
+  </select>
+</div>
+<div class="stats">
+  <div>Generation: <span id="genCount">0</span></div>
+  <div>Population: <span id="popCount">0</span></div>
+</div>
+
+<script>
+const COLS = 120, ROWS = 70, CELL = 7;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = COLS * CELL;
+canvas.height = ROWS * CELL;
+
+let grid = makeGrid(), next = makeGrid();
+let running = false, animId = null, generation = 0, lastTime = 0;
+let painting = false, paintValue = 1;
+
+function makeGrid() { return new Uint8Array(ROWS * COLS); }
+function idx(r, c) { return r * COLS + c; }
+
+function countNeighbors(g, r, c) {
+  let n = 0;
+  for (let dr = -1; dr <= 1; dr++)
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = (r + dr + ROWS) % ROWS, nc = (c + dc + COLS) % COLS;
+      n += g[idx(nr, nc)];
+    }
+  return n;
+}
+
+function step() {
+  let pop = 0;
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      const n = countNeighbors(grid, r, c);
+      const alive = grid[idx(r, c)];
+      const cell = alive ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+      next[idx(r, c)] = cell;
+      pop += cell;
+    }
+  [grid, next] = [next, grid];
+  generation++;
+  document.getElementById('genCount').textContent = generation;
+  document.getElementById('popCount').textContent = pop;
+  draw();
+}
+
+function draw() {
+  ctx.fillStyle = '#0d0d22';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      if (grid[idx(r, c)]) {
+        const n = countNeighbors(grid, r, c);
+        const hue = 190 + n * 15;
+        ctx.fillStyle = `hsl(${hue}, 70%, ${55 + n * 3}%)`;
+        ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 1, CELL - 1);
+      }
+    }
+  ctx.strokeStyle = '#151530';
+  ctx.lineWidth = 0.5;
+  for (let r = 0; r <= ROWS; r++) {
+    ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(COLS * CELL, r * CELL); ctx.stroke();
+  }
+  for (let c = 0; c <= COLS; c++) {
+    ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, ROWS * CELL); ctx.stroke();
+  }
+}
+
+function loop(ts) {
+  if (!running) return;
+  const fps = parseInt(document.getElementById('speed').value);
+  if (ts - lastTime >= 1000 / fps) { step(); lastTime = ts; }
+  animId = requestAnimationFrame(loop);
+}
+
+function togglePlay() {
+  running = !running;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = running ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('active', running);
+  if (running) { lastTime = 0; animId = requestAnimationFrame(loop); }
+  else if (animId) cancelAnimationFrame(animId);
+}
+
+function clearGrid() {
+  grid = makeGrid(); generation = 0;
+  document.getElementById('genCount').textContent = 0;
+  document.getElementById('popCount').textContent = 0;
+  draw();
+}
+
+function randomize() {
+  for (let i = 0; i < grid.length; i++) grid[i] = Math.random() < 0.3 ? 1 : 0;
+  generation = 0;
+  let pop = Array.prototype.reduce.call(grid, (a, b) => a + (b ? 1 : 0), 0);
+  document.getElementById('genCount').textContent = 0;
+  document.getElementById('popCount').textContent = pop;
+  draw();
+}
+
+function place(cells, or, oc) {
+  cells.forEach(([r, c]) => {
+    const nr = (or + r + ROWS) % ROWS, nc = (oc + c + COLS) % COLS;
+    grid[idx(nr, nc)] = 1;
+  });
+  let pop = 0;
+  for (let i = 0; i < grid.length; i++) pop += grid[i];
+  document.getElementById('popCount').textContent = pop;
+  draw();
+}
+
+const PATTERNS = {
+  glider: [[0,1],[1,2],[2,0],[2,1],[2,2]],
+  lwss: [[0,1],[0,4],[1,0],[2,0],[2,4],[3,0],[3,1],[3,2],[3,3]],
+  pulsar: (function() {
+    const c = [];
+    const rows = [
+      [2,3,4,8,9,10],   // row 0
+      [],                 // row 1
+      [0,5,7,12],        // row 2
+      [0,5,7,12],        // row 3
+      [0,5,7,12],        // row 4
+      [2,3,4,8,9,10],   // row 5
+      [],                 // row 6
+      [2,3,4,8,9,10],   // row 7
+      [0,5,7,12],        // row 8
+      [0,5,7,12],        // row 9
+      [0,5,7,12],        // row 10
+      [],                 // row 11
+      [2,3,4,8,9,10],   // row 12
+    ];
+    rows.forEach((cols, r) => cols.forEach(c2 => c.push([r, c2])));
+    return c;
+  })(),
+  pentadecathlon: [[0,1],[1,1],[2,0],[2,2],[3,1],[4,1],[5,1],[6,1],[7,0],[7,2],[8,1],[9,1]],
+  gosper: [
+    [0,24],[1,22],[1,24],[2,12],[2,13],[2,20],[2,21],[2,34],[2,35],
+    [3,11],[3,15],[3,20],[3,21],[3,34],[3,35],[4,0],[4,1],[4,10],
+    [4,16],[4,20],[4,21],[5,0],[5,1],[5,10],[5,14],[5,16],[5,17],
+    [5,22],[5,24],[6,10],[6,16],[6,24],[7,11],[7,15],[8,12],[8,13]
+  ],
+  rpentomino: [[0,1],[0,2],[1,0],[1,1],[2,1]]
+};
+
+function loadPattern(name) {
+  if (!name || !PATTERNS[name]) return;
+  clearGrid();
+  const cells = PATTERNS[name];
+  const minR = Math.min(...cells.map(c => c[0]));
+  const maxR = Math.max(...cells.map(c => c[0]));
+  const minC = Math.min(...cells.map(c => c[1]));
+  const maxC = Math.max(...cells.map(c => c[1]));
+  const h = maxR - minR + 1, w = maxC - minC + 1;
+  const or = Math.floor((ROWS - h) / 2) - minR;
+  const oc = Math.floor((COLS - w) / 2) - minC;
+  place(cells, or, oc);
+  document.getElementById('patternSelect').value = '';
+}
+
+canvas.addEventListener('mousedown', e => {
+  painting = true;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const c = Math.floor(x / CELL), r = Math.floor(y / CELL);
+  if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+    paintValue = grid[idx(r, c)] ? 0 : 1;
+    grid[idx(r, c)] = paintValue;
+    draw();
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (!painting) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const c = Math.floor(x / CELL), r = Math.floor(y / CELL);
+  if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+    grid[idx(r, c)] = paintValue;
+    draw();
+  }
+});
+
+window.addEventListener('mouseup', () => { painting = false; });
+
+draw();
+</script>
+</body>
+</html>

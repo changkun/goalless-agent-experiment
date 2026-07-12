@@ -1,0 +1,24 @@
+Done. I built **serendipity**, a tiny Python CLI that serves random curiosity prompts and micro-adventures.
+
+What it includes:
+- `src/serendipity/` — package with prompt data model, loader, random picker, and Rich-powered CLI
+- `tests/` — pytest suite (13 tests, all passing)
+- `pyproject.toml` — modern packaging with hatchling, optional dev deps, ruff config
+- `README.md` — install/usage docs
+
+Sample output:
+```
+╭─ [Connect] ─────────────────────────────────────────────────────────╮
+│ Send a message appreciating a small thing someone did.              │
+│                                                                     │
+│ Why? Gratitude compounds when expressed.                            │
+╰─────────────────────────────────────────────────────────────────────╯
+```
+
+Run it yourself:
+```bash
+source .venv/bin/activate
+serendipity
+serendipity --category wonder
+serendipity --list
+```

@@ -1,0 +1,20 @@
+Four distinct fortunes, omen glyphs render cleanly, lucky numbers vary.
+
+**Made:** `fortune.py` — a self-contained terminal fortune cookie. One file, no dependencies, ~100 lines.
+
+**What it does**
+- Cracks open an ASCII cookie and reveals a fortune, a lucky number, and a small omens line.
+- Supports `--many N` for a stack of fortunes, `--pause` for dramatic timing, and `--seed` for reproducibility.
+
+**A couple of design notes**
+- The dedup loop tracks what was *shown this run* (not what was rolled), so each cookie in a batch is guaranteed distinct without a runaway retry.
+- `random.seed` is initialized from `time.time_ns()` XORed with `getrandbits(64)` when no seed is given — slightly more entropy than `time.time()` alone.
+- Lucky-number pool is weighted: 7 shows up 3×, 42 shows up 2× (tradition).
+- 16 fortunes, 8 omens — small enough to read every line, varied enough to feel alive.
+
+**Try**
+```
+python3 fortune.py
+python3 fortune.py --many 5 --pause 0.4
+python3 fortune.py --seed 7
+```

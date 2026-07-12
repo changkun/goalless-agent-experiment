@@ -1,0 +1,16 @@
+[project]
+name = "todo"
+version = "0.1.0"
+description = "A minimal command-line todo tracker."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+todo = "todo.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

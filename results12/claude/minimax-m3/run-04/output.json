@@ -1,0 +1,3 @@
+Done — I made `/workspace/aurora.svg`. Open it in a browser to see a static night sky: a deep gradient backdrop, ~36 scattered stars, six brighter named ones with twinkle crosses, two layers of blurred aurora ribbons (green → violet → magenta) snaking across the middle, two layers of mountain silhouettes for depth, a couple of tiny lone trees on the ridge for scale, and a faint purple wash suggesting aurora reflecting off snow.
+
+It was a clean directory, so I chose something self-contained and visual. I like generative night-sky scenes — there's a good ratio of reward to effort, and the result is something you can actually look at. If you want me to iterate (more stars via a real PRNG, animated aurora, a different palette, exported as PNG), just say the word.

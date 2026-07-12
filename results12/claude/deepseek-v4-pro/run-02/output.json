@@ -1,0 +1,37 @@
+Here's what I built: **Conway's Game of Life — Terminal Edition** 🧬
+
+Run it with:
+```
+node /workspace/game-of-life.js
+```
+
+### What it does
+A fully interactive cellular automaton right in your terminal, with:
+
+| Control | Action |
+|---|---|
+| **Space / P** | Play/Pause simulation |
+| **Arrow keys** | Move cursor around the grid |
+| **Enter / Mouse click** | Draw/erase cells at cursor |
+| **R** | Randomise the board (30% density) |
+| **C** | Clear everything |
+| **+ / -** | Speed up / slow down (shown in gen/s in the title bar) |
+| **1–7** | Load pattern presets |
+| **Q / Esc** | Quit |
+
+### Pattern presets (keys 1–7)
+1. **Glider** — the classic diagonal spaceship
+2. **Lightweight Spaceship** — a larger orthogonal traveller
+3. **Gosper Glider Gun** — endlessly spawns gliders
+4. **R-pentomino** — famously chaotic, evolves for 1103 generations
+5. **Pulsar** — period-3 oscillator
+6. **Diehard** — vanishes after 130 generations
+7. **Pentadecathlon** — period-15 oscillator
+
+### Features
+- **Colour-coded** — live cells in green, dead cells in grey, cursor highlighted
+- **Live stats** — generation counter, population count, simulation speed
+- **Mouse support** — click to toggle cells, drag to draw
+- **Terminal resize** — handles window resizing gracefully
+- **Toroidal grid** — edges wrap around (top↔bottom, left↔right)
+- **Clean exit** — restores your terminal state on quit

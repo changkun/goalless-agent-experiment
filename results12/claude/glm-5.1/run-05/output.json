@@ -1,0 +1,31 @@
+Everything works. Here's what I made:
+
+---
+
+## ✦ ASCII Landscape Generator 🌄
+
+I created a **generative ASCII art landscape** in `/workspace/landscape.py` that renders procedural scenes with:
+
+- **🏔 Layered mountains** — 3 depth layers using midpoint displacement, each with different shading
+- **🌊 Animated water** — sine-wave ripples at the bottom
+- **🌲 Procedural trees** — randomly placed along the ground line
+- **✦ Twinkling stars** — with sinusoidal twinkle effect (night/dawn/dusk)
+- **☽ Moon / ☀ Sun** — position shifts based on time of day
+- **☁ Drifting clouds** — move across the sky at different speeds
+- **🌧 Rain / ❄ Snow** — particle systems with wind and drift
+
+### Usage
+
+```bash
+python3 landscape.py              # Auto-detect time of day
+python3 landscape.py --animate    # Live animation!
+python3 landscape.py --night       # Night scene
+python3 landscape.py --dawn        # Dawn scene  
+python3 landscape.py --dusk        # Dusk scene
+python3 landscape.py --day         # Day scene
+python3 landscape.py --storm       # Add rain
+python3 landscape.py --snow        # Add snow
+python3 landscape.py --animate --night --snow  # Snowy night animation
+```
+
+The scene automatically adapts to your current hour — right now it's daytime, so you get a bright sky with clouds and sun. Try `--night --snow` for a peaceful winter night, or `--animate --storm --dusk` for a dramatic animated rainstorm at sunset. 🌧

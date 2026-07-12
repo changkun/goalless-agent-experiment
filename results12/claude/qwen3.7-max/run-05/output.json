@@ -1,0 +1,1 @@
+Done! I created a boids flocking simulation and ran it. The `flock.svg` shows 120 boids that have self-organized into flocks after 500 steps of separation, alignment, and cohesion rules. You can view the SVG or run `python3 boids.py --animate` to watch them flock in real-time in your terminal.

@@ -1,0 +1,37 @@
+Here's what I built — **Conway's Game of Life** with a colorful terminal UI, at `/workspace/game_of_life.py`.
+
+### How it works
+
+Each live cell gets a color based on its **age** — how many generations it's survived. Newborn cells glow green, then the hue drifts through cyan, blue, magenta, and eventually red for ancient cells that have held on longest. The result is a living heat-map that makes it easy to see which structures are stable and which are in flux.
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| `Space` | Pause / Resume |
+| `r` | Randomize the grid |
+| `c` | Clear everything |
+| `1`–`7` | Load patterns (Glider, Spaceship, Pulsar, Gosper Gun, Diehard, R-pentomino, Acorn) |
+| `p` | Placement mode — move cursor with arrows, `Enter`/`Space` to toggle cells |
+| `+`/`-` | Speed up / slow down |
+| `q` / `Esc` | Quit |
+| Mouse click | Toggle cells (if your terminal supports it) |
+
+### Patterns included
+- **Glider** — the classic diagonal traveler
+- **Lightweight Spaceship** (LWSS) — moves orthogonally
+- **Pulsar** — a period-3 oscillator
+- **Gosper Glider Gun** — endlessly shoots gliders
+- **Diehard** — a methuselah that takes 130 generations to die
+- **R-pentomino** — chaotic methuselah
+- **Acorn** — another long-lived methuselah
+
+### Run it
+
+```bash
+python3 /workspace/game_of_life.py
+# or with options:
+python3 /workspace/game_of_life.py --random -d 0.2 --delay 0.05
+```
+
+The grid auto-sizes to your terminal and wraps toroidally (edges connect). The status bar shows generation count, live population, tick speed, and whether it's paused.

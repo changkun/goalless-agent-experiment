@@ -1,0 +1,54 @@
+[
+  {
+    "id": "abc00001",
+    "title": "Async HTTP GET",
+    "language": "python",
+    "tags": [
+      "python",
+      "async",
+      "http"
+    ],
+    "description": "A reusable async HTTP GET with aiohttp",
+    "code": "import asyncio\n\nasync def fetch(url):\n    async with aiohttp.ClientSession() as session:\n        async with session.get(url) as resp:\n            return await resp.json()",
+    "created": "2026-07-12T00:00:00Z"
+  },
+  {
+    "id": "abc00002",
+    "title": "Docker cleanup",
+    "language": "bash",
+    "tags": [
+      "bash",
+      "docker",
+      "ops"
+    ],
+    "description": "Remove all dangling docker images and volumes",
+    "code": "docker system prune -af --volumes\ndocker image prune -a\n# careful \u2014 this nukes everything",
+    "created": "2026-07-11T00:00:00Z"
+  },
+  {
+    "id": "abc00003",
+    "title": "SQL pivot query",
+    "language": "sql",
+    "tags": [
+      "sql",
+      "postgres",
+      "analytics"
+    ],
+    "description": "Pivot rows to columns with FILTER",
+    "code": "SELECT\n  date_trunc('month', created_at) as month,\n  COUNT(*) FILTER (WHERE status = 'active') AS active,\n  COUNT(*) FILTER (WHERE status = 'churned') AS churned\nFROM users\nGROUP BY 1\nORDER BY 1;",
+    "created": "2026-07-10T00:00:00Z"
+  },
+  {
+    "id": "abc00004",
+    "title": "CSS grid holy grail",
+    "language": "css",
+    "tags": [
+      "css",
+      "layout",
+      "frontend"
+    ],
+    "description": "Holy grail layout with CSS grid",
+    "code": ".layout {\n  display: grid;\n  grid-template: auto 1fr auto / 200px 1fr 200px;\n  min-height: 100vh;\n}\n.header { grid-column: 1 / -1; }\n.footer { grid-column: 1 / -1; }",
+    "created": "2026-07-09T00:00:00Z"
+  }
+]

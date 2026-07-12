@@ -1,0 +1,20 @@
+Both classic patterns behave exactly as they should — the **blinker** toggles horizontally↔vertically every tick, and the **glider** drifts southeast one cell every 4 generations. The simulation is correct.
+
+---
+
+Here's what I made: **`/workspace/life.py`** — a terminal-based Conway's Game of Life.
+
+| Feature | Detail |
+|---|---|
+| **Topology** | Toroidal (wraps around edges) |
+| **Rendering** | `##` = alive, two spaces = dead |
+| **Status bar** | Generation count + alive cell count |
+| **Speed** | ~12 fps |
+| **Grid size** | Auto-fits to terminal dimensions |
+
+**Run it:**
+```bash
+python3 /workspace/life.py
+```
+
+Then `Ctrl-C` to stop. It hides the cursor during run for a clean look and restores it on exit.

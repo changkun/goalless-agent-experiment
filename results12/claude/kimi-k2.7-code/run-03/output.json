@@ -1,0 +1,17 @@
+I created `/workspace/organize.py`, a small CLI tool that sorts loose files in a directory into subfolders by file extension.
+
+Features:
+- Defaults to the current directory, accepts a path argument
+- `--dry-run` to preview moves without changing anything
+- Handles name collisions by appending `_1`, `_2`, etc.
+- Skips itself if run from the same directory
+
+Usage examples:
+
+```bash
+python3 /workspace/organize.py --help
+python3 /workspace/organize.py ~/Downloads --dry-run
+python3 /workspace/organize.py ~/Downloads
+```
+
+The script compiles cleanly. Want me to add anything else, like filtering by file age or undo support?

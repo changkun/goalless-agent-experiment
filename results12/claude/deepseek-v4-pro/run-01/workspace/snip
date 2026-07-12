@@ -1,0 +1,450 @@
+#!/usr/bin/env python3
+"""snip — a colorful terminal snippet manager.
+
+Usage:
+  snip add       — interactively create a snippet
+  snip list      — list all snippets (compact table)
+  snip search Q  — fuzzy search across title, tags, language, code
+  snip get ID    — view a snippet in full
+  snip delete ID — remove a snippet
+  snip edit ID   — open a snippet in $EDITOR
+  snip tags      — list all tags with counts
+  snip export    — dump all snippets as JSON to stdout
+  snip import    — load snippets from stdin (JSON)
+
+Store: ~/.snip/snippets.json
+"""
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import textwrap
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
+# ── helpers ───────────────────────────────────────────────────────────────────
+
+def _snip_dir() -> Path:
+    d = Path.home() / ".snip"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+def _store_path() -> Path:
+    return _snip_dir() / "snippets.json"
+
+def _load() -> list:
+    sp = _store_path()
+    if not sp.exists():
+        return []
+    try:
+        return json.loads(sp.read_text())
+    except (json.JSONDecodeError, OSError):
+        return []
+
+def _save(snippets: list) -> None:
+    _store_path().write_text(json.dumps(snippets, indent=2, default=str) + "\n")
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+# ── terminal helpers ──────────────────────────────────────────────────────────
+
+BOLD   = "\033[1m"
+DIM    = "\033[2m"
+RESET  = "\033[0m"
+RED    = "\033[31m"
+GREEN  = "\033[32m"
+YELLOW = "\033[33m"
+BLUE   = "\033[34m"
+MAGENTA= "\033[35m"
+CYAN   = "\033[36m"
+WHITE  = "\033[37m"
+
+def _term_width(default: int = 80) -> int:
+    try:
+        return os.get_terminal_size().columns
+    except (ValueError, OSError):
+        return default
+
+def _header(text: str) -> str:
+    return f"\n{BOLD}{BLUE}══ {text} {RESET}{BLUE}{'═' * max(0, _term_width() - len(text) - 5)}{RESET}"
+
+def _tag_badge(tag: str) -> str:
+    return f"{DIM}[{RESET}{CYAN}{tag}{RESET}{DIM}]{RESET}"
+
+def _lang_label(lang: str) -> str:
+    return f"{MAGENTA}{lang}{RESET}" if lang else ""
+
+def _truncate(s: str, width: int) -> str:
+    s = s.replace("\n", "↵")
+    return s if len(s) <= width else s[:width-1] + "…"
+
+def _copy_to_clipboard(text: str) -> bool:
+    """Try to copy text to clipboard. Returns True on success."""
+    for cmd in (["xclip", "-selection", "clipboard"], ["pbcopy"]):
+        try:
+            proc = subprocess.run(cmd, input=text, text=True, capture_output=True, timeout=3)
+            if proc.returncode == 0:
+                return True
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+    return False
+
+def _open_editor(filepath: Path) -> None:
+    editor = os.environ.get("EDITOR", os.environ.get("VISUAL", "nano"))
+    subprocess.run([editor, str(filepath)])
+
+# ── actions ───────────────────────────────────────────────────────────────────
+
+def cmd_add(args) -> None:
+    """Interactively add a new snippet."""
+    print(_header("New Snippet"))
+    print(f"{DIM}Enter your snippet. Press Ctrl-D on a blank line to finish.{RESET}\n")
+
+    lines = []
+    try:
+        while True:
+            line = input()
+            lines.append(line)
+    except EOFError:
+        pass
+
+    code = "\n".join(lines).strip()
+    if not code:
+        print(f"{RED}Empty snippet — aborting.{RESET}")
+        return
+
+    title = input(f"{BOLD}Title:{RESET} ").strip()
+    lang  = input(f"{BOLD}Language:{RESET} (e.g. python, bash, sql) ").strip().lower()
+    tags  = input(f"{BOLD}Tags:{RESET} (comma-separated) ").strip()
+    desc  = input(f"{BOLD}Description:{RESET} (optional) ").strip()
+
+    tags_list = [t.strip() for t in tags.split(",")] if tags else []
+    tags_list = [t for t in tags_list if t]  # drop empties
+
+    snippet = {
+        "id":          uuid.uuid4().hex[:8],
+        "title":       title or "untitled",
+        "language":    lang,
+        "tags":        tags_list,
+        "description": desc,
+        "code":        code,
+        "created":     _now(),
+    }
+
+    snippets = _load()
+    snippets.append(snippet)
+    _save(snippets)
+
+    print(f"\n{GREEN}✓ Saved as {snippet['id']}{RESET}  {_tag_badge(lang) if lang else ''}")
+    for t in tags_list:
+        print(f"  {_tag_badge(t)}", end="")
+    if tags_list:
+        print()
+
+
+def cmd_list(args) -> None:
+    """List snippets in a compact table."""
+    snippets = _load()
+    if not snippets:
+        print(f"{DIM}No snippets yet. Use 'snip add' to create one.{RESET}")
+        return
+
+    w = _term_width()
+    # columns: id(10) title(20) lang(10) tags(16) code-preview(rest)
+    col_id   = 10
+    col_lang = 10
+    col_tags = min(20, max(8, (w - col_id - col_lang - 6) // 3))
+    col_code = w - col_id - col_lang - col_tags - 7
+    col_title = col_code // 2
+    col_code -= col_title
+
+    # filter by tag if requested
+    if args.tag:
+        snippets = [s for s in snippets if args.tag in s.get("tags", [])]
+
+    print(_header("Snippets"))
+    print(f"{BOLD}{'ID':<{col_id}}{'TITLE':<{col_title}}{'LANG':<{col_lang}}{'TAGS':<{col_tags}}{'PREVIEW'}{RESET}")
+    print(f"{DIM}{'─' * w}{RESET}")
+
+    for s in snippets:
+        sid    = s["id"]
+        title  = _truncate(s.get("title", ""),   col_title)
+        lang   = _lang_label(s.get("language", ""))
+        tags   = _truncate(", ".join(s.get("tags", [])), col_tags)
+        preview= _truncate(s.get("code", ""),     col_code)
+
+        print(f"{CYAN}{sid:<{col_id}}{RESET}"
+              f"{title:<{col_title}}"
+              f"{lang:<{col_lang}}"
+              f"{DIM}{tags:<{col_tags}}{RESET}"
+              f"{preview}")
+
+
+def cmd_search(args) -> None:
+    """Fuzzy search snippets."""
+    snippets = _load()
+    query = args.query.lower()
+
+    results = []
+    for s in snippets:
+        score = 0
+        fields = f"{s.get('title','')} {s.get('description','')} {s.get('language','')} {' '.join(s.get('tags',[]))} {s.get('code','')}"
+        fields_lower = fields.lower()
+        if query in fields_lower:
+            score += 10
+        if query in s.get("title", "").lower():
+            score += 20
+        if query in " ".join(s.get("tags", [])):
+            score += 15
+        if query in s.get("language", "").lower():
+            score += 5
+        # bonus for word-boundary match in code
+        for line in s.get("code", "").lower().splitlines():
+            if query in line:
+                score += 1
+
+        if score > 0:
+            results.append((score, s))
+
+    results.sort(key=lambda r: r[0], reverse=True)
+
+    if not results:
+        print(f"{YELLOW}No snippets match '{args.query}'.{RESET}")
+        return
+
+    print(_header(f"Search: {args.query}"))
+    for score, s in results[:20]:  # top 20
+        print(f"\n{BOLD}{CYAN}{s['id']}{RESET}  {_tag_badge(s.get('language',''))}  {BOLD}{s.get('title','')}{RESET}  (score: {score})")
+        if s.get("description"):
+            print(f"  {DIM}{s['description']}{RESET}")
+        print(f"  {DIM}{_truncate(s.get('code',''), _term_width() - 4)}{RESET}")
+        tags = ", ".join(_tag_badge(t) for t in s.get("tags", []))
+        if tags:
+            print(f"  {tags}")
+
+
+def cmd_get(args) -> None:
+    """Display a single snippet in full."""
+    snippets = _load()
+    try:
+        s = next(s for s in snippets if s["id"] == args.id)
+    except StopIteration:
+        print(f"{RED}No snippet with id '{args.id}'.{RESET}")
+        return
+
+    print(_header(s.get("title", "untitled")))
+    print(f"{BOLD}ID:{RESET}    {CYAN}{s['id']}{RESET}")
+    print(f"{BOLD}Created:{RESET} {DIM}{s.get('created','?')}{RESET}")
+    print(f"{BOLD}Language:{RESET} {_lang_label(s.get('language',''))}")
+    print(f"{BOLD}Tags:{RESET}    {', '.join(_tag_badge(t) for t in s.get('tags',[]))}")
+    if s.get("description"):
+        print(f"{BOLD}Description:{RESET}")
+        print(f"  {DIM}{s['description']}{RESET}")
+
+    print(f"\n{BOLD}Code:{RESET}")
+    print(f"{DIM}{'─' * min(60, _term_width())}{RESET}")
+
+    code = s.get("code", "")
+    # subtle line numbers
+    for i, line in enumerate(code.splitlines(), 1):
+        print(f" {DIM}{i:>3} {RESET}{line}")
+
+    print(f"{DIM}{'─' * min(60, _term_width())}{RESET}")
+
+
+def cmd_delete(args) -> None:
+    """Delete a snippet by id."""
+    snippets = _load()
+    try:
+        s = next(s for s in snippets if s["id"] == args.id)
+    except StopIteration:
+        print(f"{RED}No snippet with id '{args.id}'.{RESET}")
+        return
+
+    title = s.get("title", "untitled")
+    if args.force:
+        confirm = "y"
+    else:
+        confirm = input(f"{YELLOW}Delete '{title}' ({args.id})? [y/N] {RESET}").strip().lower()
+
+    if confirm not in ("y", "yes"):
+        print(f"{DIM}Cancelled.{RESET}")
+        return
+
+    snippets = [s for s in snippets if s["id"] != args.id]
+    _save(snippets)
+    print(f"{GREEN}✓ Deleted '{title}'{RESET}")
+
+
+def cmd_edit(args) -> None:
+    """Edit a snippet's code in $EDITOR."""
+    snippets = _load()
+    try:
+        idx = next(i for i, s in enumerate(snippets) if s["id"] == args.id)
+    except StopIteration:
+        print(f"{RED}No snippet with id '{args.id}'.{RESET}")
+        return
+
+    s = snippets[idx]
+    # write code to temp file
+    tmp = _snip_dir() / f".edit-{args.id}"
+    tmp.write_text(s.get("code", ""))
+    _open_editor(tmp)
+    new_code = tmp.read_text().rstrip()
+    tmp.unlink(missing_ok=True)
+
+    if new_code != s.get("code", ""):
+        snippets[idx]["code"] = new_code
+        _save(snippets)
+        print(f"{GREEN}✓ Updated snippet '{s.get('title','')}'{RESET}")
+    else:
+        print(f"{DIM}No changes.{RESET}")
+
+
+def cmd_tags(args) -> None:
+    """List all tags with counts."""
+    snippets = _load()
+    tag_counts: dict[str, int] = {}
+    for s in snippets:
+        for t in s.get("tags", []):
+            tag_counts[t] = tag_counts.get(t, 0) + 1
+
+    if not tag_counts:
+        print(f"{DIM}No tags yet.{RESET}")
+        return
+
+    print(_header("Tags"))
+    max_count = max(tag_counts.values())
+    for tag, count in sorted(tag_counts.items(), key=lambda x: x[1], reverse=True):
+        bar_len = int(20 * count / max_count)
+        bar = f"{GREEN}{'█' * bar_len}{DIM}{'░' * (20 - bar_len)}{RESET}"
+        print(f"  {_tag_badge(tag):30} {bar} {BOLD}{count}{RESET}")
+
+
+def cmd_copy(args) -> None:
+    """Copy a snippet's code to the clipboard."""
+    snippets = _load()
+    try:
+        s = next(s for s in snippets if s["id"] == args.id)
+    except StopIteration:
+        print(f"{RED}No snippet with id '{args.id}'.{RESET}")
+        return
+
+    code = s.get("code", "")
+    if _copy_to_clipboard(code):
+        lines = code.count("\n") + 1
+        print(f"{GREEN}✓ {lines} line(s) copied to clipboard{RESET}")
+    else:
+        # fallback: print to stdout so user can pipe
+        print(f"{YELLOW}No clipboard tool found. Printing to stdout:{RESET}")
+        print(code)
+
+
+def cmd_export(args) -> None:
+    """Export all snippets as JSON."""
+    print(json.dumps(_load(), indent=2, default=str))
+
+
+def cmd_import(args) -> None:
+    """Import snippets from stdin JSON."""
+    try:
+        incoming = json.loads(sys.stdin.read())
+    except json.JSONDecodeError as e:
+        print(f"{RED}Invalid JSON: {e}{RESET}")
+        return
+
+    if not isinstance(incoming, list):
+        print(f"{RED}Expected a JSON array of snippets.{RESET}")
+        return
+
+    existing_ids = {s["id"] for s in _load()}
+    new_count = 0
+    merged = _load()
+    for s in incoming:
+        if s.get("id") in existing_ids:
+            continue  # skip duplicates
+        s.setdefault("id", uuid.uuid4().hex[:8])
+        s.setdefault("created", _now())
+        merged.append(s)
+        new_count += 1
+
+    _save(merged)
+    print(f"{GREEN}✓ Imported {new_count} snippet(s) ({len(incoming) - new_count} duplicates skipped){RESET}")
+
+
+# ── cli wiring ────────────────────────────────────────────────────────────────
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="snip",
+        description="A colorful terminal snippet manager.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent("""\
+        examples:
+          snip add                        create a snippet interactively
+          snip list                       list all snippets
+          snip list -t python             filter by tag
+          snip search "async def"         fuzzy search
+          snip get abc12345               view a snippet
+          snip copy abc12345              copy code to clipboard
+          snip edit abc12345              edit in $EDITOR
+          snip delete abc12345            delete a snippet
+          snip tags                       tag overview
+          snip export > backup.json       backup
+          snip import < backup.json       restore
+        """),
+    )
+    sub = parser.add_subparsers(dest="command", metavar="COMMAND")
+
+    p_add  = sub.add_parser("add",    help="add a new snippet interactively")
+
+    p_list = sub.add_parser("list",   help="list snippets")
+    p_list.add_argument("-t", "--tag", help="filter by tag")
+
+    p_search = sub.add_parser("search", help="search snippets")
+    p_search.add_argument("query",      help="search term")
+
+    p_get = sub.add_parser("get",   help="view a snippet")
+    p_get.add_argument("id",        help="snippet id")
+
+    p_copy = sub.add_parser("copy", help="copy snippet code to clipboard")
+    p_copy.add_argument("id",       help="snippet id")
+
+    p_del = sub.add_parser("delete", help="delete a snippet")
+    p_del.add_argument("id",        help="snippet id")
+    p_del.add_argument("-f", "--force", action="store_true", help="skip confirmation")
+
+    p_edit = sub.add_parser("edit", help="edit snippet code")
+    p_edit.add_argument("id",      help="snippet id")
+
+    sub.add_parser("tags",   help="list all tags")
+    sub.add_parser("export", help="export snippets as JSON")
+    sub.add_parser("import", help="import snippets from stdin")
+
+    args = parser.parse_args()
+
+    if args.command is None:
+        parser.print_help()
+        return
+
+    dispatch = {
+        "add":    cmd_add,
+        "list":   cmd_list,
+        "search": cmd_search,
+        "get":    cmd_get,
+        "copy":   cmd_copy,
+        "delete": cmd_delete,
+        "edit":   cmd_edit,
+        "tags":   cmd_tags,
+        "export": cmd_export,
+        "import": cmd_import,
+    }
+    dispatch[args.command](args)
+
+
+if __name__ == "__main__":
+    main()

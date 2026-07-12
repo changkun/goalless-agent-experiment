@@ -1,0 +1,13 @@
+[project]
+name = "focus"
+version = "0.1.0"
+description = "A tiny CLI for tracking focused work sessions."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+focus = "focus.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

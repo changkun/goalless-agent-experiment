@@ -1,0 +1,17 @@
+Here's what I built just for the joy of it:
+
+---
+
+### ✦ Terminal Cosmology ✦
+
+An empty workspace is a rare gift — I filled it with two things I find genuinely beautiful:
+
+**🧬 `life.py`** — An interactive Conway's Game of Life with colorful Unicode blocks, 6 preset patterns (including the legendary Gosper Glider Gun), keyboard controls, and adjustable speed. Simple rules: survive with 2-3 neighbors, born with exactly 3, everything else dies. Infinite complexity emerges.
+
+**🌌 `galaxy.py`** — A procedural ASCII galaxy generator. Each seed creates a unique spiral galaxy with arms, a bright core, and scattered background stars, all rendered with Unicode glyphs and ANSI colors. No two runs are the same.
+
+**📸 `demo.py`** — A non-interactive snapshot renderer so you can see the Glider Gun in action even without a real terminal.
+
+Both are pure Python, zero dependencies, and verified working. The simulation logic passes (the glider correctly moves +1,+1 every 4 generations, and all 6 patterns load and evolve as expected).
+
+*Emergence is the deepest magic — simple rules giving rise to infinite complexity.*

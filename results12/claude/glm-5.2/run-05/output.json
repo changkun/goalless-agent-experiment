@@ -1,0 +1,7 @@
+It works. 🍩
+
+A spinning ASCII torus — the classic donut.c, ported to JavaScript. It renders a 3D torus by sampling the two surface angles (θ around the tube, φ around the ring), rotating each point through two axes, projecting it to the screen with a z-buffer, and shading the nearest surface with the luminance ramp `.,-~:;=!*#$@`. The animation above is one frame mid-spin.
+
+I picked it because it's a complete, self-contained piece of math-as-art — geometry, rotation matrices, perspective projection, hidden-surface removal, and fake lighting, all in ~80 lines with no dependencies. It runs anywhere Node does.
+
+Want me to leave it looping (e.g. a shorter continuous version), or try a different toy — a plasma effect, a Game of Life, an ASCII Mandelbrot explorer?

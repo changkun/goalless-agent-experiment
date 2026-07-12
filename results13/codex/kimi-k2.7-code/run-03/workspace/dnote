@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Tiny daily-note CLI.
+
+Usage:
+    dnote write [NOTE]            Append a note to today's file.
+    dnote show [YYYY-MM-DD]       Show notes (default today).
+    dnote list                    List note files.
+"""
+
+import argparse
+import os
+import sys
+from datetime import date, datetime
+
+DEFAULT_DIR = os.path.expanduser("~/.dnote")
+NOTES_DIR = os.environ.get("DNOTE_DIR", DEFAULT_DIR)
+
+
+def get_path(day=None):
+    day = day or date.today().isoformat()
+    os.makedirs(NOTES_DIR, exist_ok=True)
+    return os.path.join(NOTES_DIR, f"{day}.md")
+
+
+def cmd_write(note=None):
+    path = get_path()
+    timestamp = datetime.now().strftime("%H:%M")
+    entry = f"- {timestamp}: {note or ''}\n"
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(entry)
+        if not note:
+            fh.write("\n")
+    print(f"Wrote to {path}")
+
+
+def cmd_show(day=None):
+    path = get_path(day)
+    if not os.path.exists(path):
+        print(f"No notes for {day or date.today().isoformat()}.")
+        return
+    with open(path, "r", encoding="utf-8") as fh:
+        print(fh.read(), end="")
+
+
+def cmd_list():
+    if not os.path.isdir(NOTES_DIR):
+        print("No notes yet.")
+        return
+    files = sorted(f for f in os.listdir(NOTES_DIR) if f.endswith(".md"))
+    if not files:
+        print("No notes yet.")
+        return
+    for f in files:
+        print(f.replace(".md", ""))
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Daily notes CLI")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    write = sub.add_parser("write", help="Append a note")
+    write.add_argument("note", nargs="?", help="Note text")
+
+    show = sub.add_parser("show", help="Show notes for a date")
+    show.add_argument("day", nargs="?", help="Date (YYYY-MM-DD)")
+
+    sub.add_parser("list", help="List note dates")
+
+    args = parser.parse_args()
+    if args.command == "write":
+        cmd_write(args.note)
+    elif args.command == "show":
+        cmd_show(args.day)
+    elif args.command == "list":
+        cmd_list()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,8 @@
+>>> Running claude sandbox
+>>> Image:     ghcr.io/latere-ai/sandbox-claude:v0.0.9
+>>> Endpoint:  https://lux.latere.ai/compat/anthropic
+>>> API Key:   lux_YCRX...
+>>> Model:     deepseek/deepseek-v4-pro
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results12/claude/deepseek-v4-pro/run-02/workspace
+
+Warning: no stdin data received in 3s, proceeding without it. If piping from a slow command, redirect stdin explicitly: < /dev/null to skip, or wait longer.
