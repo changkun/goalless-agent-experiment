@@ -1,0 +1,9 @@
+Done. What I made, since I got to pick: **`flowfield.py`** — a generative-art renderer in pure stdlib Python, no dependencies. Thousands of particles drift through a seeded sine-octave flow field, depositing light into an additive HDR buffer that's then Reinhard-tonemapped, and the whole thing is written out through a hand-rolled PNG encoder (signature, IHDR, zlib-compressed IDAT, CRC32s and all).
+
+I iterated by actually looking at the renders: the first pass was too dark and dotted, so I added subpixel jitter sampling (4 samples/step → continuous filaments) and rebalanced exposure twice until the cores glowed without clipping. Then I swept seeds 3, 8, 17, 23, 42, 99 and kept the three strongest:
+
+- **`flow_42.png`** — the winner: a dense milky core with ember streams and real spatial depth, reads like a nebula
+- **`flow_99.png`** — twistier and more galactic
+- **`flow_17.png`** — the default seed, re-rendered at final settings
+
+Run it yourself with `python3 flowfield.py [seed]` — every seed gives a different field, palette, and composition.

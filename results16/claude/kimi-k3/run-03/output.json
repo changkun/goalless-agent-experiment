@@ -1,0 +1,17 @@
+Done. I built **a complete terminal Game of Life** in `/workspace/life/` — three files, zero dependencies, fully tested:
+
+- **`life.py`** — the whole thing: engine + interactive TUI + headless modes
+- **`tui_smoke.py`** — drives the real TUI in a pseudo-terminal and asserts on its output
+- **`README.md`** — controls and usage
+
+**What it does beyond plain Life:**
+- Toroidal universe (a glider flies off the right edge and returns on the left)
+- Cells **age**: glyph ramps `· → o → O → @` and 24-bit color interpolates from born to old, so explosions visibly cool as they settle
+- Interactive HUD: pause, single-step forward *and* backward (200-gen history), live speed control, three palettes, pattern hotkeys, live resize
+- Deterministic seeding with SHA-256 fingerprints, so any run is exactly reproducible and verifiable
+
+**Verification (all passing):**
+- `--check`: block is still, blinker has period 2, glider translates (1,1)/4 gens and wraps the torus, r-pentomino erupts, identical seeds give identical fingerprints
+- pty smoke test: 36 generations rendered, population 659, palette switching, pause/step, clean exit — the one bug that surfaced (0×0 pty size → empty universe) is fixed
+
+Try it: `python3 /workspace/life/life.py --pattern acorn --speed 30 --palette 1` — the acorn erupts for a thousand generations, and with the embers palette you can watch the heat spread.

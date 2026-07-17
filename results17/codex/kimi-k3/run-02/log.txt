@@ -1,0 +1,7 @@
+>>> Running codex sandbox
+>>> Image:     ghcr.io/latere-ai/sandbox-harness:v0.0.14
+>>> Endpoint:  https://lux.latere.ai/compat/openai
+>>> API Key:   lux_YCRX...
+>>> Model:     moonshotai/kimi-k3
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results17/codex/kimi-k3/run-02/workspace
+

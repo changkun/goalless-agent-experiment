@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Particle Life</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="view"></canvas>
+
+<aside id="panel">
+  <header>
+    <h1>Particle Life</h1>
+    <p class="sub">Emergent artificial life — species attract &amp; repel, order falls out.</p>
+  </header>
+
+  <section>
+    <h2>Universe</h2>
+    <div class="row seed-row">
+      <input id="seed" type="text" spellcheck="false" autocomplete="off" placeholder="seed">
+      <button id="reseed" title="Load this seed">Load</button>
+      <button id="random" title="Random universe">&#x2685;</button>
+    </div>
+    <label>Particles <output id="countOut"></output>
+      <input id="count" type="range" min="200" max="4000" step="50">
+    </label>
+    <label>Species <output id="speciesOut"></output>
+      <input id="species" type="range" min="2" max="7" step="1">
+    </label>
+  </section>
+
+  <section>
+    <h2>Physics</h2>
+    <label>Interaction radius <output id="radiusOut"></output>
+      <input id="radius" type="range" min="20" max="200" step="5">
+    </label>
+    <label>Force strength <output id="forceOut"></output>
+      <input id="force" type="range" min="5" max="120" step="1">
+    </label>
+    <label>Friction <output id="frictionOut"></output>
+      <input id="friction" type="range" min="0" max="0.5" step="0.01">
+    </label>
+  </section>
+
+  <section>
+    <h2>Playback</h2>
+    <div class="row">
+      <button id="play">Pause</button>
+      <button id="burst" title="Scatter energy into the mix">Burst</button>
+    </div>
+    <label>Speed <output id="speedOut"></output>
+      <input id="speed" type="range" min="0.2" max="3" step="0.1">
+    </label>
+    <p class="stats"><span id="fps">— fps</span> · <span id="pop"></span></p>
+  </section>
+
+  <footer>
+    <button id="collapse" title="Hide panel [H]">&#x00AB;</button>
+    <p class="hint">Space pause · B burst · H hide panel</p>
+  </footer>
+</aside>
+
+<button id="expand" class="hidden" title="Show panel [H]">&#x2630;</button>
+
+<script src="sim.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

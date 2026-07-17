@@ -1,0 +1,12 @@
+Done. I built **Particle Life** — a self-contained artificial-life sandbox at `/workspace/particle-life.html` (~19KB, zero dependencies, plus a README).
+
+**What it is:** six species of particles governed by a single 6×6 attraction/repulsion matrix. From those 36 numbers, populations self-organize — clumping cells, orbiting pairs, predator swarms, pulsing colonies. Rerolling the matrix creates a new universe each time; most are stillborn, some crawl, hunt, or bloom.
+
+**What's in it:**
+- O(n) physics via a rebuilt-per-frame uniform spatial hash, toroidal wrap, SoA `Float32Array` storage, one batched canvas path per species — comfortably handles 3,000 particles
+- Live-editable matrix editor (green = attract, red = repel; click/right-click to nudge), sliders for particle count / radius / friction / force
+- Drag to paint particles, shift-drag to stir, keyboard shortcuts, "balanced" matrix generator for reliably lively worlds
+
+**Verified:** `node --check` passes, and I ran a 250-step headless physics test — zero NaN/Infinity, bounded velocities. That test caught a real bug: typed arrays were allocated at the seeded count while drag-painting grows the population, which would have silently NaN-poisoned the sim. Fixed by always allocating at max capacity.
+
+To play: just open the file in a browser (or `python3 -m http.server` in `/workspace`).

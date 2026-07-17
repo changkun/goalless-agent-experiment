@@ -1,0 +1,16 @@
+Done. I built **`/workspace/fire.py`** — the classic DOOM fire algorithm, live in your terminal.
+
+**What it is:** a tiny generative-art program (~150 lines, zero dependencies). A heat source pinned to the bottom row propagates upward each frame with random decay and sideways jitter, mapped onto the original 37-color black→red→orange→yellow→white palette. Rendering uses truecolor ANSI + the `▀` half-block character, so each character cell packs two vertical pixels of flame.
+
+**Verified:**
+- Heat gradient is textbook — cold at top (~0.2 avg intensity) ramping smoothly to white-hot at the base (~34/36)
+- The PNG preview above shows the real output: proper licking DOOM flames
+- All CLI modes exit cleanly (`--frames`, `--snapshot`, `--seed` for reproducible burns)
+
+**To watch it burn live:**
+```bash
+python3 /workspace/fire.py
+```
+It fills your terminal and runs at 30fps until Ctrl-C. Two artifacts remain: `fire.py` and `fire_preview.png` (the image above).
+
+I picked this because it's my favorite kind of program — a dozen lines of arithmetic producing something that feels alive. The whole effect is just "copy the pixel below, subtract a little, drift a little," and out comes fire.

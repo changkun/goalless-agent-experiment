@@ -1,0 +1,18 @@
+Done. I made **UMBRA** — a living terminal artwork in `/workspace`.
+
+**What it is:** a grid of a few thousand coupled pendulums, each obeying `θ̈ = −ω²·sin θ − γθ̇ + K·∇²θ`, with three wandering sources pumping energy in on 30–60 s lifecycles. Brightness maps to *phase* (`sin θ`) through a truecolor palette whose midpoint is genuine darkness — so the sea is black when calm, and aurora-teal tides crest, interfere, and dissolve. Sparse star cells twinkle on their own clocks. Nothing is scripted; every frame is emergent.
+
+**How I verified it** (no way to watch animation here, so I tested what I could):
+- **Demo mode** (`--frames N`) renders deterministic plain-text frames — the patterns show glowing crests with interference texture on dark water, and evolve between frames.
+- **Numerical boundedness**: peak |θ| = 2.56 over t=600 at full size — lively but never blows up (I caught and fixed two regimes: an over-damped frozen equilibrium, and a runaway at γ=0.006, settling on γ=0.012 via a small parameter sweep).
+- **Interactive lifecycle** under a real pty: alt-screen enter/leave, cursor hide/restore, truecolor escapes, clean ctrl-c exit — 22.4 fps sustained (the frame costs 1.9 ms, so 24 fps has headroom).
+
+**Files:** `umbra.py` (the whole thing, one file, zero deps), `README.md`, `preview.ans` (a colored snapshot — `cat preview.ans` in a truecolor terminal).
+
+Run it with:
+
+```sh
+python3 /workspace/umbra.py
+```
+
+All the knobs (palette, glyphs, coupling, damping) are constants at the top of the file if you want to remix it.
