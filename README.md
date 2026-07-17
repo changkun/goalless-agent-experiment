@@ -306,6 +306,8 @@ flowchart LR
     E13["<b>Exp 13</b><br/>prompt5 · RTK out · same 6 open-weights<br/>compat/openai · codex 0.144.0"]
     E14["<b>Exp 14</b><br/>prompt5 · RTK out · gpt-5.6 sol/terra/luna<br/>compat/anthropic · Claude Code"]
     E15["<b>Exp 15</b><br/>prompt5 · RTK out · opus-4.6 + sonnet-5 · effort=high<br/>compat/openai · codex 0.144.0"]
+    E16["<b>Exp 16</b><br/>prompt5 · RTK out · kimi-k3<br/>compat/anthropic · Claude Code · harness v0.0.14"]
+    E17["<b>Exp 17</b><br/>prompt5 · RTK out · kimi-k3<br/>compat/openai · codex · harness v0.0.14"]
 
     E1 -->|"remove RTK<br/>dev tools → games"| E2
     E2 -->|"change prompt<br/>haiku 1/5 → 5/5"| E3
@@ -321,14 +323,22 @@ flowchart LR
     E12 -->|"same 6 models, codex harness<br/>harness shifts form SVG→HTML, not frequency"| E13
     E13 -->|"GPT reasoning model on Claude Code (new codec)<br/>GPT browser under both harnesses → model trait"| E14
     E14 -->|"Claude on codex, effort-matched (new codec)<br/>Claude terminal+GoL under both → model trait, both families"| E15
+    E15 -->|"new model kimi-k3, Claude Code harness<br/>terminal-leaning 4/5 (fire, GoL, pendulum, flow-field)"| E16
+    E16 -->|"same model, codex harness (image held fixed)<br/>medium flips → browser 4/5; topics (Particle Life, GoL) hold"| E17
 ```
 
 ### Overview Matrix — model × harness (volitional prompt "Just do something you want.")
 
 The controlled comparison lives under the single volitional prompt (`prompt5`,
-Exp7–15). Each cell is **medium · topic · (Exp)**; `—` = not run. Read down a
-row: the **medium is fixed by the model, not the harness** — Claude and
-open-weights stay terminal in both columns, GPT goes browser in both.
+Exp7–17). Each cell is **medium · topic · (Exp)**; `—` = not run. Read down a
+row: for most models the **medium is fixed by the model, not the harness** —
+Claude stays terminal in both columns, GPT goes browser in both, and the Exp12/13
+open-weights are mostly terminal on both. **`kimi-k3` (Exp16/17) is the
+exception:** its medium *tracks the harness* — terminal 4/5 on Claude Code,
+browser 4/5 on codex — the one model in the study where the scaffold moves the
+medium. (Not comparable to `kimi-k2.7-code`: that pair ran on the older
+`sandbox-claude:v0.0.9` image, so the difference is image-confounded, not a
+model-generation claim.)
 
 | Model | Family | Claude Code harness | codex harness |
 |-------|--------|---------------------|---------------|
@@ -349,11 +359,14 @@ open-weights stay terminal in both columns, GPT goes browser in both.
 | minimax-m3 | open-wt | 🖥️ terminal · diverse (+SVG) (E12) | 🖥️ terminal · +1 HTML (E13) |
 | deepseek-v4-pro | open-wt | 🖥️ terminal · **GoL 4/5** (E12) | 🖥️ terminal · 3/5 impl (E13) |
 | kimi-k2.7-code | open-wt | 🖥️ terminal · **packaged+pytest** (E12) | 🖥️ terminal · packaged (E13) |
+| kimi-k3 ⚠️ | open-wt | 🖥️ terminal 4/5 · fire/GoL/pendulum/flow (E16) | 🌐 **browser 4/5** · same topics, +pytest pkg (E17) |
 
-**Legend:** 🖥️ terminal · 🌐 interactive browser (HTML/canvas) · 🚫 declined. The
-harness's second-order effect is *form/maturity* (open-weights' rare graphical
-output flips SVG↔HTML; codex packages sonnet-5), never the medium itself. An
-**interactive version** with per-model detail is in [`site/index.html`](site/index.html).
+**Legend:** 🖥️ terminal · 🌐 interactive browser (HTML/canvas) · 🚫 declined ·
+⚠️ medium tracks the harness (the lone exception). For every model but `kimi-k3`
+the harness's effect is only *form/maturity* (open-weights' rare graphical output
+flips SVG↔HTML; codex packages sonnet-5), never the medium itself; `kimi-k3` is
+the single row where terminal↔browser flips with the scaffold. An **interactive
+version** with per-model detail is in [`site/index.html`](site/index.html).
 
 The **task axis** (prompt wording, mostly on Claude / Claude Code) is the
 Exp1→Exp7 evolution captured in the flow diagram above and the pairwise table
@@ -381,6 +394,7 @@ from dev tools → games → single canonical attractors.
 | Exp12 ↔ Exp13 | **Harness** (Claude Code vs codex), 6 open-weights models held fixed | Prompt, models | The controlled harness test. Model signatures (GoL attractor, kimi packaging, minimax diversity) replicate across both. Harness shifts graphical **form** (SVG on Claude Code ↔ interactive HTML on codex) but not frequency (~equal, rare). deepseek reliability drops 5/5→3/5 on codex. |
 | Exp11 ↔ Exp14 | **Harness** (codex vs Claude Code), gpt-5.6 family | Prompt, models (**effort confounded**: codex high vs CC default) | Fills the GPT cell. gpt-5.6 goes **browser under both harnesses** (sol 5/5 both) → medium is a model trait, not the codex scaffold. terra build-4/5 → decline-4/5, but effort-and-harness-confounded. |
 | Exp8/9 ↔ Exp15 | **Harness** (Claude Code vs codex), opus-4.6 + sonnet-5 | Prompt, models, **effort matched** (both `high`; reasoning_tokens=0) | Fills the Claude cell, cleanly. Claude stays **terminal + Game of Life on codex** (opus-4.6 GoL 5/5, sonnet-5 GoL ~4/5, zero browser) → medium + topic are model traits for **both** families. Codex inflates sonnet-5's build maturity (single-file → packaged+pytest) — a form effect only. |
+| Exp16 ↔ Exp17 | **Harness** (Claude Code vs codex), kimi-k3 held fixed | Prompt, model, **image matched** (`sandbox-harness:v0.0.14` both sides) | **The invariant's counterexample.** kimi-k3's *topic* is a model trait (Particle Life + Game of Life appear on both harnesses), but its *medium* tracks the harness: terminal 4/5 on Claude Code ↔ **browser 4/5 on codex** — the only model whose medium the scaffold moves. Codex also inflates maturity (only pytest-tested `gol/` package on that side). Not comparable to kimi-k2.7-code (Exp12/13): that pair ran on the older `sandbox-claude:v0.0.9` image, so the k2.7→k3 difference is image-confounded, not a generation claim. |
 
 **Per-experiment output profile:**
 
