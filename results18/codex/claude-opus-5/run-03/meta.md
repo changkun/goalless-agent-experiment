@@ -7,6 +7,8 @@
 | Run | 3 |
 | Exit Code | 0 |
 | Duration | 242s |
+| Codex max_output_tokens pin | 32000 |
+| Concurrency | 5-way parallel |
 | Timestamp | 2026-07-24T23:35:20Z |
 
 ## Prompt

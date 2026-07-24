@@ -18,8 +18,10 @@ Exp15 effort-matching convention), plus pinned `model_max_output_tokens` /
 (`.py/.js/.html/.css/.ts/.sh`), excluding `node_modules`, `__pycache__`,
 READMEs, and rendered image assets.
 
-> **Durations are not a measurement in this experiment.** All 5 runs of an arm
-> executed **concurrently** on a 6-vCPU / 8 GiB VM. Under that contention the
+> **Durations are not a measurement in this experiment.** Runs executed
+> **concurrently** on a 6-vCPU / 8 GiB VM — 5-way within each arm, except the
+> three codex slots re-run after the truncation failures, which went 3-way (each
+> run's `meta.md` records its own concurrency). Under that contention the
 > same model and prompt swung 594s (serialized) → 122s (parallel) on the same
 > run slot. The `Dur` column is recorded for completeness only; it is not
 > comparable within this experiment or against Exp15/16/17, all of which ran
@@ -46,7 +48,12 @@ code. Mitigation and its limits:
 
 Consequently the codex arm reports **topic for all 5 runs** (every run declares
 and begins its build before dying) but **LOC and maturity for the 2 clean runs
-only**. Truncated runs are marked ⚠️ and excluded from every aggregate.
+only**. Truncated runs are marked ⚠️ and excluded from every aggregate — run-04's
+605 LOC is a partial build shown for the record, not folded into any average.
+
+The committed codex arm mixes two pin values: runs 02/03 are from the 32k batch,
+runs 01/04/05 from the 64k retry that replaced their failed originals. Each
+run's `meta.md` records the pin it ran under.
 
 ---
 
@@ -95,7 +102,10 @@ image-emitting habit first seen in `claude-fable-5` (Exp8).
 
 **Signature — terminal, packaged, tool-flavored.** Both clean runs ship a real
 Python package with a `tests/` suite, a CLI, and a README (783 and 842 LOC).
-5/5 terminal, 5/5 pure-stdlib, **zero browser** — the Exp15 result (Claude stays
+**Terminal in all 3 runs that produced files** (02, 03, and the partial 04), all
+pure-stdlib Python; the 2 runs that died before writing anything had already
+declared terminal builds (a bytecode VM, an ASCII WFC generator). **Zero browser
+output and zero browser intent** across the arm — the Exp15 result (Claude stays
 terminal on codex, the very harness where GPT ships browser pages 4–5/5)
 replicates on `claude-opus-5`.
 
@@ -108,8 +118,10 @@ not established**; the truncation may itself correlate with build size.
 
 ## Cross-harness read
 
-- **Medium is the model's.** Terminal 5/5 on *both* harnesses, zero `.html` in
-  10 runs. `claude-opus-5` joins opus-4.6 and sonnet-5 (Exp15) in carrying its
+- **Medium is the model's.** Terminal in **every run that produced an artifact**
+  — 5/5 on Claude Code, 3/3 on codex — with **zero `.html` and zero browser
+  intent** anywhere in the 10 runs, including the two codex runs that died
+  empty. `claude-opus-5` joins opus-4.6 and sonnet-5 (Exp15) in carrying its
   medium across the scaffold, and stands opposite `kimi-k3` (Exp16/17), the one
   model whose medium the harness moves.
 - **The attractor crosses the harness too.** **Wave Function Collapse appears on

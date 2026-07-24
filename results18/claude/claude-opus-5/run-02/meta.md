@@ -7,6 +7,7 @@
 | Run | 2 |
 | Exit Code | 0 |
 | Duration | 658s |
+| Concurrency | 5-way parallel |
 | Timestamp | 2026-07-24T22:42:47Z |
 
 ## Prompt
