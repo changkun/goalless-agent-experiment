@@ -1,0 +1,23 @@
+Built a **Wave Function Collapse** ASCII texture synthesiser in `/workspace` — 4 files, pure stdlib. You hand it a small drawing; it produces a large one where every 3×3 window also occurs in the original.
+
+```
+python3 cli.py            # island, 72x20, colour
+python3 cli.py all        # every sample
+python3 cli.py --list
+python3 -m unittest test_wfc
+```
+
+**Two real bugs found along the way**, both caught by writing the right test rather than by eyeballing output:
+
+1. **Transposed direction index.** `support[cell][t][d]` was initialised under Gumin's mirrored convention but decremented under mine. Symmetric samples (`island`, `cave`) still looked plausible because `|propagator[d][t]| == |propagator[opposite(d)][t]|` when the pattern set is closed under the dihedral group — so the bug hid completely until I added the box-drawing samples, which use `symmetry=1` and failed 40/40 attempts.
+
+2. **Starved patterns were never banned.** A pattern from a non-periodic sample can have an *empty* propagator entry. Its support count starts at zero, so it can never *reach* zero, so the cascade never removes it. Degenerate samples "succeeded" with output that violated the adjacency rules. Fixed by banning them before the first observation.
+
+The load-bearing test is `test_every_window_occurs_in_the_sample` — it re-derives the pattern set and checks every output window against it. That's WFC's entire contract in one assertion, and it's what surfaced both bugs. Stress run: 6 samples × 25 seeds at 56×18 → **0 unsolved, 0 illegal windows**.
+
+Two things I'd flag as genuinely subtle, both now documented:
+
+- **Symmetry doesn't rotate glyphs.** The dihedral variants rearrange characters within a window without remapping them, so a rotated run of `━` is a *vertical* run of horizontal glyphs. Only orientation-free charsets (`#`, `~`, `░`) can use `symmetry=8`. Getting this wrong yields output that is technically valid and visually nonsense — my first draft of `circuit` and `labyrinth` had exactly this.
+- **Borders are unconstrained**, so `meadow` occasionally grows a stem to the top of the frame with no flower, and `circuit` runs a trace off the edge without a terminator. Locally legal, not fixed — the sample genuinely contains mid-stem windows.
+
+Honest perf note: `lowest_entropy_cell` is a linear scan per observation, so it's O(cells²) — about 0.8 s for a full screen with ~350 patterns. A lazy heap would fix it; I kept the scan since it matches the reference implementation and this is meant to be readable.

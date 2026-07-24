@@ -1,0 +1,26 @@
+I built a **Gray–Scott reaction–diffusion simulator** in `/workspace` — Turing's 1952 idea that diffusion can *break* symmetry rather than smooth it away, so a featureless chemical dish spontaneously grows spots and stripes.
+
+There's no numpy in this environment, which turned out to be the interesting part. The naive approach indexes four neighbours per cell in a Python loop; instead each Laplacian is assembled from whole-list slices — one C-level copy per shift — and the timestep is two list comprehensions. That hits **3.6M cell-updates/second** on one core, ~30× the nested-loop version, in less code.
+
+`labyrinth` (F=0.029, k=0.057) — ridges growing until they run out of room, the same space-filling process as a fingerprint:
+
+```
+ .:-=+*###%%%%%%#*=-:....:-=+**###%%%*=:.   .:-=++=-:....-=+*###***++=
+.::-==+*###%%%%##****##%%%##*=-::......:=+##%%%##**+++==-:..   .:=*%%@@%*=:
+=+*###%%%%%##*+=------=*##%%%##*+=-:....:-+*%%%##*+=-:.........:-=*#####+=:
+```
+
+`mitosis` (F=0.0367, k=0.0649) — spots that grow, pinch, divide, then jostle neighbours into a lattice:
+
+```
+%@@@%*-.  .:=*##*+:.     ....    .:+#@@@%+:.      .      .:---:..
+=*#*+-.. ..-*%@@@#=:.  .:-===-..  .:=+*+=:.             .-*#%%#+-.
+..:...    .-*%@@%*-....-+%@@%#=:.   .....    ..::...   .:=#@@@@#=:.
+```
+
+Two things I'd have gotten wrong without checking:
+
+- **The horizontal wrap can't be a flat-list slice.** Vertical shifts can be, but shifting the flat row-major list by one wraps row *r*'s left edge onto row *r−1*'s right edge — quietly stitching the torus into a helix with a diagonal seam through the pattern. There's a test pinning that specific cell.
+- **Over-seeding kills the dish as surely as not seeding it.** u=1, v=0 is an exact fixed point so you must perturb it — but a field that's locally uniform has zero Laplacian *there*, so a grid blotted edge-to-edge relaxes right back to flat. My first version used 24 fixed patches; the test suite failed on a 32×32 grid where that covered everything twice over. Patch count now scales with area.
+
+422 lines across solver / renderer / CLI / tests; 11 tests passing. `python3 -m turing --preset coral --ppm coral.ppm` also writes a coloured P6 image. Four rendered presets are in `out_*.txt` / `out_*.ppm`, and the README covers the physics.

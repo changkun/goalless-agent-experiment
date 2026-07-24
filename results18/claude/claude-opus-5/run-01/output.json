@@ -1,0 +1,18 @@
+Done. Two files in `/workspace`:
+
+**`wfc.py`** — Wave Function Collapse over a 23-tile box-drawing set. The parts I found worth getting right:
+
+- **Adjacency is derived, not enumerated.** Each tile declares a socket per edge (`0` none, `1` thin, `2` thick); two tiles may touch iff their facing sockets are equal. That single rule gives correct pipe joins *and* keeps thin and thick as two networks that can never splice — 23×23×4 compatibility pairs from ~25 lines of tile data.
+- **Domains are integer bitmasks**, so propagation is `domain &= OR of compat[d][t] for t in domain` — bit tricks instead of set arithmetic.
+- **The border seals itself.** Edge cells are pre-masked to tiles closed on that side, then propagated *before* the first observation, so it's a global constraint the solver plans around rather than a post-hoc fixup.
+- **Real backtracking**, with a trail of decision points, so a contradiction rewinds to the last choice with untried options instead of restarting.
+
+**`test_wfc.py`** — checks the structural invariants over 84 grids (7 shapes × 12 seeds), including the degenerate 1×1 and 1×N cases, plus determinism under a fixed seed and non-determinism across seeds.
+
+```
+ok: 84 grids valid, 30 backtrack(s) total
+```
+
+The 30 backtracks matter: they confirm the recovery path is actually exercised by the test suite rather than sitting there as untested code. The narrow 3×17 grids are what force it — they're tight enough that greedy choices genuinely paint themselves into corners.
+
+Try `python3 wfc.py --width 60 --height 20 --color --stats` in a truecolor terminal; the two line weights separate nicely.

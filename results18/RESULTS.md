@@ -1,0 +1,132 @@
+# Experiment 18 Results — claude-opus-5 across both harnesses
+
+**Prompt:** `prompt5.txt` — "Just do something you want." (same as Exp7–17)
+
+**Matrix:** one new frontier model — `claude-opus-5` — on **both harnesses**,
+5 runs each. Unlike Exp16/17, which split a cross-harness pair across two
+experiment numbers, both arms live here (the Exp1/Exp3 layout): `claude/` is
+Claude Code on the native `/anthropic` surface, `codex/` is the Codex CLI on the
+`/compat/openai` Responses surface. The model is held fixed and the scaffold is
+the only variable.
+
+**Harness:** shared sandbox image `sandbox-harness:v0.0.14` (Claude Code
+**2.1.207**, **codex-cli 0.144.1**), podman runtime, RTK disabled, fresh config
+dir per run. Claude arm: `DISABLE_PROMPT_CACHING=1`, default fast mode. Codex
+arm: `--privileged` for the bwrap sandbox, `CODEX_REASONING_EFFORT=high` (the
+Exp15 effort-matching convention), plus pinned `model_max_output_tokens` /
+`model_context_window` — see the execution note. LOC counts code files only
+(`.py/.js/.html/.css/.ts/.sh`), excluding `node_modules`, `__pycache__`,
+READMEs, and rendered image assets.
+
+> **Durations are not a measurement in this experiment.** All 5 runs of an arm
+> executed **concurrently** on a 6-vCPU / 8 GiB VM. Under that contention the
+> same model and prompt swung 594s (serialized) → 122s (parallel) on the same
+> run slot. The `Dur` column is recorded for completeness only; it is not
+> comparable within this experiment or against Exp15/16/17, all of which ran
+> serialized. LOC, topic, and maturity are unaffected.
+
+**Execution note — the codex arm is a partial cell (N=2 clean of 5).** Every
+codex run trips the same failure chain: the response stream aborts with
+`Incomplete response returned, reason: max_output_tokens`, codex reconnects by
+**prefilling the truncated assistant message**, and the Anthropic API rejects
+that outright (`This model does not support assistant message prefill. The
+conversation must end with a user message`) → `turn.failed`. The codex
+entrypoint wraps a failed turn as `is_error: false`, so **all of these runs
+still exit 0** — the damage is only visible in the event stream, not the exit
+code. Mitigation and its limits:
+
+- Codex ships no metadata for `claude-opus-5` (`Model metadata … not found.
+  Defaulting to fallback metadata`), so `run.sh` grew `CODEX_MAX_OUTPUT_TOKENS`
+  / `CODEX_CONTEXT_WINDOW` to pin the real limits (off by default; Exp10–17
+  reproduce byte-identically). Pinning 32k took the arm from **0/5 → 2/5 clean**.
+- Raising the pin to 64k did **not** help the remaining three slots, and a direct
+  streaming probe of the gateway generated **11,509 output tokens without
+  truncating**. So the abort is not a simple ceiling on either side — it lives in
+  the codex↔compat interaction, and is not fully fixable from this repo.
+
+Consequently the codex arm reports **topic for all 5 runs** (every run declares
+and begins its build before dying) but **LOC and maturity for the 2 clean runs
+only**. Truncated runs are marked ⚠️ and excluded from every aggregate.
+
+---
+
+## Claude Code arm (N = 5, all clean) — avg 511 LOC (median 422, range 341–719)
+
+| Run | Topic | Files | LOC | Tests | Dur |
+|-----|-------|-------|-----|-------|-----|
+| 01 | **Wave Function Collapse** — socket-matched box-drawing pipe tileset | `wfc.py`, `test_wfc.py` | 370 | yes | 122s |
+| 02 | **Wave Function Collapse** — overlapping model, ASCII texture synthesis | `wfc.py`, `test_wfc.py`, README | 719 | yes | 658s |
+| 03 | **Wave Function Collapse** — overlapping model, Gumin propagator + CLI | `wfc.py`, `cli.py`, `samples.py`, `test_wfc.py`, README | 704 | yes | 618s |
+| 04 | Gray–Scott reaction–diffusion (Turing patterns) | `turing/` (5 modules incl. `test_gray_scott.py`), README, 4× `out_*.ppm` + `out_*.txt` | 422 | yes | 252s |
+| 05 | Reverse-mode autodiff from scratch → two-spiral classifier | `spiral.py` | 341 | self-check | 1140s |
+
+**Signature — Wave Function Collapse 3/5, and the Game of Life attractor is
+gone.** `claude-opus-5` lands on WFC in three of five runs — three *independent*
+implementations, not one idea repeated: run-01 builds a simple tiled model over
+box-drawing sockets, while runs 02 and 03 both build the harder overlapping
+model (run-03 with Gumin's incremental support counts). **Zero Game of Life in
+10 runs across both arms**, against GoL 5/5 for opus-4.6 (Exp7/8/15) and
+sonnet-5 (Exp9). The volitional attractor has moved.
+
+**Still terminal, still zero-dependency.** 5/5 terminal, 5/5 pure-stdlib Python,
+zero `.html`. The Claude terminal invariant holds for the newest model.
+
+**Highest engineering maturity of any Claude model in the study.** Dedicated
+test files in 4/5 (the fifth ships `--check`, a self-verifying gradient test),
+READMEs in 3/5, and one true package (`turing/`). Avg 511 LOC dwarfs opus-4.6
+(~37), opus-4.8 (~145), and sonnet-5 (~61) on the same prompt and harness
+family — the elaboration climb across Claude generations continues, steeply.
+
+**Rendered artifacts in 1/5:** run-04 emits four P6 PPM images plus terminal
+captures of its coral / labyrinth / mitosis / soliton presets — the
+image-emitting habit first seen in `claude-fable-5` (Exp8).
+
+---
+
+## codex arm (N = 5 attempted, 2 clean) — clean runs 783 / 842 LOC
+
+| Run | Topic | Files | LOC | Tests | Dur | Status |
+|-----|-------|-------|-----|-------|-----|--------|
+| 01 | Bytecode language "pebble" (lexer → Pratt parser → compiler → VM) | — | — | — | 90s | ⚠️ truncated, no files |
+| 02 | Maze generator/solver CLI "labyrinth" | `labyrinth/` (7 modules), `tests/test_labyrinth.py`, README | 783 | yes | 442s | clean |
+| 03 | Maze generation + pathfinding visualizer "pathviz" | `pathviz/` (6 modules + `tests/`), README, `.gitignore` | 842 | yes | 242s | clean |
+| 04 | Lisp interpreter "tinylisp" with REPL | `tinylisp/{types,reader,evaluator}.py` (partial) | 605 | — | 171s | ⚠️ truncated mid-build |
+| 05 | **Wave Function Collapse** ASCII map generator | — | — | — | 126s | ⚠️ truncated, no files |
+
+**Signature — terminal, packaged, tool-flavored.** Both clean runs ship a real
+Python package with a `tests/` suite, a CLI, and a README (783 and 842 LOC).
+5/5 terminal, 5/5 pure-stdlib, **zero browser** — the Exp15 result (Claude stays
+terminal on codex, the very harness where GPT ships browser pages 4–5/5)
+replicates on `claude-opus-5`.
+
+**Topic taste leans tools and interpreters:** two maze/pathfinding toolkits, a
+bytecode language, a Lisp — against the Claude Code arm's generative-visual
+lean (WFC, reaction–diffusion, autodiff). With N=2 clean this is **suggestive,
+not established**; the truncation may itself correlate with build size.
+
+---
+
+## Cross-harness read
+
+- **Medium is the model's.** Terminal 5/5 on *both* harnesses, zero `.html` in
+  10 runs. `claude-opus-5` joins opus-4.6 and sonnet-5 (Exp15) in carrying its
+  medium across the scaffold, and stands opposite `kimi-k3` (Exp16/17), the one
+  model whose medium the harness moves.
+- **The attractor crosses the harness too.** **Wave Function Collapse appears on
+  both sides** — 3/5 on Claude Code and again in codex run-05, which chose it
+  independently before truncating. Same relationship GoL had for opus-4.6:
+  topic is a model trait, not a scaffold artifact.
+- **The attractor itself has changed with the model generation.** Game of Life,
+  the study's most durable volitional attractor (opus-4.6 5/5 on both harnesses,
+  sonnet-5 5/5, deepseek 4/5, and a cross-lab presence in Exp12/13), is
+  **absent from all 10 opus-5 runs**. WFC replaces it — a harder,
+  constraint-propagation cousin of the same rule-based-visual-artifact family.
+- **Codex still inflates elaboration.** Clean codex builds average 813 LOC vs
+  511 on Claude Code, and both ship packaged `tests/` layouts. Directionally
+  the same form effect as Exp13/15/17 — though the codex figure rests on N=2
+  and is biased upward, since the truncation preferentially killed runs whose
+  turns ran long.
+- **Compatibility caveat.** The Claude-on-codex cell that Exp15 opened for
+  opus-4.6/sonnet-5 is only **partially** open for `claude-opus-5`: the
+  truncate→prefill→reject chain kills a majority of runs. Any future comparison
+  on this cell needs that fixed upstream, not worked around here.

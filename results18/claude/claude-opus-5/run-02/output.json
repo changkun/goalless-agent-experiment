@@ -1,0 +1,18 @@
+I built a **Wave Function Collapse texture synthesizer** in `/workspace` — dependency-free Python, one module plus tests.
+
+You give it a small hand-drawn ASCII sample; it learns every 3×3 patch and which patches may neighbor which, then grows novel images that are locally indistinguishable from the original. Nobody encodes "beaches ring the grass, peaks stay inland" — that emerges from the patch statistics.
+
+**What's there**
+- `wfc.py` — overlapping model, entropy-ordered observation, bitmask worklist propagation, chronological backtracking. Five samples: islands, cave, circuit, flowers, rooms.
+- `test_wfc.py` — 25 tests, all passing (~94s, dominated by the validity sweeps).
+- `README.md`
+
+**Two real bugs the tests caught**, both worth noting because neither was visible by eye:
+
+1. *Ground constraint off by N.* Each cell renders its patch's top-left glyph, so pinning the bottom row to patches harvested at the sample's last valid anchor row displayed the row `n` steps *above* the actual soil — `flowers` grew stems into the void. Fixed by pinning the last `n` rows and banning the solid-earth patch above the floor line (unbanned, its weight floods the frame).
+
+2. *Negative row index at `h == n`.* The edge renderer's offset assumed `h >= 2n-2`; at `h=3, n=3` it indexed row −1 and silently wrapped to the far side of the grid, emitting patches that never existed in the sample. Replaced with a clamped step, plus a CLI guard.
+
+The test I'd point at is `TestLocalValidity`: it harvests the *output* and asserts it introduced no patch absent from the sample. That's WFC's entire contract, and it's cheap to check directly rather than eyeballing whether the result "looks right" — which is exactly how bug #2 would have escaped.
+
+Verified visually too: `-p` output tiles with no seam across the join.

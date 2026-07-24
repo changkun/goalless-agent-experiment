@@ -1,0 +1,32 @@
+Clean, no duplication. Here's what I built, unprompted:
+
+## `/workspace/spiral.py` — reverse-mode autodiff from scratch (341 lines, stdlib only)
+
+A scalar `Value` type that records how it was made, so any expression graph can be differentiated by pushing gradients backward through it. On top of that: a tanh MLP, Adam, two interleaved spirals, and the learned decision boundary rendered as colored terminal art.
+
+**Result:** 180 points, 205 parameters, 6000 Adam steps → **180/180 accuracy, loss 0.0050, 23 seconds.** Every gradient computed by the ~60-line engine, no numpy.
+
+### The interesting part was the debugging
+
+The first working version got **62.8% accuracy** with a visibly *linear* boundary and loss pinned at 0.653 ≈ log 2. That's the signature of broken gradients, so rather than reach for hyperparameters I ruled the engine out first:
+
+1. **Gradient check** vs central finite differences → max relative error **7.7e-08**. Engine exact.
+2. **Plotted the raw data** as ASCII → two clean interleaved spirals. Data fine.
+3. So it had to be optimization. A sweep over lr ∈ {0.005…0.05} × two architectures showed *every* config stalling at ~0.62 — a 10× lr range making no difference isn't a tuning problem, it's a budget problem. 700 updates is only ~124 epochs.
+
+The fix came from noticing that compute cost is `steps × batch_size`, but progress comes from *updates*. So at a fixed budget, shrinking the batch buys updates for free. Re-sweeping at **equal compute**:
+
+| config | full loss | accuracy |
+|---|---|---|
+| bs=4, 6000 steps, lr 0.05 | **0.005** | **100%** |
+| bs=8, 3000 steps, lr 0.05 | 0.065 | 96.7% |
+| bs=32, 700 steps, lr 0.05 | 0.65 | 62% |
+| bs=4, 6000 steps, lr 0.1 | 0.693 | 50% (diverged) |
+
+Same FLOPs, 62% → 100%. `lr=0.1` diverges, so 0.05 is the ceiling.
+
+### Two rendering bugs worth noting
+- Emitting an ANSI escape per cell produced **48 KB** of output for one 78×34 frame. Now escapes are emitted only when the style changes.
+- Once the net actually trained, `|score| ≈ 20` everywhere saturated my fixed `/2.5` normalization — every cell went solid and the shape vanished. Shading now scales to the 75th percentile of the observed score distribution, which keeps mid-tones alive and makes the boundary legible.
+
+I kept the gradient check in the file as `python3 spiral.py --check` (exits nonzero on failure) — it was the single most useful diagnostic here, and it's the first thing you'd want ruled out before tuning anything again.
