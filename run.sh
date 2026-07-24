@@ -30,6 +30,16 @@ LLM_GW_API_KEY="${LLM_GW_API_KEY:-}"
 # Optional codex reasoning-effort override (low|medium|high|xhigh). When set,
 # fast mode is disabled and the effort is pinned in the generated config.toml.
 CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-}"
+# Optional codex model-metadata overrides. Codex only ships metadata for models
+# it knows; for anything else it logs "Model metadata ... not found. Defaulting
+# to fallback metadata" and applies a small output ceiling. When a long answer
+# hits that ceiling the stream aborts with reason=max_output_tokens, and codex
+# retries by prefilling the truncated assistant message — which the Anthropic
+# API rejects ("does not support assistant message prefill"), failing the turn.
+# Pinning these two keys restores the model's real limits. Unset by default so
+# runs that predate this flag reproduce byte-identically.
+CODEX_MAX_OUTPUT_TOKENS="${CODEX_MAX_OUTPUT_TOKENS:-}"
+CODEX_CONTEXT_WINDOW="${CODEX_CONTEXT_WINDOW:-}"
 
 usage() {
     cat <<'EOF'
@@ -52,6 +62,12 @@ Environment:
   LLM_GW_API_KEY             API gateway key
   CODEX_REASONING_EFFORT     Pin codex reasoning effort (low|medium|high|xhigh);
                              implies --no-fast
+  CODEX_MAX_OUTPUT_TOKENS    Pin codex model_max_output_tokens. Required for
+                             models codex has no metadata for (e.g. Anthropic
+                             models on the compat surface), whose fallback
+                             ceiling truncates long turns into a failed prefill
+                             retry.
+  CODEX_CONTEXT_WINDOW       Pin codex model_context_window (same rationale)
 
 Examples:
   export LLM_GW_BASE_URL=https://llm-gw.example.com
@@ -200,6 +216,13 @@ case "$BACKEND" in
             CODEX_TOML+="model_reasoning_effort = \"$CODEX_REASONING_EFFORT\""$'\n'
         elif [[ "$MODEL" == *-pro* ]]; then
             CODEX_TOML+="model_reasoning_effort = \"high\""$'\n'
+        fi
+        # Model metadata overrides — see the note at the top of this script.
+        if [[ -n "$CODEX_MAX_OUTPUT_TOKENS" ]]; then
+            CODEX_TOML+="model_max_output_tokens = $CODEX_MAX_OUTPUT_TOKENS"$'\n'
+        fi
+        if [[ -n "$CODEX_CONTEXT_WINDOW" ]]; then
+            CODEX_TOML+="model_context_window = $CODEX_CONTEXT_WINDOW"$'\n'
         fi
         if [[ -n "$CODEX_TOML" ]]; then
             printf '%s' "$CODEX_TOML" > "$CODEX_HOME_DIR/config.toml"
