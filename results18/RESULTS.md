@@ -12,9 +12,9 @@ the only variable.
 **Harness:** shared sandbox image `sandbox-harness:v0.0.14` (Claude Code
 **2.1.207**, **codex-cli 0.144.1**), podman runtime, RTK disabled, fresh config
 dir per run. Claude arm: `DISABLE_PROMPT_CACHING=1`, default fast mode. Codex
-arm: `--privileged` for the bwrap sandbox, `CODEX_REASONING_EFFORT=high` (the
-Exp15 effort-matching convention), plus pinned `model_max_output_tokens` /
-`model_context_window` — see the execution note. LOC counts code files only
+arm: `--privileged` for the bwrap sandbox, `CODEX_REASONING_EFFORT=high`
+requested per the Exp15 convention but **not achieved** — see the execution
+note. LOC counts code files only
 (`.py/.js/.html/.css/.ts/.sh`), excluding `node_modules`, `__pycache__`,
 READMEs, and rendered image assets.
 
@@ -35,16 +35,38 @@ that outright (`This model does not support assistant message prefill. The
 conversation must end with a user message`) → `turn.failed`. The codex
 entrypoint wraps a failed turn as `is_error: false`, so **all of these runs
 still exit 0** — the damage is only visible in the event stream, not the exit
-code. Mitigation and its limits:
+code.
 
-- Codex ships no metadata for `claude-opus-5` (`Model metadata … not found.
-  Defaulting to fallback metadata`), so `run.sh` grew `CODEX_MAX_OUTPUT_TOKENS`
-  / `CODEX_CONTEXT_WINDOW` to pin the real limits (off by default; Exp10–17
-  reproduce byte-identically). Pinning 32k took the arm from **0/5 → 2/5 clean**.
-- Raising the pin to 64k did **not** help the remaining three slots, and a direct
-  streaming probe of the gateway generated **11,509 output tokens without
-  truncating**. So the abort is not a simple ceiling on either side — it lives in
-  the codex↔compat interaction, and is not fully fixable from this repo.
+**Root cause — a 4096-token default in the gateway, not in codex.** The Lux
+compat layer builds its Anthropic backend with empty options
+(`anthropic.NewBackend(anthropic.BackendOptions{})`), and that codec injects
+`max_tokens = 4096` whenever the caller omitted the field. Two measurements
+isolate it:
+
+- A `/compat/openai` request **omitting** `max_output_tokens` stops at exactly
+  **4096 output tokens** with `status: incomplete`, `reason: max_output_tokens`.
+  The same request **carrying** `max_output_tokens: 64000` streams **11,509
+  tokens** and finishes. The ceiling is the gateway's injected default.
+- Capturing codex's own wire traffic against a local endpoint shows codex
+  **never sends `max_output_tokens` at all** — the field is absent from all 30
+  captured request bodies, including with `model_max_output_tokens` pinned in
+  `config.toml`. That codex config key tunes codex's internal accounting; it is
+  not forwarded as a request field.
+
+So every codex turn is capped at 4096 output tokens, and any turn that outgrows
+it truncates and dies on the prefill retry. Runs survive only by keeping every
+individual turn under the cap, which is why the two clean runs are clean.
+`run.sh`'s `CODEX_MAX_OUTPUT_TOKENS` / `CODEX_CONTEXT_WINDOW` knobs therefore do
+**not** mitigate this failure — the 0/5 → 2/5 shift between batches was
+turn-length luck, not the pin. The fix belongs in the gateway (pass a
+model-appropriate `DefaultMaxTokens`, or omit the injection when the caller did).
+
+**The codex arm is not verifiably effort-matched.** `CODEX_REASONING_EFFORT=high`
+was set per the Exp15 convention, but the same wire capture shows codex sending
+`"reasoning": null` for `claude-opus-5` — it ships no metadata for the model and
+does not request extended thinking for it. Treat this arm as *unknown* effort,
+not matched `high`; the cross-harness reads below rest on topic and medium,
+which are robust to it, not on any effort claim.
 
 Consequently the codex arm reports **topic for all 5 runs** (every run declares
 and begins its build before dying) but **LOC and maturity for the 2 clean runs
@@ -140,5 +162,10 @@ not established**; the truncation may itself correlate with build size.
   turns ran long.
 - **Compatibility caveat.** The Claude-on-codex cell that Exp15 opened for
   opus-4.6/sonnet-5 is only **partially** open for `claude-opus-5`: the
-  truncate→prefill→reject chain kills a majority of runs. Any future comparison
-  on this cell needs that fixed upstream, not worked around here.
+  truncate→prefill→reject chain kills a majority of runs, and the cause is a
+  4096-token default injected by the gateway's Anthropic codec (execution note).
+  Until that default is raised, **no codex-arm run of any Claude model is free of
+  this ceiling** — which also puts a question mark over Exp15's codex arm, whose
+  `reasoning_output_tokens = 0` is consistent with the same
+  no-metadata/no-thinking path seen here. Re-running this cell after the gateway
+  fix is the way to get a clean comparison.

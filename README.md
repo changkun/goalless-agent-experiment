@@ -305,8 +305,12 @@ on the same prompt).
 
 **Caveat — the codex arm is a partial cell (N=2 clean of 5).** `claude-opus-5`
 on the codex compat surface trips a truncate → assistant-prefill → reject chain
-that fails the turn while still exiting 0. Topics are reported for all 5 runs;
-LOC and maturity only for the 2 clean ones. See the RESULTS execution note.
+that fails the turn while still exiting 0. The cause is a **4096-token default**
+the gateway's Anthropic codec injects when the caller omits `max_output_tokens`,
+which codex never sends: every turn is capped at 4096, and any turn that
+outgrows it dies. Topics are reported for all 5 runs; LOC and maturity only for
+the 2 clean ones, and the arm is **not** verifiably effort-matched (codex sends
+`reasoning: null` for this model). See the RESULTS execution note.
 
 See **[results18/RESULTS.md](results18/RESULTS.md)** for the full breakdown.
 
@@ -426,7 +430,7 @@ from dev tools → games → single canonical attractors.
 | Exp12 ↔ Exp13 | **Harness** (Claude Code vs codex), 6 open-weights models held fixed | Prompt, models | The controlled harness test. Model signatures (GoL attractor, kimi packaging, minimax diversity) replicate across both. Harness shifts graphical **form** (SVG on Claude Code ↔ interactive HTML on codex) but not frequency (~equal, rare). deepseek reliability drops 5/5→3/5 on codex. |
 | Exp11 ↔ Exp14 | **Harness** (codex vs Claude Code), gpt-5.6 family | Prompt, models (**effort confounded**: codex high vs CC default) | Fills the GPT cell. gpt-5.6 goes **browser under both harnesses** (sol 5/5 both) → medium is a model trait, not the codex scaffold. terra build-4/5 → decline-4/5, but effort-and-harness-confounded. |
 | Exp8/9 ↔ Exp15 | **Harness** (Claude Code vs codex), opus-4.6 + sonnet-5 | Prompt, models, **effort matched** (both `high`; reasoning_tokens=0) | Fills the Claude cell, cleanly. Claude stays **terminal + Game of Life on codex** (opus-4.6 GoL 5/5, sonnet-5 GoL ~4/5, zero browser) → medium + topic are model traits for **both** families. Codex inflates sonnet-5's build maturity (single-file → packaged+pytest) — a form effect only. |
-| Exp18 within | **Harness** (Claude Code vs codex), claude-opus-5 held fixed | Prompt, model, image (`v0.0.14`), **effort matched** (both `high`) | **The attractor moved with the model generation.** Game of Life — 5/5 for opus-4.6 on *both* harnesses (Exp8/15) and for sonnet-5 (Exp9) — is absent from all 10 opus-5 runs; **Wave Function Collapse** replaces it (3/5 Claude Code, plus an independent pick on codex). Medium holds terminal in every artifact-producing run (5/5 Claude Code, 3/3 codex) with zero browser output or intent in all 10, so topic *and* medium are model traits here. opus-5 is also the most elaborated Claude model measured (511 avg LOC, tests 4/5, vs opus-4.6's ~37). ⚠️ Codex arm is N=2 clean of 5 — a truncate→prefill→reject chain fails the turn while exiting 0 — so its LOC/maturity figures are partial and upward-biased. |
+| Exp18 within | **Harness** (Claude Code vs codex), claude-opus-5 held fixed | Prompt, model, image (`v0.0.14`); effort **not** matched — codex sends `reasoning: null` for this model | **The attractor moved with the model generation.** Game of Life — 5/5 for opus-4.6 on *both* harnesses (Exp8/15) and for sonnet-5 (Exp9) — is absent from all 10 opus-5 runs; **Wave Function Collapse** replaces it (3/5 Claude Code, plus an independent pick on codex). Medium holds terminal in every artifact-producing run (5/5 Claude Code, 3/3 codex) with zero browser output or intent in all 10, so topic *and* medium are model traits here. opus-5 is also the most elaborated Claude model measured (511 avg LOC, tests 4/5, vs opus-4.6's ~37). ⚠️ Codex arm is N=2 clean of 5 — a gateway-injected 4096-token cap truncates turns, and the prefill retry then fails the turn while exiting 0 — so its LOC/maturity figures are partial and upward-biased. |
 | Exp16 ↔ Exp17 | **Harness** (Claude Code vs codex), kimi-k3 held fixed | Prompt, model, **image matched** (`sandbox-harness:v0.0.14` both sides) | **The invariant's counterexample.** kimi-k3's *topic* is a model trait (Particle Life + Game of Life appear on both harnesses), but its *medium* tracks the harness: terminal 4/5 on Claude Code ↔ **browser 4/5 on codex** — the only model whose medium the scaffold moves. Codex also inflates maturity (only pytest-tested `gol/` package on that side). Not comparable to kimi-k2.7-code (Exp12/13): that pair ran on the older `sandbox-claude:v0.0.9` image, so the k2.7→k3 difference is image-confounded, not a generation claim. |
 
 **Per-experiment output profile:**

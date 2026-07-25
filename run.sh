@@ -30,14 +30,19 @@ LLM_GW_API_KEY="${LLM_GW_API_KEY:-}"
 # Optional codex reasoning-effort override (low|medium|high|xhigh). When set,
 # fast mode is disabled and the effort is pinned in the generated config.toml.
 CODEX_REASONING_EFFORT="${CODEX_REASONING_EFFORT:-}"
-# Optional codex model-metadata overrides. Codex only ships metadata for models
-# it knows; for anything else it logs "Model metadata ... not found. Defaulting
-# to fallback metadata" and applies a small output ceiling. When a long answer
-# hits that ceiling the stream aborts with reason=max_output_tokens, and codex
-# retries by prefilling the truncated assistant message — which the Anthropic
-# API rejects ("does not support assistant message prefill"), failing the turn.
-# Pinning these two keys restores the model's real limits. Unset by default so
-# runs that predate this flag reproduce byte-identically.
+# Optional codex model-metadata overrides, for models codex has no metadata for
+# ("Model metadata ... not found. Defaulting to fallback metadata"). These tune
+# codex's *internal* accounting — notably when it compacts against the context
+# window.
+#
+# They do NOT control the output ceiling on the wire: codex never sends
+# max_output_tokens at all (verified by capturing its request bodies), so the
+# cap that truncates long turns comes from whatever default the gateway injects.
+# See results18/RESULTS.md — the Lux compat layer injects max_tokens=4096 when
+# the caller omits it, which is what kills long codex turns against Anthropic
+# models. Setting these keys does not work around that.
+#
+# Unset by default so runs that predate this flag reproduce byte-identically.
 CODEX_MAX_OUTPUT_TOKENS="${CODEX_MAX_OUTPUT_TOKENS:-}"
 CODEX_CONTEXT_WINDOW="${CODEX_CONTEXT_WINDOW:-}"
 
