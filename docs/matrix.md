@@ -36,9 +36,13 @@ model-generation claim.)
 | qwen3.7-max | open-wt | 🖥️ terminal · **GoL-leaning** (E12) | 🖥️ terminal · +1 HTML (E13) |
 | minimax-m3 | open-wt | 🖥️ terminal · diverse (+SVG) (E12) | 🖥️ terminal · +1 HTML (E13) |
 | deepseek-v4-pro | open-wt | 🖥️ terminal · **GoL 4/5** (E12) | 🖥️ terminal · 3/5 impl (E13) |
-| deepseek-v4-flash-0731 | open-wt | 🖥️ terminal 4/5 (+1 🌐) · **GoL 2/5**, 329 LOC (E19) | 🖥️ terminal 4/5 (+1 🌐 Snake) · GoL 0/5, 5/5 impl, 254 LOC (E19) |
+| deepseek-v4-flash-0731 | open-wt | 🖥️ terminal 88% (🌐 12%) · **GoL 22%**, 446 LOC, N=50 (E20) | 🖥️ terminal 84% (🌐 16%) · **GoL 14–24%**, 100/100 impl, ~320 LOC, N=100 (E20) |
 | kimi-k2.7-code | open-wt | 🖥️ terminal · **packaged+pytest** (E12) | 🖥️ terminal · packaged (E13) |
 | kimi-k3 ⚠️ | open-wt | 🖥️ terminal 4/5 · fire/GoL/pendulum/flow (E16) | 🌐 **browser 4/5** · same topics, +pytest pkg (E17) |
+
+**deepseek-v4-flash-0731 shows Exp20's N=50 figures**, which supersede the N=5
+numbers Exp19 reported for the same cells (GoL 2/5 and 0/5). Its codex column
+pools the `high` and `low` effort cells, which do not differ significantly.
 
 **Legend:** 🖥️ terminal · 🌐 interactive browser (HTML/canvas) · 🚫 declined ·
 ⚠️ medium tracks the harness (the lone exception). For every model but `kimi-k3`
@@ -78,6 +82,8 @@ from dev tools → games → single canonical attractors.
 
 | Exp19 within | **Harness** (Claude Code vs codex), deepseek-v4-flash-0731 held fixed | Prompt, model, image (pinned cc2.1.220/cx0.146.0), **both arms on compat surfaces**; effort `high` and **verifiably achieved** (nonzero `reasoning_output_tokens` on all 5 codex runs) | **Medium holds, topic does not.** Browser-primary output is 1/5 on *each* side (a dashboard on Claude Code, a canvas Snake on codex), so deepseek carries its medium across the scaffold like opus-4.6/sonnet-5/opus-5 and unlike kimi-k3 — though this is mostly-terminal-with-occasional-browser, a weaker invariant than the zero-`.html` Claude models show. Its **attractor is one-sided**: cellular automata 2/5 on Claude Code, **0/5 on codex**. Codex *deflates* elaboration here (254 vs 329 avg LOC) — the reverse of the codex-inflates form effect seen for Claude models — and runs 2.6× faster (86s vs 224s, serialized) with 5/5 completion on both sides. |
 | Exp12/13 ↔ Exp19 | **Model tier inside one family** (deepseek-v4-pro → v4-flash-0731), both harnesses | Prompt, both compat surfaces (`/compat/anthropic` + `/compat/openai`) | ⚠️ **Confounded** (image, codex version, and codex effort `low`→`high` all moved with the tier), so read direction, not magnitude. **Fixation costs more than competence.** The Game of Life attractor halves on the harness where it lives (4/5 → 2/5 on Claude Code) and stays absent on codex (1/5 → 0/5) — the Claude-Code-side asymmetry **replicates**. Meanwhile reliability *improves*: Exp13's 3/5-implementing failure (preamble-stops that never called the write tool) becomes **5/5 on both arms**, the cleanest deepseek codex arm in the study. Raised reasoning effort is a plausible cause on its own; re-running the codex arm at `low` would separate it from the tier. |
+
+| Exp20 within | **Sample size** (N=5 → N=50) and **reasoning effort** (codex high vs low), deepseek-v4-flash-0731 held fixed | Prompt, model, image, both compat surfaces | **The harness does not move this model's attractor, and Exp19's contrary claim was a small-sample artifact.** Game of Life is 11/50 on Claude Code, 7/50 on codex@high, 12/50 on codex@low — no pair significantly different (Fisher p=0.44 / 1.00 / 0.31). Exp19's 0/5 on codex carried a 0–43% interval that contains the true 14%. Medium likewise holds across cells (browser-primary 12% / 16% / 8%). **Reasoning effort is inert here**: high vs low is 50/50 vs 50/50 implementing, 3% apart on mean LOC, n.s. on attractor — so it is not what separates Exp13's 3/5. Also surfaces two things N=5 missed: the model **declines outright in 2/50** claude runs (0/100 on codex), and elaboration stays higher on Claude Code (446 vs ~320 mean LOC). Lowers confidence in the **Exp12/13** harness asymmetry, which rests on the same 5-runs-per-cell footing. |
 
 **Per-experiment output profile:**
 

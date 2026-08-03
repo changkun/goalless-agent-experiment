@@ -43,9 +43,15 @@ corrections rather than choices:
   **1,146,626 LOC**. It also produced false attractor matches from vendored
   source, which is why the exclusion matters beyond the averages.
 
-One run (`codex-high/run-16`) wrote an **extensionless executable Python
-script** (`tnote`, with a shebang). It is counted as implementing; its lines are
-not in the LOC aggregate.
+Four runs wrote **extensionless executable scripts** with a shebang — `tt` and
+`focus` (bash), `tnote` and `wordle` (Python). Three of those runs ship other
+counted source as well; only `codex-high/run-16` is `tnote` alone, which is why
+it is the single implementing run with a LOC of 0. All four are counted as
+implementing; their lines are not in the LOC aggregate.
+
+Three runs compiled **Go binaries** (`snake` ×2, `gol`). Those are build output,
+excluded from the repository on the same grounds as `__pycache__` and `.venv`;
+the Go sources that produced them are committed.
 
 ---
 

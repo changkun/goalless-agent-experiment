@@ -51,6 +51,12 @@ check the harness plumbing without touching a container.
   across Claude releases on an identical prompt and harness family.
 - **Everything is greenfield.** No model in any experiment extends or modifies
   existing code; given a non-empty workspace they still start something new.
+- **Most cells are N=5, and that is enough to find an attractor but not to
+  compare two.** Exp20 re-ran one model at N=50 × 3 cells: the attractor and
+  medium *directions* from its N=5 predecessor held, but the one cross-harness
+  *contrast* it had asserted vanished (a 0/5 whose true rate is 14%). Read
+  single-cell frequencies as real and cross-cell differences as provisional
+  unless the experiment says otherwise.
 
 Caveats travel with the claims: several cells are effort- or image-confounded,
 and those are marked at every point they appear.
@@ -81,15 +87,17 @@ predecessor. Full per-run detail, harness pins, and caveats live in each
 | 16 | `prompt5` | new model kimi-k3, Claude Code | Terminal-leaning 4/5 | [results16](results16/RESULTS.md) |
 | 17 | `prompt5` | same model, codex (image held fixed) | **Medium flips** → browser 4/5; topics hold | [results17](results17/RESULTS.md) |
 | 18 | `prompt5` | claude-opus-5, both harnesses at once | GoL attractor gone → **WFC 3/5**; terminal holds on both ⚠️ | [results18](results18/RESULTS.md) |
-| 19 | `prompt5` | deepseek tier drop (pro → flash), both harnesses | GoL halves 4/5 → 2/5 and stays Claude-Code-side; 5/5 implementing on both | [results19](results19/RESULTS.md) |
+| 19 | `prompt5` | deepseek tier drop (pro → flash), both harnesses | GoL halves 4/5 → 2/5; 5/5 implementing on both ⚠️ its harness contrast is superseded by Exp20 | [results19](results19/RESULTS.md) |
+| 20 | `prompt5` | **N=5 → N=50**, ×3 cells (adds a codex effort arm) | **The harness does not move the attractor** (GoL 22/14/24%, all n.s.); reasoning effort changes nothing; the model declines in 2/50 | [results20](results20/RESULTS.md) |
 
 ⚠️ Exp18's codex arm is a partial cell (N=2 clean of 5) — a gateway-injected
 4096-token cap truncated the rest. See its RESULTS for the mechanism.
 
 **Reading the series.** Experiments 1–7 vary the *prompt* and settle on
 `prompt5`; 8–11 vary the *model* on a fixed prompt; 12–19 hold both and vary the
-*harness*, which is what isolates model traits from scaffold artifacts. The
-controlled pairs — Exp12↔13, Exp16↔17, Exp8/9↔15, Exp18 within, Exp19 within —
+*harness*, which is what isolates model traits from scaffold artifacts. Exp20
+varies *sample size*: 150 runs of one model, which is what makes a cross-cell
+contrast testable rather than suggestive. The controlled pairs — Exp12↔13, Exp16↔17, Exp8/9↔15, Exp18 within, Exp19 within —
 are tabulated in [the matrix](docs/matrix.md).
 
 ## Repository layout
@@ -101,7 +109,12 @@ harness.Dockerfile      pins CLI versions no published image ships
 prompt{1..5}.txt        the prompts, in the order they were tried
 resultsN/               one directory per experiment
   RESULTS.md            the experiment's write-up (source of truth)
-  <backend>/<model>/run-NN/{output.json,meta.md,log.txt,workspace/}
+  <backend>/<model>/run-NN/   per run: output.json, meta.md, log.txt, workspace/
+                              claude runs also carry transcript.jsonl (the
+                              session's tool calls; codex records these in
+                              output.json already)
+  results20 groups by cell (claude/, codex-high/, codex-low/) since it varies
+  reasoning effort rather than model
 docs/                   cross-experiment synthesis
 papers/                 LaTeX write-up
 ```
