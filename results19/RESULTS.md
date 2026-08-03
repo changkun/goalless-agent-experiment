@@ -89,8 +89,10 @@ task manager, and its codex arm opens with `scraps`, a note/snippet CLI. The
 
 **Highest maturity is concentrated, not spread.** Only run-03 ships tests — but
 it ships a genuine package: `pyproject.toml`, a `src`-less but importable
-`markovgen/` module tree, a `tests/` suite it actually executed (a
-`.pytest_cache/` is present), a `.gitignore`, and a README. It also
+`markovgen/` module tree, a `tests/` suite, a `.gitignore`, and a README. The
+run also *executed* those tests and pip-installed the package — a
+`.pytest_cache/` and a `markovgen.egg-info/` were left in the workspace, though
+neither is committed here (the run's own `.gitignore` excludes them). It also
 **self-committed**, initializing a git repository and writing
 `301a49c "Add markovgen: order-N Markov chain text generator"`. That nested
 `.git` was removed before staging so the run's source files could be tracked by
@@ -153,11 +155,13 @@ single `index.html`, its only browser artifact.
   **replicates**: for deepseek, the Life attractor is a Claude-Code-side
   phenomenon. This is the opposite of `claude-opus-5` (Exp18), whose WFC
   attractor crossed to both arms.
-- **Codex deflates elaboration for deepseek.** 254 avg LOC on codex against 329
-  on Claude Code. That is the reverse of the codex-inflates pattern seen for
-  Claude models (Exp13/15/17/18) and the same direction Exp12→13 showed for the
-  pro tier (396 → 145) — though the magnitude is far smaller here, and the effort
-  confound above means the Exp13 figure is not a fair anchor.
+- **Codex *directionally* deflates elaboration for deepseek.** 254 avg LOC on
+  codex against 329 on Claude Code. The direction is the reverse of the
+  codex-inflates pattern seen for Claude models (Exp13/15/17/18), and it matches
+  what Exp12→13 showed for the pro tier (396 → 145). Treat it as a lean, not a
+  measured gap: N=5 per arm with heavily overlapping ranges (155–425 vs
+  182–474), so the two distributions are not separated. The effort confound also
+  means the Exp13 figure is not a fair anchor.
 - **Codex is ~2.6× faster.** Serialized, the codex arm averaged 86s per run
   against 224s on Claude Code, with no cost in completion rate (5/5 both sides).
 - **The tier drop costs fixation, not competence.** Against `deepseek-v4-pro`,

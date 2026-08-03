@@ -799,6 +799,27 @@ LLM_GW_API_KEY=other-key ./run.sh --backend claude --model claude-opus-5 -p "...
 Set `LLM_ENV_FILE` to read a different file, or point it at a path that does
 not exist to skip the load.
 
+**`LLM_GW_BASE_URL` is a surface root, not the gateway root.** Each backend
+appends its own path to it — Claude Code adds `/v1/messages`, codex adds
+`/v1/responses` — so the bare gateway host serves neither and returns 405. The
+right surface also depends on the backend *and* on whether the gateway serves
+the model natively:
+
+| Backend | Surface |
+|---------|---------|
+| `--backend claude`, non-Anthropic model | `<gateway>/compat/anthropic` |
+| `--backend claude`, natively served Anthropic model | `<gateway>/anthropic` |
+| `--backend codex` | `<gateway>/compat/openai` |
+
+Because one value cannot drive both arms, put whichever you use most in `.env`
+and override the other per run — which works because a non-empty environment
+value wins over the file:
+
+```bash
+LLM_GW_BASE_URL=https://gw.example.com/compat/openai \
+  ./experiment.sh --backends codex --models "vendor/model" --runs 5
+```
+
 Note that `run.sh` bind-mounts the workspace at `/workspace`, and the workspace
 defaults to the current directory — so running it from the repo root puts
 `.env`, key included, somewhere the agent under test can read it. Pass
