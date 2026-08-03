@@ -102,10 +102,16 @@ this repository; nothing else about the artifact was altered.
 `deepseek-v4-pro` — same direction as the weakened attractor, and a modest drop
 rather than a collapse.
 
-**Run-04's data provenance is unverified.** The run claims it "pulled the actual
-GitHub API" for 121 repos. `build_dashboard.py` makes no network call — the
-numbers are baked into the source — so the artifact cannot corroborate the claim.
-Recorded as stated, not endorsed.
+**Run-04 really did pull live GitHub data.** The run claims it "pulled the actual
+GitHub API" for 121 repos, and `build_dashboard.py` makes no network call — the
+numbers are baked into the source, so the committed code alone cannot corroborate
+it. The session transcript does: `run-04/transcript.jsonl` records paginated
+`curl` calls to
+`api.github.com/search/repositories?q=stars:>100000&sort=stars`, fetched during
+the session and then inlined. Two things follow — the claim is true, and **the
+sandbox has general network egress**, not just a route to the gateway. Every
+other run in this experiment is dependency-free and offline by choice, not by
+constraint.
 
 ---
 
