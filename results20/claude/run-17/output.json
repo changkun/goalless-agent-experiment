@@ -1,0 +1,26 @@
+Since the workspace isn't a git repo, I'll skip committing unless you want it. Here's what I built.
+
+## `orb` — a tiny terminal dashboard
+
+The workspace was empty, so I made a small, self-contained tool: a live single-screen dashboard of your machine's CPU, memory, and disk, drawn with Unicode bars and a rolling sparkline.
+
+**Files in `/workspace/orb/`:**
+- `orb.py` — the whole tool, one file, **zero third-party dependencies** (reads `/proc` directly on Linux)
+- `test_orb.py` — 19 unit tests over the pure rendering helpers
+- `README.md`
+
+**What it shows** (per frame): hostname, uptime, load average, then CPU / Mem / Disk rows each with a percentage, a proportional block bar, and used/total bytes — plus a sparkline tracking recent CPU.
+
+**Usage:**
+```bash
+python3 orb.py                 # live, refresh every 1s
+python3 orb.py --once          # one snapshot then exit
+python3 orb.py --demo          # simulated data (no system info)
+python3 orb.py --count 10      # fix 10 frames then stop
+```
+
+The bars use Unicode eighth-blocks (`▏▎▍▌▋▊▉█`) so they render at any terminal width, and output degrades gracefully on narrow columns.
+
+**Verification:** all 19 tests pass, and I ran it both in demo mode and against real data — it correctly pulled live figures (`CPU 40%`, `Mem 22% · 1.7 GiB / 7.7 GiB`, `Disk ~77%`).
+
+Try it with `python3 orb.py` in a terminal. Want me to init a git repo for it, add color, or extend it with network/process metrics?

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acme · Acquisition Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page-plane:   #f9f9f7;
+    --surface-1:    #fcfcfb;
+    --primary-ink:  #0b0b0b;
+    --secondary:    #52514e;
+    --muted:        #898781;
+    --gridline:     #e1e0d9;
+    --baseline:     #c3c2b7;
+    --border:       rgba(11,11,11,0.10);
+    --delta-good:   #006300;
+    --shadow:       0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+    --series-1:     #2a78d6;  /* Direct  */
+    --series-2:     #eb6834;  /* Organic */
+    --series-3:     #1baf7a;  /* Referral */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page-plane:   #0d0d0d;
+      --surface-1:    #1a1a19;
+      --primary-ink:  #ffffff;
+      --secondary:    #c3c2b7;
+      --muted:        #898781;
+      --gridline:     #2c2c2a;
+      --baseline:     #383835;
+      --border:       rgba(255,255,255,0.10);
+      --delta-good:   #0ca30c;
+      --shadow:       0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.35);
+      --series-1:     #3987e5;
+      --series-2:     #d95926;
+      --series-3:     #199e70;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-plane:   #0d0d0d;
+    --surface-1:    #1a1a19;
+    --primary-ink:  #ffffff;
+    --secondary:    #c3c2b7;
+    --muted:        #898781;
+    --gridline:     #2c2c2a;
+    --baseline:     #383835;
+    --border:       rgba(255,255,255,0.10);
+    --delta-good:   #0ca30c;
+    --shadow:       0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.35);
+    --series-1:     #3987e5;
+    --series-2:     #d95926;
+    --series-3:     #199e70;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--primary-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1080px; margin: 0 auto; padding: 28px 24px 64px; }
+
+  .topbar { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  h1 { font-size: 20px; font-weight: 650; margin: 0 0 4px; letter-spacing: -.01em; }
+  .sub { color: var(--secondary); font-size: 13px; margin: 0; }
+  .theme-toggle {
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--primary-ink);
+    border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .theme-toggle:hover { box-shadow: var(--shadow); }
+
+  /* ---- Filter row (one row, above everything) ---- */
+  .filters {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin: 22px 0 20px; padding: 12px 14px; background: var(--surface-1);
+    border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow);
+  }
+  .seg { display: inline-flex; background: var(--page-plane); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+  .seg button {
+    border: 0; background: transparent; color: var(--secondary); font: inherit; font-size: 13px;
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--surface-1); color: var(--primary-ink); box-shadow: var(--shadow); font-weight: 600; }
+  .dim { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--secondary); }
+  .dim select {
+    font: inherit; font-size: 13px; color: var(--primary-ink); background: var(--surface-1);
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+  }
+  .spacer { flex: 1; }
+  .a11y-toggle {
+    font: inherit; font-size: 13px; color: var(--secondary); background: transparent;
+    border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  }
+
+  /* ---- KPI row ---- */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 14px; margin-bottom: 20px; }
+  .kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .kpi-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--secondary); margin-bottom: 8px; }
+  .kpi-value { font-size: 30px; font-weight: 650; letter-spacing: -.01em; line-height: 1; }
+  .kpi-delta { font-size: 13px; margin-top: 6px; color: var(--secondary); }
+  .kpi-delta b { color: var(--delta-good); font-weight: 600; }
+  .kpi svg { display: block; margin-top: 10px; width: 100%; height: 34px; }
+
+  /* ---- Chart cards ---- */
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 20px 20px 14px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .card h2 { font-size: 15px; font-weight: 650; margin: 0 0 2px; }
+  .card .card-sub { color: var(--secondary); font-size: 13px; margin: 0 0 16px; }
+
+  .chart { position: relative; width: 100%; }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .axis-tick, .axis-label { fill: var(--muted); font-size: 11px; }
+  .grid-line { stroke: var(--gridline); stroke-width: 1; }
+  .baseline { stroke: var(--baseline); stroke-width: 1; }
+
+  /* tooltip */
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 10; min-width: 150px;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 11px; box-shadow: 0 4px 16px rgba(0,0,0,.18); font-size: 12px;
+    opacity: 0; transition: opacity .08s ease;
+  }
+  .tooltip .tt-title { font-weight: 650; margin-bottom: 6px; }
+  .tooltip .tt-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 1px 0; color: var(--secondary); }
+  .tooltip .tt-row b { color: var(--primary-ink); font-variant-numeric: tabular-nums; font-weight: 650; }
+  .swatch { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  .tt-row.key { color: var(--secondary); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 14px; font-size: 13px; color: var(--secondary); }
+  .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+  .legend-line { width: 18px; height: 3px; border-radius: 2px; }
+  .legend-rect { width: 11px; height: 11px; border-radius: 3px; }
+
+  /* Table view */
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 4px; }
+  th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--baseline); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--gridline); font-variant-numeric: tabular-nums; }
+  tr:hover td { background: var(--page-plane); }
+  td.direct { color: var(--series-1); } td.organic { color: var(--series-2); } td.referral { color: var(--series-3); }
+  td.total { font-weight: 650; }
+  .view-tabs { display: inline-flex; background: var(--page-plane); border: 1px solid var(--border); border-radius: 8px; padding: 2px; margin-bottom: 12px; }
+  .view-tabs button { border: 0; background: transparent; color: var(--secondary); font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+  .view-tabs button[aria-pressed="true"] { background: var(--surface-1); color: var(--primary-ink); box-shadow: var(--shadow); font-weight: 600; }
+  .hidden { display: none; }
+
+  footer { margin-top: 28px; color: var(--muted); font-size: 12px; text-align: center; }
+
+  /* textured fills (accessibility / print / forced-colors) */
+  [data-texture="on"] .tex { fill: url(#texPattern); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div>
+      <h1>Acquisition Dashboard</h1>
+      <p class="sub">Daily active signups by channel · Acme Labs</p>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-pressed="false">🌗 Dark mode</button>
+  </div>
+
+  <!-- Filter row: date range + dimension, scopes everything below -->
+  <div class="filters" role="group" aria-label="Filters">
+    <div class="seg" id="rangeSeg" aria-label="Date range">
+      <button data-range="7"  aria-pressed="false">7d</button>
+      <button data-range="14" aria-pressed="true">14d</button>
+      <button data-range="30" aria-pressed="false">30d</button>
+      <button data-range="60" aria-pressed="false">60d</button>
+    </div>
+    <label class="dim">Channel
+      <select id="channelSel" aria-label="Channel">
+        <option value="all">All channels</option>
+        <option value="Direct">Direct</option>
+        <option value="Organic">Organic</option>
+        <option value="Referral">Referral</option>
+      </select>
+    </label>
+    <span class="spacer"></span>
+    <button class="a11y-toggle" id="textureToggle" aria-pressed="false">◑ Texture</button>
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- View tabs -->
+  <div class="view-tabs" id="viewTabs">
+    <button data-view="charts" aria-pressed="true">Charts</button>
+    <button data-view="table"  aria-pressed="false">Table</button>
+  </div>
+
+  <section id="chartsView">
+    <div class="card">
+      <h2>Signups over time</h2>
+      <p class="card-sub">Daily signups by channel — identify the story without re-deriving it</p>
+      <div class="chart" id="lineChart"></div>
+      <div class="legend" id="lineLegend"></div>
+    </div>
+
+    <div class="card">
+      <h2>Share this period</h2>
+      <p class="card-sub">Part-to-whole — yours by channel for the selected range</p>
+      <div class="chart" id="stackChart"></div>
+      <div class="legend" id="stackLegend"></div>
+    </div>
+  </section>
+
+  <section id="tableView" class="hidden">
+    <div class="card">
+      <h2>Data — table view</h2>
+      <p class="card-sub">Every value, no hovering required</p>
+      <div class="table-wrap" id="tableWrap"></div>
+    </div>
+  </section>
+
+  <footer>Synthetic sample data · built with the dataviz method</footer>
+</div>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <pattern id="texPattern" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#000" stroke-opacity="0.35" stroke-width="1.4"/>
+    </pattern>
+  </defs>
+</svg>
+
+<script>
+/* -------------------------------------------------------------
+   Synthetic dataset: 84 days of daily signups per channel.
+   Channel = identity -> 3 categorical slots from the palette.
+------------------------------------------------------------- */
+const CHANNELS = ['Direct', 'Organic', 'Referral'];
+const DAYS = 84;
+const rows = [];
+let seed = 42;
+function rnd(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+
+// Weekly seasonality + gentle growth, per channel
+const base = { Direct: 1.6, Organic: 2.4, Referral: 1.0 };
+const growth = { Direct: 1.3, Organic: 2.1, Referral: 2.4 };
+for (let i = 0; i < DAYS; i++) {
+  const week = i / 7;
+  const weekend = [0, 6].includes(new Date(2026, 4, 11 + i).getDay()) ? 0.72 : 1.0;
+  const row = { date: new Date(2026, 4, 11 + i), total: 0 };
+  for (const c of CHANNELS) {
+    const v = base[c] * (1 + growth[c] * week / 12) * weekend *
+              (0.86 + rnd() * 0.28);
+    row[c] = Math.round(v * 10) / 10;
+    row.total += row[c];
+  }
+  row.total = Math.round(row.total);
+  rows.push(row);
+}
+rows.reverse(); // oldest first
+
+const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const dateKey = d => `${d.getMonth()+1}/${d.getDate()}`;
+
+/* ---- state ---- */
+let rangeDays = 14;
+let channel = 'all';
+let texture = false;
+
+const slice = () => rows.slice(-rangeDays);
+const activeChannels = () => channel === 'all' ? CHANNELS : [channel];
+const sum = (row, cs) => cs.reduce((a, c) => a + row[c], 0);
+
+/* ================== color-mapping helpers ================== */
+const color = c => getComputedStyle(document.documentElement)
+  .getPropertyValue(`--series-${CHANNELS.indexOf(c)+1}`).trim();
+const swatch = c => `<span class="swatch" style="background:${color(c)}"></span>`;
+
+/* ================== KPI row ================== */
+function sparkPath(cs) {
+  // single-series sparkline for a KPI header
+  const s = slice();
+  const values = s.map(r => sum(r, cs));
+  const min = Math.min(...values), max = Math.max(...values);
+  const span = (max - min) || 1;
+  const W = 180, H = 34;
+  const pts = values.map((v, i) => {
+    const x = 3 + i * ((W - 6) / (values.length - 1 || 1));
+    const y = H - 4 - ((v - min) / span) * (H - 8);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${pts}"/>
+  </svg>`;
+}
+
+function kpiCard(label, value, pct, note, spark) {
+  return `<div class="kpi">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-delta"><b>${pct>=0?'▲':'▼'} ${Math.abs(pct).toFixed(1)}%</b> vs prior period</div>
+    <div class="kpi-note" style="font-size:12px;color:var(--muted)">${note}</div>
+    ${spark ? spark : ''}
+  </div>`;
+}
+
+function renderKPIs() {
+  const s = slice();
+  const cs = activeChannels();
+  const prev = rows.slice(-rangeDays*2, -rangeDays);
+  const cur = s.reduce((a,r)=>a+sum(r,cs),0);
+  const basePrev = prev.length ? prev.reduce((a,r)=>a+sum(r,cs),0) : cur;
+  const pct = ((cur - basePrev) / basePrev) * 100;
+
+  const html =
+    kpiCard('Active signups', cur, pct, cs.length>1?'all channels':cs[0], sparkPath(cs)) +
+    kpiCard('Avg / day', (cur/s.length).toFixed(1), pct, 'over '+rangeDays+' days') +
+    kpiCard('Conversion', '3.4%', 0.2, 'of unique visitors');
+  document.getElementById('kpis').innerHTML = html;
+}
+
+/* ================== Line chart ================== */
+function renderLine() {
+  const s = slice();
+  const cs = activeChannels();
+  const W = 880, H = 300, L = 46, R = 14, T = 12, B = 34;
+  const iw = W - L - R, ih = H - T - B;
+
+  const xs = i => L + i * (iw / (s.length - 1 || 1));
+  const maxV = Math.max(12, ...s.map(r => sum(r, cs))) * 1.12;
+  const ys = v => T + ih - (v / maxV) * ih;
+
+  let svg = '';
+  // grid + baseline
+  for (let g = 0; g <= 3; g++) {
+    const v = maxV * g / 3, y = ys(v);
+    svg += `<line class="grid-line" x1="${L}" y1="${y}" x2="${W-R}" y2="${y}"/>`;
+    svg += `<text class="axis-tick" x="${L-8}" y="${y+4}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  svg += `<line class="baseline" x1="${L}" y1="${ys(0)}" x2="${W-R}" y2="${ys(0)}"/>`;
+  // x labels — every ~Nth
+  const every = Math.max(1, Math.round(s.length / 8));
+  s.forEach((r, i) => {
+    if (i % every === 0) svg += `<text class="axis-tick" x="${xs(i)}" y="${H-14}" text-anchor="middle">${fmt(r.date)}</text>`;
+  });
+
+  // series — Direct is the hero (emphasis) when all; otherwise the one selected is hero
+  const hero = channel === 'all' ? 'Direct' : channel;
+  const ordered = channel === 'all'
+    ? ['Direct','Organic','Referral']            // hero first, others context gray
+    : [channel];
+  const isHero = c => c === hero;
+
+  ordered.forEach((c, si) => {
+    const pts = s.map((r, i) => `${xs(i).toFixed(1)},${ys(r[c]).toFixed(1)}`).join(' ');
+    const col = isHero(c) ? color(c) : 'var(--muted)';
+    const dash = isHero(c) ? '' : ' stroke-dasharray="3 4"';
+    svg += `<polyline class="series" data-channel="${c}" fill="none" stroke="${col}" stroke-width="${isHero(c)?2.4:1.6}"${dash} stroke-linejoin="round" stroke-linecap="round" points="${pts}" opacity="${isHero(c)?1:0.55}"/>`;
+  });
+
+  // crosshair layer: full-width transparent rect per slice binds pointer
+  const ch = `<rect x="${L}" y="${T}" width="${iw}" height="${ih}" fill="transparent" data-chart="line" data-n="${s.length}"/>`;
+  svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svg}${ch}</svg>`;
+
+  const el = document.getElementById('lineChart');
+  el.innerHTML = svg;
+
+  // legend — direct labels instead of a box for hero; add a small legend with keys
+  const legend = document.getElementById('lineLegend');
+  legend.innerHTML = ordered.map(c =>
+    `<span class="legend-item"><span class="legend-line" style="background:${isHero(c)?color(c):'var(--muted)'}"></span>${c}</span>`
+  ).join(channel==='all' ? ' · direct labels: Direct is the lead series' : '');
+
+  bindCrosshair(el);
+}
+
+/* ================== Stacked bar ================== */
+function renderStack() {
+  const s = slice();
+  const cs = activeChannels();
+  const W = 880, H = 300, L = 46, R = 14, T = 12, B = 34;
+  const iw = W - L - R, ih = H - T - B;
+  const n = s.length;
+  const slot = iw / n;
+  const barW = Math.min(40, slot * 0.62);
+  const maxV = Math.max(12, ...s.map(r => sum(r, cs))) * 1.08;
+  const ys = v => T + ih - (v / maxV) * ih;
+
+  let svg = '';
+  for (let g = 0; g <= 3; g++) {
+    const v = maxV * g / 3, y = ys(v);
+    svg += `<line class="grid-line" x1="${L}" y1="${y}" x2="${W-R}" y2="${y}"/>`;
+    svg += `<text class="axis-tick" x="${L-8}" y="${y+4}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  svg += `<line class="baseline" x1="${L}" y1="${ys(0)}" x2="${W-R}" y2="${ys(0)}"/>`;
+  const every = Math.max(1, Math.round(n / 8));
+  s.forEach((r, i) => {
+    if (i % every === 0) svg += `<text class="axis-tick" x="${L + slot*i + slot/2}" y="${H-14}" text-anchor="middle">${fmt(r.date)}</text>`;
+  });
+
+  s.forEach((r, i) => {
+    const x = L + slot * i + (slot - barW) / 2;
+    let yTop = T + ih;
+    cs.forEach(c => {
+      const h = ih * (r[c] / maxV);
+      const y = yTop - h;
+      svg += `<rect class="stack seg" data-channel="${c}" data-date="${fmt(r.date)}" data-val="${r[c]}"
+        x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${(h-2).toFixed(1)}"
+        rx="3" fill="${color(c)}" opacity="${channel==='all'||channel===c?1:0.25}"/>`;
+      yTop = y;
+    });
+  });
+  svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svg}</svg>`;
+  const el = document.getElementById('stackChart');
+  el.innerHTML = svg;
+
+  const legend = document.getElementById('stackLegend');
+  legend.innerHTML = cs.map(c =>
+    `<span class="legend-item"><span class="legend-rect" style="background:${color(c)}"></span>${c}</span>`
+  ).join('');
+
+  // bar hover → tooltip; the rect is the hit target (with 2px-surface-gap slack via pointer)
+  el.querySelectorAll('.seg').forEach(rect => {
+    rect.addEventListener('pointermove', e => {
+      const b = el.getBoundingClientRect();
+      const date = rect.dataset.date, val = rect.dataset.val, c = rect.dataset.channel;
+      tooltip(rect, el, b, `<div class="tt-title">${date}</div>
+        <div class="tt-row key">${swatch(c)}${c}</div>
+        <div class="tt-row"><b>${val}</b><span>signups</span></div>`);
+    });
+    rect.addEventListener('pointerleave', hideTooltip);
+  });
+}
+
+/* ================== Tooltip ================== */
+let tipEl;
+function tooltip(anchor, container, rect, html) {
+  if (!tipEl) { tipEl = document.createElement('div'); tipEl.className = 'tooltip'; document.body.appendChild(tipEl); }
+  tipEl.innerHTML = html; // authored static strings only (dates/values are numbers we generated)
+  tipEl.style.opacity = 1;
+  const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+  let x = rect.left + rect.width/2 - tw/2;
+  let y = rect.top - th - 10;
+  if (y < 8) y = rect.bottom + 10;
+  tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px';
+}
+function hideTooltip(){ if (tipEl) tipEl.style.opacity = 0; }
+
+function bindCrosshair(el) {
+  const svg = el.querySelector('svg');
+  const rect = el.querySelector('rect[data-chart="line"]');
+  const W = 880, H = 300, L = 46, T = 12;
+  const iw = W - L - 14, ih = H - T - 34;
+  let vline = null;
+  rect.addEventListener('pointermove', e => {
+    const b = el.getBoundingClientRect();
+    const X = ((e.clientX - b.left) / b.width) * W;
+    const i = Math.min(slice().length-1, Math.max(0, Math.round((X - L) / (iw/(slice().length-1||1)))));
+    const r = slice()[i];
+    const x = L + i * (iw / (slice().length-1 || 1));
+    if (!vline) {
+      vline = document.createElementNS('http://www.w3.org/2000/svg','line');
+      vline.setAttribute('y1', T); vline.setAttribute('y2', H-34);
+      vline.setAttribute('stroke','var(--muted)'); vline.setAttribute('stroke-width',1); vline.setAttribute('stroke-dasharray','3 3');
+      svg.appendChild(vline);
+    }
+    vline.setAttribute('x1', x); vline.setAttribute('x2', x);
+    const cs = activeChannels();
+    let body = `<div class="tt-title">${fmt(r.date)}</div>`;
+    cs.forEach(c => body += `<div class="tt-row key">${swatch(c)}${c}</div><div class="tt-row"><b>${r[c]}</b><span>signups</span></div>`);
+    body += `<div class="tt-row" style="border-top:1px solid var(--gridline);margin-top:3px;padding-top:3px"><b>${sum(r,cs)}</b><span>total</span></div>`;
+    tooltip(rect, el, b, body);
+  });
+  rect.addEventListener('pointerleave', () => { if(vline){vline.remove();vline=null;} hideTooltip(); });
+}
+
+/* ================== Table view ================== */
+function renderTable() {
+  const s = slice();
+  const cs = activeChannels();
+  let html = `<table><thead><tr><th>Date</th>`;
+  cs.forEach(c => html += `<th>${c}</th>`);
+  if (cs.length>1) html += `<th>Total</th>`;
+  html += `</tr></thead><tbody>`;
+  [...s].reverse().forEach(r => {
+    html += `<tr><td>${fmt(r.date)}</td>`;
+    cs.forEach(c => html += `<td class="${c.toLowerCase()}">${r[c]}</td>`);
+    if (cs.length>1) html += `<td class="total">${sum(r,cs)}</td>`;
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById('tableWrap').innerHTML = html;
+}
+
+/* ================== render all ================== */
+function render() {
+  renderKPIs();
+  renderLine();
+  renderStack();
+  renderTable();
+}
+
+/* ================== controls ================== */
+document.getElementById('rangeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  rangeDays = +b.dataset.range;
+  document.querySelectorAll('#rangeSeg button').forEach(x => x.setAttribute('aria-pressed', x===b));
+  render();
+});
+document.getElementById('channelSel').addEventListener('change', e => {
+  channel = e.target.value; render();
+});
+document.getElementById('viewTabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const v = b.dataset.view;
+  document.querySelectorAll('#viewTabs button').forEach(x => x.setAttribute('aria-pressed', x===b));
+  document.getElementById('chartsView').classList.toggle('hidden', v!=='charts');
+  document.getElementById('tableView').classList.toggle('hidden', v!=='table');
+});
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '☀️ Light mode' : '🌗 Dark mode';
+  render(); // colors come from CSS vars; re-render not strictly needed but refreshes sparklines
+});
+document.getElementById('textureToggle').addEventListener('click', () => {
+  texture = !texture;
+  document.documentElement.setAttribute('data-texture', texture ? 'on' : 'off');
+  document.getElementById('textureToggle').setAttribute('aria-pressed', texture);
+});
+
+render();
+</script>
+</body>
+</html>

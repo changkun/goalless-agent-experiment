@@ -1,0 +1,19 @@
+The file is self-contained (30 KB, single file, no remote resources — the only `http://` is the SVG namespace declaration). Div tags balance (39/39).
+
+I built you something — since the workspace was empty and you said "do something you want," I made a small, polished, fully-offline **Pomodoro focus timer with a stats dashboard**: `/workspace/focus.html`.
+
+**What it does**
+- **Focus / short-break / long-break** timer with a circular progress ring, phase tabs, start/pause/reset, and a beep on completion. Every 4th focus round auto-flows to a long break.
+- **Task list** — pick the task you're working on; each completed focus round (or a manual `+25` button) logs minutes toward it. Editable, deletable, color-coded.
+- **KPIs** — focus today, rounds today, day streak, and best day (last 30 days).
+- **Two charts** (per the dataviz skill I pulled in — validated palette, tooltips, legends, table-view twins, dark mode):
+  - *Focus over time*: a sequential-blue bar chart of minutes per day, with a 7/14/30-day range selector.
+  - *Where your time went*: a horizontal task-breakdown bar in the categorical palette.
+
+Everything is **one dependency-free HTML file**, data stays in `localStorage`, nothing is sent anywhere. It seeds itself with ~30 days of sample data on first open so the charts look alive — clear `localStorage` if you want a blank slate.
+
+**One honest caveat:** I couldn't do a final visual render. No headless browser was available and the sandbox has no network to install system libraries, so I can't confirm pixel-level layout. I did syntax-check all the JavaScript and hand-reviewed the render logic (fixed a tooltip-positioning bug, a missing `<svg>` wrapper, a local-vs-UTC date bug, and the long-break cycle along the way).
+
+**To view it:** open it in any browser — `open /workspace/focus.html` on macOS, or drag it into a browser window.
+
+Want me to turn it into a proper app with a real build setup, add keyboard shortcuts (space = start/pause), or wire up an export?

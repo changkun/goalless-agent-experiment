@@ -1,0 +1,27 @@
+Done. I built a complete, working **spaced-repetition flashcard CLI** (`srs`) in `/workspace/srs/` — no external dependencies, just the Python standard library.
+
+## What's there
+
+- **`srs.py`** — the tool, implementing the SM-2 scheduling algorithm (the same one Anki uses):
+  - Grades 0–5 per card; intervals grow `1 day → 6 days → ×ease`, failures reset to day 1 and drop your ease factor.
+  - Multi-deck support, atomic JSON persistence, per-card ease/interval/lapse tracking.
+  - Commands: `add`, `review`, `stats`, `newdeck`.
+- **`test_srs.py`** — 13 unit tests (scheduling math, persistence round-trips, deck filtering, an end-to-end `main()` test). All pass.
+- **`README.md`** + **`.gitignore`**.
+
+## Something worth noting
+
+While smoke-testing the live CLI I found a real bug: piping input through it caused an `EOFError` mid-review, and because the tool only saved at the *end* of a review session, an interrupt meant **every card reviewed so far was silently lost**. I fixed it two ways:
+1. Progress now saves **after every card**, so Ctrl-C loses nothing.
+2. Abrupt exits (Ctrl-C / EOF) are a clean `(interrupted; progress is saved)` message instead of a traceback.
+
+Verified: after `add Q1 Q2` then interrupting the review after grading Q1, `stats` correctly shows Q1 at `step 1, interval 1.0 days` while Q2 remains new.
+
+You can try it yourself:
+```sh
+cd /workspace/srs
+python3 srs.py add "What is the capital of France?" "Paris"
+python3 srs.py review   # then grade 0–5 when it flips the card
+```
+
+Happy learning 📇. (The workspace was empty, so I picked this since it's genuinely useful and self-contained — happy to pivot to something else if you had a different idea in mind.)

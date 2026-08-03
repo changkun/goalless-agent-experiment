@@ -1,0 +1,20 @@
+Deep zoom works too — you can see the fine spiral structure forming. The project is complete.
+
+## What I built
+
+I made a **terminal Mandelbrot set renderer** in `/workspace/mandelbrot.py` — pure Python stdlib, zero dependencies, and fully implemented:
+
+- **Escape-time algorithm** (`escape_time`): iterates `z = z² + c` per pixel, returns the iteration count at which it escapes.
+- **Log-scaled shading** so the delicate structure near the set boundary stays visible even at low max-iterations.
+- **Two output modes**: full-color ANSI (256-color gradient over half-block "pixels" for 2× vertical density) when on a real terminal, and a classic `.:-=+*#%@` ASCII ramp when piped.
+- **Command-line controls**: `--zoom`, `--x/--y` center, `--iter`, `--width/--height`, `--plain`.
+
+Verified both a default render (the classic cardioid + main bulb) and a deep zoom (`-0.7269 + 0.1889i` at 500,000×, showing spiral structure) run cleanly.
+
+To see it in true color, run it on a real terminal rather than piped output:
+
+```bash
+python3 /workspace/mandelbrot.py
+```
+
+Happy to extend it if useful — e.g. Julia-set variant (`c` fixed per-frame), a smooth continuous coloring for gradients, or an animated zoom loop.

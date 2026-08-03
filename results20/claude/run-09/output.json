@@ -1,0 +1,31 @@
+Done. Since you gave me the wheel, I built you a small, self-contained thing and verified it actually works.
+
+## What I made
+A polished **Conway's Game of Life** terminal app — `/workspace/game_of_life.py`, pure Python stdlib (zero dependencies), plus a `README.md`.
+
+**Features:**
+- Toroidal (wrap-around) universe
+- Heat coloring — cells brighten as they age (dim gray → yellow)
+- Six classic patterns including the Gosper glider gun
+- Live HUD (generation, population, fps)
+- Interactive controls: pause/step, random, a "virus" injector, save/load to file, speed, help
+
+**Run it with:**
+```bash
+python3 game_of_life.py --pattern gosper
+python3 game_of_life.py --random
+```
+
+## The fun part
+The tests I wrote actually caught **two real bugs**:
+1. `glider` cells couldn't be placed (the `place()` helper assumed a `shape` attribute that didn't exist) — fixed.
+2. A `KeyError` crash once any cell aged past 5 and the renderer ran out of color ramp entries — fixed with proper clamping.
+
+## Verified working
+- ✅ Glider correctly translates and returns to origin on the torus (after 80 gens)
+- ✅ Pulsar is period-3, blinker stays at population 3
+- ✅ Gosper gun sustains active glider production
+- ✅ Toroidal edge-wrap, save/load round-trip
+- ✅ Full live run with every keybind exercised, plus a 240-fps stress test with no crash
+
+It's a small thing, but it's real and tested. If you'd like, I could extend it — a proper cursor-based placement mode, spaceship catalog, or a "zoom" that renders the CA as full-color blocks. Just say the word.

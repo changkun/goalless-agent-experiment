@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wordle-cli"
+version = "0.1.0"
+description = "A Wordle-style word game for the terminal."
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.scripts]
+wordle = "wordle_cli.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

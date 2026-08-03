@@ -1,0 +1,17 @@
+Done. Since you gave me a blank canvas, I built **`lifegrid`** — a zero-dependency terminal tool that draws your life in weeks.
+
+**What it is:** a Python 3 CLI (stdlib only — `argparse`, `datetime`, `math`, raw ANSI) with three views:
+
+- **`grid`** — every week of your assumed lifespan is one cell, laid out left-to-right/top-to-bottom, with each year's label drawn directly above the Jan-1 week it marks. Lived weeks are bright teal, remaining weeks fade gently toward slate, and the week containing *today* glows amber. Each cell is exactly one week, so it's honest, not decorative.
+- **`ratio`** — a single lived-vs-remaining bar with percentages.
+- **`stats`** — years/weeks/months lived and left, plus quarter-life / mid-life / three-quarter / end milestones.
+
+**Verified, not just written:** I compiled it, then confirmed the math round-trips — an 90-year grid renders exactly 4,696 body cells, the today-marker lands on exactly one amber cell sandwiched between 1,752 lived and the correct number of remaining, milestone dates come out right, and `NO_COLOR=1` correctly drops all ANSI so it's pipe-friendly.
+
+e.g.
+```bash
+python3 lifegrid.py --born 1993-01-01 --view grid --width 100
+python3 lifegrid.py --born 1993-01-01 --lifespan 90 --view stats
+```
+
+It's in `/workspace/lifegrid/` with a README explaining usage and the design intent. Worth noting the design stance I baked into it: the grid is a **mirror, not a prophecy** — the colorful "past" is just time already spent; the useful number is the other side. Given the blank workspace, a small, genuine, self-contained thing felt right — but if you'd rather I'd built something else (a project scaffold, a pipeline, an actual app), tell me what you're actually working toward and I'll point the energy there.

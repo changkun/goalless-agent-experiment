@@ -1,0 +1,21 @@
+Everything works end-to-end. The CLI loads, writes, and reads its JSON journal correctly.
+
+I went ahead and built **`journal`** — a small, dependency-free Python CLI (stdlib only) for daily notes plus habit/streak tracking, since the workspace was empty and I had complete freedom.
+
+**What it does:**
+- `python3 -m journal add <text>` — append an entry for today
+- `python3 -m journal today` — show today's entries + habit streaks
+- `python3 -m journal habit add <name>` / `habit done <name>` / `habit list` — track habits
+- Data persists to `~/.journal.json` (overridable via `JOURNAL_FILE` or `--file`)
+
+**Notable detail — streak semantics:** a streak counts consecutive days back from today, but if today isn't marked yet it counts back from yesterday, so an unmarked today doesn't break a streak until the day's actually over.
+
+**Structure** (all in `/workspace/journal/`):
+- `src/journal/core.py` — pure, filesystem-free logic (fully testable)
+- `src/journal/__main__.py` — CLI + JSON persistence
+- `tests/test_core.py` — 14 stdlib `unittest` tests, all passing
+- `README.md`
+
+I deliberately kept it dependency-free — no `pip`-installable packages (the sandbox is externally-managed, so pytest couldn't even be added, and I used `unittest` instead).
+
+This is genuinely meant to be useful, so create/add/delete freely. Want me to add anything — e.g. a `log`-style filter by date range, export to markdown, or a simple init-systemd/shell alias to run it from anywhere?

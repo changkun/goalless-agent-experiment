@@ -1,0 +1,7 @@
+>>> Running claude sandbox
+>>> Image:     sandbox-harness:pinned-cc2.1.220-cx0.146.0
+>>> Endpoint:  https://lux.latere.ai/compat/anthropic
+>>> API Key:   lux_YCRX...
+>>> Model:     deepseek/deepseek-v4-flash-0731
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results20/_claude/claude/deepseek-v4-flash-0731/run-03/workspace
+

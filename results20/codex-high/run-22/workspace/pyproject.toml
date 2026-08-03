@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pomo"
+version = "0.1.0"
+description = "A dependency-free Pomodoro timer for the terminal."
+readme = "README.md"
+requires-python = ">=3.9"
+
+[project.scripts]
+pomo = "pomo.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pomo*"]

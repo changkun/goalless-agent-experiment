@@ -1,0 +1,22 @@
+Done. Since the workspace was empty, I built a complete, dependency-free Game of Life project from scratch in `/workspace/gol/`.
+
+**What's in it:**
+- `engine.py` — sparse-set simulation engine (`step`, `step_n`). Only live cells are stored, so memory scales with population, and the universe is unbounded.
+- `patterns.py` — classic patterns: block & beehive (still lifes), blinker/toad/pulsar (oscillators), glider & lightweight spaceship (spaceships), and the Gosper glider gun (parsed from its canonical RLE).
+- `render.py` — ASCII terminal rendering.
+- `animate.py` — a live animated terminal display (defaults to the Gosper gun firing gliders).
+- `gallery.py` — prints every pattern in its own box.
+- `test_gol.py` — 15 tests verifying the engine rules and that every pattern really has its advertised period / translation / growth.
+- `README.md` — docs.
+
+**Notable: the tests caught real bugs.** My very first version had a genuine engine bug — in the "birth" rule I intersected with the currently-live set, so brand-new cells could never appear. Fixing that made the classic patterns work. The pattern specs also needed validation: my hand-drawn pulsar and gosper gun had wrong cell counts (54 instead of 48; a mangled gun), so I replaced them with verified canonical versions that the tests now confirm (pulsar = 48 cells, period 3; gun emits escaping gliders with unbounded population growth). The spaceship tests taught me the lwss moves left, not right.
+
+All 15 tests pass. Try it:
+
+```console
+python3 gol/animate.py              # watch the Gosper gun fire gliders
+python3 gol/gallery.py              # see all the patterns
+python3 gol/test_gol.py             # run the test suite
+```
+
+One note: the animation uses ANSI escape codes, so it looks best in a proper terminal rather than this sandbox — the smoke test confirmed the glider moves correctly between frames.

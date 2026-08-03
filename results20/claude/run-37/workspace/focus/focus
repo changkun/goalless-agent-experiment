@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Launcher so `./focus` (or a symlink in PATH) runs the tracker.
+exec python3 "$(dirname "$(realpath "$0")")/focus.py" "$@"

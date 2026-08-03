@@ -1,0 +1,25 @@
+I built you a complete, self-contained project from scratch in the empty workspace: **MarkovText** — a word-level Markov chain text generator, pure Python/stdlib, no external dependencies.
+
+**What's here**
+
+```
+markov/core.py          # training + generation engine (n-gram model)
+markov/cli.py           # train/generate subcommands + JSON (de)serialization
+tests/test_core.py      # 9 unit tests
+sample/grimms_fables.txt# demo corpus (Grimm fairy tales, blank-line docs)
+pyproject.toml, README.md
+```
+
+**Engines highlights**
+- Configurable `order` (2–3 is a good default); states are word tuples keyed into a frequency table.
+- Weighted generation by default (`--uniform` to switch to equal picks), with an `END` sentinel so chains terminate.
+- Train on a blob or iterable of documents; saves/loads the model to compact JSON.
+- Deterministic output via a seed.
+
+**It works end to end** — all 9 tests pass and the CLI ran cleanly. Here's what it generated from the Grimm corpus (order 2, seeded):
+
+> *The Frog King In olden times when wishing still helped one, there lived a king whose daughters were all beautiful. The youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face…*
+
+Quickstart: `pip install .`, then `markovtext train sample/grimms_fables.txt -o model.json` and `markovtext generate model.json --seed 1`.
+
+The two bigger ideas I chose: fitting a chain of arbitrary order with frequency-weighted sampling (more interesting output than a toy first-order model), and JSON round-tripping so trained models are reusable without re-reading the corpus. If you'd like, I can add a prompt/seed-from-text generation mode, suffix-array or character-level variants, or bundle it as a proper package with more corpora.

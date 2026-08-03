@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Global warming in one chart</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;   /* chart surface */
+    --page:      #f9f9f7;
+    --ink:       #0b0b0b;   /* primary */
+    --ink-2:     #52514e;   /* secondary */
+    --muted:     #898781;   /* axis / labels */
+    --grid:      #e1e0d9;   /* hairline grid */
+    --axis:      #c3c2b7;   /* baseline / axis */
+    --series-1:  #2a78d6;   /* the line (light) */
+    --series-1-w:#2a78d6;
+    --good:      #006300;
+    --bad:       #e34948;
+    --card:      #ffffff;
+    --border:    rgba(11,11,11,0.10);
+    --tooltip:   rgba(252,252,251,0.96);
+    --shadow:    0 8px 28px rgba(20,20,20,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1: #1a1a19;
+      --page:      #0d0d0d;
+      --ink:       #ffffff;
+      --ink-2:     #c3c2b7;
+      --muted:     #898781;
+      --grid:      #2c2c2a;
+      --axis:      #383835;
+      --series-1:  #3987e5;
+      --good:      #0ca30c;
+      --bad:       #e66767;
+      --card:      #161615;
+      --border:    rgba(255,255,255,0.10);
+      --tooltip:   rgba(26,26,25,0.96);
+      --shadow:    0 8px 28px rgba(0,0,0,0.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --page:      #0d0d0d;
+    --ink:       #ffffff;
+    --ink-2:     #c3c2b7;
+    --muted:     #898781;
+    --grid:      #2c2c2a;
+    --axis:      #383835;
+    --series-1:  #3987e5;
+    --good:      #0ca30c;
+    --bad:       #e66767;
+    --card:      #161615;
+    --border:    rgba(255,255,255,0.10);
+    --tooltip:   rgba(26,26,25,0.96);
+    --shadow:    0 8px 28px rgba(0,0,0,0.45);
+  }
+  * { box-sizing: border-box; }
+  html,body { margin:0; padding:0; background:var(--page); }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 72px; }
+  header { margin-bottom: 28px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 0 0 10px;
+  }
+  h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.08; margin: 0 0 10px; font-weight: 650; }
+  .lede { color: var(--ink-2); font-size: 16px; max-width: 66ch; margin: 0; }
+  .hero { display:flex; gap:6px; align-items:baseline; margin: 22px 0 4px; flex-wrap: wrap; }
+  .hero-num { font-size: 46px; font-weight: 650; line-height:1; }
+  .hero-unit { color: var(--muted); font-size: 14px; }
+  .hero-delta { font-size: 17px; font-weight:600; }
+  .delta.up  { color: var(--good); }
+  .delta.down{ color: var(--bad); }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px 22px 12px;
+    box-shadow: var(--shadow);
+  }
+  .card-tools { display:flex; justify-content:space-between; align-items:center;
+    gap:16px; flex-wrap:wrap; margin-bottom: 6px;
+    font-size: 13px; color: var(--ink-2);
+  }
+  .mode-toggle { border:1px solid var(--border); background:transparent; color:var(--ink-2);
+    font-family:inherit; font-size:13px; padding:6px 12px; border-radius:999px; cursor:pointer; }
+  .mode-toggle:hover { color: var(--ink); border-color: var(--muted); }
+  .legend { display:flex; gap:18px; align-items:center; font-size:13px; color:var(--ink-2); }
+  .legend .key { display:inline-flex; align-items:center; gap:7px; }
+  .legend .swatch { width:18px; height:2px; border-radius:2px; background:var(--series-1); display:inline-block; }
+  .legend .trend-dot { width:7px; height:7px; border-radius:50%; background:var(--series-1); display:inline-block; }
+  svg { display:block; width:100%; height:auto; }
+  /* mark & chrome tokens */
+  .grid { stroke: var(--grid); stroke-width:1; }
+  .axis { stroke: var(--axis); stroke-width:1; }
+  .zero { stroke: var(--axis); stroke-width:1; }
+  .ytick { fill: var(--muted); font-size:11px; }
+  .xtick { fill: var(--muted); font-size:11px; }
+  .area { fill: var(--series-1); opacity:.10; }
+  .line { fill:none; stroke: var(--series-1); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .trend { fill:none; stroke: var(--series-1); stroke-width:2; stroke-dasharray:5 5; opacity:.8; }
+  .trend-dot { fill: var(--surface-1); stroke: var(--series-1); stroke-width:2; }
+  .end-dot { fill: var(--series-1); }
+  .end-label { fill: var(--ink); font-size:12px; font-weight:600; }
+  .hover-band { opacity:0; pointer-events:all; }
+  .crosshair { stroke: var(--muted); stroke-width:1; opacity:0; pointer-events:none; }
+  .hover-pt { fill: var(--surface-1); stroke: var(--series-1); stroke-width:2; opacity:0; pointer-events:none; }
+  .footnote { color: var(--muted); font-size:12px; margin-top:10px; }
+  .table-wrap { margin-top: 26px; }
+  .table-wrap summary {
+    cursor:pointer; font-size:14px; font-weight:600; color:var(--ink-2);
+    padding:10px 0; user-select:none; list-style:none;
+  }
+  .table-wrap summary::-webkit-details-marker { display:none; }
+  .table-wrap summary:hover { color:var(--ink); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:right; padding:6px 10px; border-bottom:1px solid var(--grid);
+    font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+  td:first-child, th:first-child { text-align:left; }
+  tbody tr:nth-child(even) { background: color-mix(in srgb, var(--series-1) 3%, transparent); }
+  .cap { color: var(--muted); font-size:12px; margin-top:8px; }
+  #tip {
+    position:absolute; display:none; pointer-events:none; z-index:5;
+    background:var(--tooltip); border:1px solid var(--border); border-radius:9px;
+    padding:9px 12px; font-size:12px; box-shadow: var(--shadow); backdrop-filter: blur(4px);
+  }
+  #tip .t-val { font-size:17px; font-weight:700; line-height:1.1; }
+  #tip .t-lab { color: var(--ink-2); margin-top:2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">NASA GISTEMP &middot; observational climate data</p>
+    <h1>Global warming in one chart</h1>
+    <p class="lede">
+      Global land&#8209;ocean temperature anomaly, 1880&ndash;2025,
+      relative to the 1951&ndash;1980 average. The dashed line is the linear trend.
+    </p>
+    <div class="hero">
+      <span class="hero-num hero-delta">+1.26&deg;C</span>
+      <span class="hero-unit">2025 anomaly</span>
+    </div>
+    <p class="hero hero-delta delta up" style="margin-top:0">
+      Trend: +0.09&deg;C per decade
+      &nbsp;&middot;&nbsp; Warmest year on record: 2024 (+1.43&deg;C)
+    </p>
+  </header>
+
+  <div class="card" style="position:relative">
+    <div class="card-tools">
+      <div class="legend">
+        <span class="key"><span class="swatch"></span>Temperature anomaly</span>
+        <span class="key"><span class="trend-dot"></span>&nbsp;Linear trend (+0.09&deg;C / decade)</span>
+      </div>
+      <button class="mode-toggle" id="modebtn" type="button" aria-pressed="false">Dark mode</button>
+    </div>
+
+    <svg id="chart" role="img" aria-label="Line chart of global temperature anomaly from 1880 to 2025. The line rises from about minus half a degree to about plus one and a quarter degrees." viewBox="0 0 860 460" xmlns="http://www.w3.org/2000/svg">
+    </svg>
+    <div id="tip" role="status"></div>
+    <p class="footnote">
+      Anomalies in &deg;C vs the 1951&ndash;1980 base period. Source: NASA GISS
+      GISTEMP v4 (GHCN&#8209;v4 + ERSST&#8209;v5), annual J&ndash;D means.
+    </p>
+  </div>
+
+  <details class="table-wrap">
+    <summary>Annual values &mdash; data table</summary>
+    <div class="cap">Every value, oldest to newest. Delta is relative to the 1951&ndash;1980 average.</div>
+    <div style="max-height:420px; overflow:auto; border:1px solid var(--border); border-radius:10px;">
+      <table>
+        <thead><tr><th>Year</th><th>Anomaly (&deg;C)</th><th>Delta</th></tr></thead>
+        <tbody><tr><td>1880</td><td>-0.25</td><td class="delta down">&#9660; 0.25</td></tr><tr><td>1881</td><td>-0.16</td><td class="delta down">&#9660; 0.16</td></tr><tr><td>1882</td><td>+0.13</td><td class="delta up">&#9650; 0.13</td></tr><tr><td>1883</td><td>-0.37</td><td class="delta down">&#9660; 0.37</td></tr><tr><td>1884</td><td>-0.08</td><td class="delta down">&#9660; 0.08</td></tr><tr><td>1885</td><td>-0.34</td><td class="delta down">&#9660; 0.34</td></tr><tr><td>1886</td><td>-0.51</td><td class="delta down">&#9660; 0.51</td></tr><tr><td>1887</td><td>-0.57</td><td class="delta down">&#9660; 0.57</td></tr><tr><td>1888</td><td>-0.37</td><td class="delta down">&#9660; 0.37</td></tr><tr><td>1889</td><td>+0.16</td><td class="delta up">&#9650; 0.16</td></tr><tr><td>1890</td><td>-0.45</td><td class="delta down">&#9660; 0.45</td></tr><tr><td>1891</td><td>-0.46</td><td class="delta down">&#9660; 0.46</td></tr><tr><td>1892</td><td>-0.12</td><td class="delta down">&#9660; 0.12</td></tr><tr><td>1893</td><td>-0.57</td><td class="delta down">&#9660; 0.57</td></tr><tr><td>1894</td><td>-0.29</td><td class="delta down">&#9660; 0.29</td></tr><tr><td>1895</td><td>-0.42</td><td class="delta down">&#9660; 0.42</td></tr><tr><td>1896</td><td>-0.13</td><td class="delta down">&#9660; 0.13</td></tr><tr><td>1897</td><td>-0.17</td><td class="delta down">&#9660; 0.17</td></tr><tr><td>1898</td><td>-0.30</td><td class="delta down">&#9660; 0.30</td></tr><tr><td>1899</td><td>-0.38</td><td class="delta down">&#9660; 0.38</td></tr><tr><td>1900</td><td>-0.06</td><td class="delta down">&#9660; 0.06</td></tr><tr><td>1901</td><td>-0.11</td><td class="delta down">&#9660; 0.11</td></tr><tr><td>1902</td><td>-0.09</td><td class="delta down">&#9660; 0.09</td></tr><tr><td>1903</td><td>-0.06</td><td class="delta down">&#9660; 0.06</td></tr><tr><td>1904</td><td>-0.59</td><td class="delta down">&#9660; 0.59</td></tr><tr><td>1905</td><td>-0.59</td><td class="delta down">&#9660; 0.59</td></tr><tr><td>1906</td><td>-0.29</td><td class="delta down">&#9660; 0.29</td></tr><tr><td>1907</td><td>-0.51</td><td class="delta down">&#9660; 0.51</td></tr><tr><td>1908</td><td>-0.32</td><td class="delta down">&#9660; 0.32</td></tr><tr><td>1909</td><td>-0.46</td><td class="delta down">&#9660; 0.46</td></tr><tr><td>1910</td><td>-0.42</td><td class="delta down">&#9660; 0.42</td></tr><tr><td>1911</td><td>-0.58</td><td class="delta down">&#9660; 0.58</td></tr><tr><td>1912</td><td>-0.16</td><td class="delta down">&#9660; 0.16</td></tr><tr><td>1913</td><td>-0.46</td><td class="delta down">&#9660; 0.46</td></tr><tr><td>1914</td><td>-0.11</td><td class="delta down">&#9660; 0.11</td></tr><tr><td>1915</td><td>-0.04</td><td class="delta down">&#9660; 0.04</td></tr><tr><td>1916</td><td>-0.15</td><td class="delta down">&#9660; 0.15</td></tr><tr><td>1917</td><td>-0.63</td><td class="delta down">&#9660; 0.63</td></tr><tr><td>1918</td><td>-0.35</td><td class="delta down">&#9660; 0.35</td></tr><tr><td>1919</td><td>-0.23</td><td class="delta down">&#9660; 0.23</td></tr><tr><td>1920</td><td>-0.28</td><td class="delta down">&#9660; 0.28</td></tr><tr><td>1921</td><td>-0.18</td><td class="delta down">&#9660; 0.18</td></tr><tr><td>1922</td><td>-0.45</td><td class="delta down">&#9660; 0.45</td></tr><tr><td>1923</td><td>-0.40</td><td class="delta down">&#9660; 0.40</td></tr><tr><td>1924</td><td>-0.23</td><td class="delta down">&#9660; 0.23</td></tr><tr><td>1925</td><td>-0.39</td><td class="delta down">&#9660; 0.39</td></tr><tr><td>1926</td><td>+0.02</td><td class="delta up">&#9650; 0.02</td></tr><tr><td>1927</td><td>-0.18</td><td class="delta down">&#9660; 0.18</td></tr><tr><td>1928</td><td>-0.09</td><td class="delta down">&#9660; 0.09</td></tr><tr><td>1929</td><td>-0.58</td><td class="delta down">&#9660; 0.58</td></tr><tr><td>1930</td><td>-0.27</td><td class="delta down">&#9660; 0.27</td></tr><tr><td>1931</td><td>-0.21</td><td class="delta down">&#9660; 0.21</td></tr><tr><td>1932</td><td>-0.18</td><td class="delta down">&#9660; 0.18</td></tr><tr><td>1933</td><td>-0.30</td><td class="delta down">&#9660; 0.30</td></tr><tr><td>1934</td><td>-0.03</td><td class="delta down">&#9660; 0.03</td></tr><tr><td>1935</td><td>+0.14</td><td class="delta up">&#9650; 0.14</td></tr><tr><td>1936</td><td>-0.38</td><td class="delta down">&#9660; 0.38</td></tr><tr><td>1937</td><td>+0.03</td><td class="delta up">&#9650; 0.03</td></tr><tr><td>1938</td><td>+0.04</td><td class="delta up">&#9650; 0.04</td></tr><tr><td>1939</td><td>-0.06</td><td class="delta down">&#9660; 0.06</td></tr><tr><td>1940</td><td>+0.08</td><td class="delta up">&#9650; 0.08</td></tr><tr><td>1941</td><td>+0.30</td><td class="delta up">&#9650; 0.30</td></tr><tr><td>1942</td><td>+0.02</td><td class="delta up">&#9650; 0.02</td></tr><tr><td>1943</td><td>+0.17</td><td class="delta up">&#9650; 0.17</td></tr><tr><td>1944</td><td>+0.24</td><td class="delta up">&#9650; 0.24</td></tr><tr><td>1945</td><td>+0.01</td><td class="delta up">&#9650; 0.01</td></tr><tr><td>1946</td><td>+0.03</td><td class="delta up">&#9650; 0.03</td></tr><tr><td>1947</td><td>-0.08</td><td class="delta down">&#9660; 0.08</td></tr><tr><td>1948</td><td>-0.15</td><td class="delta down">&#9660; 0.15</td></tr><tr><td>1949</td><td>-0.14</td><td class="delta down">&#9660; 0.14</td></tr><tr><td>1950</td><td>-0.27</td><td class="delta down">&#9660; 0.27</td></tr><tr><td>1951</td><td>-0.41</td><td class="delta down">&#9660; 0.41</td></tr><tr><td>1952</td><td>+0.11</td><td class="delta up">&#9650; 0.11</td></tr><tr><td>1953</td><td>+0.15</td><td class="delta up">&#9650; 0.15</td></tr><tr><td>1954</td><td>-0.10</td><td class="delta down">&#9660; 0.10</td></tr><tr><td>1955</td><td>-0.16</td><td class="delta down">&#9660; 0.16</td></tr><tr><td>1956</td><td>-0.24</td><td class="delta down">&#9660; 0.24</td></tr><tr><td>1957</td><td>-0.03</td><td class="delta down">&#9660; 0.03</td></tr><tr><td>1958</td><td>+0.22</td><td class="delta up">&#9650; 0.22</td></tr><tr><td>1959</td><td>+0.07</td><td class="delta up">&#9650; 0.07</td></tr><tr><td>1960</td><td>+0.13</td><td class="delta up">&#9650; 0.13</td></tr><tr><td>1961</td><td>+0.19</td><td class="delta up">&#9650; 0.19</td></tr><tr><td>1962</td><td>+0.15</td><td class="delta up">&#9650; 0.15</td></tr><tr><td>1963</td><td>+0.18</td><td class="delta up">&#9650; 0.18</td></tr><tr><td>1964</td><td>-0.10</td><td class="delta down">&#9660; 0.10</td></tr><tr><td>1965</td><td>-0.17</td><td class="delta down">&#9660; 0.17</td></tr><tr><td>1966</td><td>-0.04</td><td class="delta down">&#9660; 0.04</td></tr><tr><td>1967</td><td>-0.21</td><td class="delta down">&#9660; 0.21</td></tr><tr><td>1968</td><td>-0.14</td><td class="delta down">&#9660; 0.14</td></tr><tr><td>1969</td><td>-0.18</td><td class="delta down">&#9660; 0.18</td></tr><tr><td>1970</td><td>+0.22</td><td class="delta up">&#9650; 0.22</td></tr><tr><td>1971</td><td>-0.15</td><td class="delta down">&#9660; 0.15</td></tr><tr><td>1972</td><td>-0.18</td><td class="delta down">&#9660; 0.18</td></tr><tr><td>1973</td><td>+0.32</td><td class="delta up">&#9650; 0.32</td></tr><tr><td>1974</td><td>-0.27</td><td class="delta down">&#9660; 0.27</td></tr><tr><td>1975</td><td>+0.08</td><td class="delta up">&#9650; 0.08</td></tr><tr><td>1976</td><td>-0.06</td><td class="delta down">&#9660; 0.06</td></tr><tr><td>1977</td><td>+0.23</td><td class="delta up">&#9650; 0.23</td></tr><tr><td>1978</td><td>+0.10</td><td class="delta up">&#9650; 0.10</td></tr><tr><td>1979</td><td>-0.10</td><td class="delta down">&#9660; 0.10</td></tr><tr><td>1980</td><td>+0.39</td><td class="delta up">&#9650; 0.39</td></tr><tr><td>1981</td><td>+0.42</td><td class="delta up">&#9650; 0.42</td></tr><tr><td>1982</td><td>+0.15</td><td class="delta up">&#9650; 0.15</td></tr><tr><td>1983</td><td>+0.43</td><td class="delta up">&#9650; 0.43</td></tr><tr><td>1984</td><td>+0.14</td><td class="delta up">&#9650; 0.14</td></tr><tr><td>1985</td><td>-0.04</td><td class="delta down">&#9660; 0.04</td></tr><tr><td>1986</td><td>+0.37</td><td class="delta up">&#9650; 0.37</td></tr><tr><td>1987</td><td>+0.43</td><td class="delta up">&#9650; 0.43</td></tr><tr><td>1988</td><td>+0.44</td><td class="delta up">&#9650; 0.44</td></tr><tr><td>1989</td><td>+0.30</td><td class="delta up">&#9650; 0.30</td></tr><tr><td>1990</td><td>+0.44</td><td class="delta up">&#9650; 0.44</td></tr><tr><td>1991</td><td>+0.50</td><td class="delta up">&#9650; 0.50</td></tr><tr><td>1992</td><td>+0.40</td><td class="delta up">&#9650; 0.40</td></tr><tr><td>1993</td><td>+0.37</td><td class="delta up">&#9650; 0.37</td></tr><tr><td>1994</td><td>+0.02</td><td class="delta up">&#9650; 0.02</td></tr><tr><td>1995</td><td>+0.79</td><td class="delta up">&#9650; 0.79</td></tr><tr><td>1996</td><td>+0.46</td><td class="delta up">&#9650; 0.46</td></tr><tr><td>1997</td><td>+0.41</td><td class="delta up">&#9650; 0.41</td></tr><tr><td>1998</td><td>+0.88</td><td class="delta up">&#9650; 0.88</td></tr><tr><td>1999</td><td>+0.64</td><td class="delta up">&#9650; 0.64</td></tr><tr><td>2000</td><td>+0.56</td><td class="delta up">&#9650; 0.56</td></tr><tr><td>2001</td><td>+0.44</td><td class="delta up">&#9650; 0.44</td></tr><tr><td>2002</td><td>+0.78</td><td class="delta up">&#9650; 0.78</td></tr><tr><td>2003</td><td>+0.58</td><td class="delta up">&#9650; 0.58</td></tr><tr><td>2004</td><td>+0.72</td><td class="delta up">&#9650; 0.72</td></tr><tr><td>2005</td><td>+0.60</td><td class="delta up">&#9650; 0.60</td></tr><tr><td>2006</td><td>+0.74</td><td class="delta up">&#9650; 0.74</td></tr><tr><td>2007</td><td>+0.70</td><td class="delta up">&#9650; 0.70</td></tr><tr><td>2008</td><td>+0.38</td><td class="delta up">&#9650; 0.38</td></tr><tr><td>2009</td><td>+0.53</td><td class="delta up">&#9650; 0.53</td></tr><tr><td>2010</td><td>+0.84</td><td class="delta up">&#9650; 0.84</td></tr><tr><td>2011</td><td>+0.47</td><td class="delta up">&#9650; 0.47</td></tr><tr><td>2012</td><td>+0.48</td><td class="delta up">&#9650; 0.48</td></tr><tr><td>2013</td><td>+0.62</td><td class="delta up">&#9650; 0.62</td></tr><tr><td>2014</td><td>+0.55</td><td class="delta up">&#9650; 0.55</td></tr><tr><td>2015</td><td>+0.91</td><td class="delta up">&#9650; 0.91</td></tr><tr><td>2016</td><td>+1.36</td><td class="delta up">&#9650; 1.36</td></tr><tr><td>2017</td><td>+1.13</td><td class="delta up">&#9650; 1.13</td></tr><tr><td>2018</td><td>+0.84</td><td class="delta up">&#9650; 0.84</td></tr><tr><td>2019</td><td>+0.95</td><td class="delta up">&#9650; 0.95</td></tr><tr><td>2020</td><td>+1.24</td><td class="delta up">&#9650; 1.24</td></tr><tr><td>2021</td><td>+0.64</td><td class="delta up">&#9650; 0.64</td></tr><tr><td>2022</td><td>+0.89</td><td class="delta up">&#9650; 0.89</td></tr><tr><td>2023</td><td>+0.96</td><td class="delta up">&#9650; 0.96</td></tr><tr><td>2024</td><td>+1.43</td><td class="delta up">&#9650; 1.43</td></tr><tr><td>2025</td><td>+1.26</td><td class="delta up">&#9650; 1.26</td></tr></tbody>
+      </table>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+  const SVG="http://www.w3.org/2000/svg";
+  const DATA = [[1880,-0.25],[1881,-0.16],[1882,0.13],[1883,-0.37],[1884,-0.08],[1885,-0.34],[1886,-0.51],[1887,-0.57],[1888,-0.37],[1889,0.16],[1890,-0.45],[1891,-0.46],[1892,-0.12],[1893,-0.57],[1894,-0.29],[1895,-0.42],[1896,-0.13],[1897,-0.17],[1898,-0.30],[1899,-0.38],[1900,-0.06],[1901,-0.11],[1902,-0.09],[1903,-0.06],[1904,-0.59],[1905,-0.59],[1906,-0.29],[1907,-0.51],[1908,-0.32],[1909,-0.46],[1910,-0.42],[1911,-0.58],[1912,-0.16],[1913,-0.46],[1914,-0.11],[1915,-0.04],[1916,-0.15],[1917,-0.63],[1918,-0.35],[1919,-0.23],[1920,-0.28],[1921,-0.18],[1922,-0.45],[1923,-0.40],[1924,-0.23],[1925,-0.39],[1926,0.02],[1927,-0.18],[1928,-0.09],[1929,-0.58],[1930,-0.27],[1931,-0.21],[1932,-0.18],[1933,-0.30],[1934,-0.03],[1935,0.14],[1936,-0.38],[1937,0.03],[1938,0.04],[1939,-0.06],[1940,0.08],[1941,0.30],[1942,0.02],[1943,0.17],[1944,0.24],[1945,0.01],[1946,0.03],[1947,-0.08],[1948,-0.15],[1949,-0.14],[1950,-0.27],[1951,-0.41],[1952,0.11],[1953,0.15],[1954,-0.10],[1955,-0.16],[1956,-0.24],[1957,-0.03],[1958,0.22],[1959,0.07],[1960,0.13],[1961,0.19],[1962,0.15],[1963,0.18],[1964,-0.10],[1965,-0.17],[1966,-0.04],[1967,-0.21],[1968,-0.14],[1969,-0.18],[1970,0.22],[1971,-0.15],[1972,-0.18],[1973,0.32],[1974,-0.27],[1975,0.08],[1976,-0.06],[1977,0.23],[1978,0.10],[1979,-0.10],[1980,0.39],[1981,0.42],[1982,0.15],[1983,0.43],[1984,0.14],[1985,-0.04],[1986,0.37],[1987,0.43],[1988,0.44],[1989,0.30],[1990,0.44],[1991,0.50],[1992,0.40],[1993,0.37],[1994,0.02],[1995,0.79],[1996,0.46],[1997,0.41],[1998,0.88],[1999,0.64],[2000,0.56],[2001,0.44],[2002,0.78],[2003,0.58],[2004,0.72],[2005,0.60],[2006,0.74],[2007,0.70],[2008,0.38],[2009,0.53],[2010,0.84],[2011,0.47],[2012,0.48],[2013,0.62],[2014,0.55],[2015,0.91],[2016,1.36],[2017,1.13],[2018,0.84],[2019,0.95],[2020,1.24],[2021,0.64],[2022,0.89],[2023,0.96],[2024,1.43],[2025,1.26]];
+  const N = DATA.length;
+  const YEARS = [ 1880, 2025 ];
+  const trend = [ -0.554, 0.726 ];
+
+  const W=860, H=460, L=54, R=24, T=26, B=44;
+  const PW=W-L-R, PH=H-T-B;
+  const ymin=Math.min(-0.5, Math.min(...DATA.map(d=>d[1]))-0.1);
+  const ymax=Math.max(1.25, Math.max(...DATA.map(d=>d[1]))+0.1);
+  const xf = y=>L+PW*(y-YEARS[0])/(YEARS[1]-YEARS[0]);
+  const yf = v=>T+PH*(ymax-v)/(ymax-ymin);
+
+  const chart=document.getElementById("chart");
+  const svgRoot=document.querySelector(".card");
+  const tip=document.getElementById("tip");
+  let sel = typeof matchMedia!=="undefined" &&
+    matchMedia("(prefers-color-scheme: dark)").matches ? "dark":"light";
+
+  // ---- y gridlines + ticks ----------------------------------------------
+  const vals=[];
+  for(let v=-0.5; v<=ymax+0.001; v+=0.25) vals.push(Math.round(v*100)/100);
+  const yVals=[...new Set([...vals, 0])];
+  yVals.forEach(v=>{
+    const yy=yf(v);
+    const l=document.createElementNS(SVG,"line");
+    l.setAttribute("x1",L);l.setAttribute("x2",W-R);l.setAttribute("y1",yy);l.setAttribute("y2",yy);
+    l.setAttribute("class", Math.abs(v)<0.0001 ? "zero" : "grid");
+    chart.appendChild(l);
+    const t=document.createElementNS(SVG,"text");
+    t.setAttribute("x",L-8);t.setAttribute("y",yy+4);t.setAttribute("text-anchor","end");
+    t.setAttribute("class","ytick"); t.textContent = v>0 ? "+"+v.toFixed(2) : v.toFixed(2);
+    chart.appendChild(t);
+  });
+  // ---- x ticks -----------------------------------------------------------
+  [1880,1900,1920,1940,1960,1980,2000,2020].forEach(yr=>{
+    const xx=xf(yr);
+    const l=document.createElementNS(SVG,"line");
+    l.setAttribute("x1",xx);l.setAttribute("x2",xx);l.setAttribute("y1",T);l.setAttribute("y2",T+PH);
+    l.setAttribute("class","grid"); chart.appendChild(l);
+    const t=document.createElementNS(SVG,"text");
+    t.setAttribute("x",xx);t.setAttribute("y",H-B+18);t.setAttribute("text-anchor","middle");
+    t.setAttribute("class","xtick"); t.textContent=yr; chart.appendChild(t);
+  });
+  const bl=document.createElementNS(SVG,"line");
+  bl.setAttribute("x1",L);bl.setAttribute("x2",W-R);bl.setAttribute("y1",T+PH);bl.setAttribute("y2",T+PH);
+  bl.setAttribute("class","axis"); chart.appendChild(bl);
+
+  // ---- area + line -------------------------------------------------------
+  const ptsStr = DATA.map(d=>xf(d[0]).toFixed(1)+","+yf(d[1]).toFixed(1)).join(" ");
+  const area=document.createElementNS(SVG,"polygon");
+  area.setAttribute("class","area");
+  area.setAttribute("points", L+","+yf(0).toFixed(1)+" "+ptsStr+" "+(W-R+1)+","+yf(0).toFixed(1));
+  chart.appendChild(area);
+
+  const line=document.createElementNS(SVG,"polyline");
+  line.setAttribute("class","line");
+  line.setAttribute("points",ptsStr); chart.appendChild(line);
+
+  // zero baseline label
+  const zt=document.createElementNS(SVG,"text");
+  zt.setAttribute("x",L+4);zt.setAttribute("y",yf(0)-5);zt.setAttribute("class","ytick");
+  zt.textContent="1951–80 avg"; chart.appendChild(zt);
+
+  // trend line
+  const tr=document.createElementNS(SVG,"line");
+  tr.setAttribute("x1",xf(YEARS[0]));tr.setAttribute("y1",yf(trend[0]));
+  tr.setAttribute("x2",xf(YEARS[1]));tr.setAttribute("y2",yf(trend[1]));
+  tr.setAttribute("class","trend"); chart.appendChild(tr);
+  const tdot=document.createElementNS(SVG,"circle");
+  tdot.setAttribute("cx",xf(YEARS[1]));tdot.setAttribute("cy",yf(trend[1]));tdot.setAttribute("r",4);
+  tdot.setAttribute("class","trend-dot"); chart.appendChild(tdot);
+
+  // end dot + direct label for latest value
+  const latest=DATA[N-1];
+  const edot=document.createElementNS(SVG,"circle");
+  edot.setAttribute("cx",xf(latest[0]));edot.setAttribute("cy",yf(latest[1]));
+  edot.setAttribute("r",4.5);edot.setAttribute("class","end-dot"); chart.appendChild(edot);
+  const lab=document.createElementNS(SVG,"text");
+  lab.setAttribute("x",xf(latest[0])-10);lab.setAttribute("y",yf(latest[1])-12);
+  lab.setAttribute("text-anchor","end");lab.setAttribute("class","end-label");
+  lab.textContent="+"+latest[1].toFixed(2)+"°C"; chart.appendChild(lab);
+
+  // ---- hover: crosshair + hit bands --------------------------------------
+  const cross=document.createElementNS(SVG,"line");
+  cross.setAttribute("x1",0);cross.setAttribute("x2",0);cross.setAttribute("y1",T);cross.setAttribute("y2",T+PH);
+  cross.setAttribute("class","crosshair"); chart.appendChild(cross);
+  const hp=document.createElementNS(SVG,"circle");
+  hp.setAttribute("r",4.5);hp.setAttribute("class","hover-pt"); chart.appendChild(hp);
+
+  function show(year,val,px,py){
+    cross.setAttribute("x1",px);cross.setAttribute("x2",px);
+    cross.setAttribute("style","opacity:1");
+    hp.setAttribute("cx",px);hp.setAttribute("cy",py);
+    hp.setAttribute("style","opacity:1");
+    tip.style.display="block";
+    tip.textContent = "";
+    const v=document.createElement("div"); v.className="t-val";
+    v.textContent=(val>=0?"+":"")+val.toFixed(2)+"°C";
+    const l=document.createElement("div"); l.className="t-lab";
+    l.textContent=year+" · vs 1951–80 avg";
+    tip.append(v,l);
+    const rect=svgRoot.getBoundingClientRect();
+    let tx=px+18, ty=py-30;
+    const tw=tip.offsetWidth, th=tip.offsetHeight;
+    if(tx+tw>rect.width-8) tx=px-18-tw;
+    if(ty<th) ty=th+8;
+    tip.style.left=tx+"px"; tip.style.top=ty+"px";
+  }
+  function hide(){
+    cross.setAttribute("style","opacity:0");
+    hp.setAttribute("style","opacity:0");
+    tip.style.display="none";
+  }
+  DATA.forEach((d,i)=>{
+    const b=document.createElementNS(SVG,"rect");
+    const bx = i===0 ? xf(d[0]) : (xf(d[0])+xf(DATA[i-1][0]))/2;
+    const bxx = i===N-1 ? xf(d[0]) : (xf(d[0])+xf(DATA[i+1][0]))/2;
+    b.setAttribute("x",Math.min(bx,bxx)); b.setAttribute("width",Math.abs(bxx-bx));
+    b.setAttribute("y",T); b.setAttribute("height",PH);
+    b.setAttribute("class","hover-band");
+    b.setAttribute("tabindex","0");
+    b.addEventListener("pointermove",e=>show(d[0],d[1],xf(d[0]),yf(d[1])));
+    b.addEventListener("pointerleave",hide);
+    b.addEventListener("focus",()=>show(d[0],d[1],xf(d[0]),yf(d[1])));
+    b.addEventListener("blur",hide);
+    chart.appendChild(b);
+  });
+
+  // ---- theme -------------------------------------------------------------
+  function applyTheme(t){
+    document.documentElement.setAttribute("data-theme",t);
+    document.getElementById("modebtn").textContent = t==="dark"?"Light mode":"Dark mode";
+    document.getElementById("modebtn").setAttribute("aria-pressed",String(t==="dark"));
+  }
+  applyTheme(sel);
+  document.getElementById("modebtn").addEventListener("click",()=>{
+    sel = sel==="dark"?"light":"dark"; applyTheme(sel);
+  });
+})();
+</script>
+</body>
+</html>

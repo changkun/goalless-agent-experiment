@@ -1,0 +1,9 @@
+# Default task file
+todo.json
+
+# Python build / cache artifacts
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/

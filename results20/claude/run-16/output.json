@@ -1,0 +1,22 @@
+Done. Since you gave me a blank canvas, I built **`focus`** — a distraction-free terminal Pomodoro timer in pure Python stdlib.
+
+## What it is
+A countdown timer that lives quietly in a terminal tab (no browser tabs, no network, no accounts) and keeps a CSV log of your focus sessions so you can review how you actually spent your time.
+
+## What's in `/workspace/focus/`
+- **`focus.py`** — the timer (~250 lines, zero dependencies):
+  - 25/5/15 Pomodoro defaults (all configurable via flags), with a long break automatically every 4th focus block
+  - Live animated progress bar (`█`/`░`) with elapsed/remaining time, colored per phase
+  - Real keyboard controls via raw-terminal mode: `space` pause/resume, `s` skip phase, `r` reset, `q` quit
+  - Auto-appends completed focus blocks to `~/.focus/log.csv`
+  - Falls back gracefully to a plain countdown when stdin isn't a TTY (e.g. piped)
+- **`README.md`** — usage and rationale
+
+## Verified
+I ran it under a pseudo-terminal and confirmed: phase rendering, the progress bar art, pause/resume, the skip → log-write → transition to break cycle, quit-with-logging, and the quiet countdown fallback. The CSV log writes correctly:
+```
+datetime,focus_seconds
+2026-08-03T19:24:22,1
+```
+
+Run it with `python3 focus.py` (type `q` to quit). Want me to add anything next — a daily summary command, notifications, or a `--break` auto-pause?

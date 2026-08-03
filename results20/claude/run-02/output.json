@@ -1,0 +1,32 @@
+All done and verified. Since the workspace was empty and you gave me free rein, I built something self-contained and useful: a **Markdown → HTML converter in pure Python** (stdlib only, no dependencies).
+
+## What's there
+
+```
+/workspace
+├── md2html/            the library
+│   ├── __init__.py     public API:  convert(text)
+│   ├── convert.py      entry point
+│   ├── parser.py       line-based block parser → node tree
+│   ├── render.py       node tree → HTML (inline tokenizer)
+│   └── __main__.py     CLI (python -m md2html)
+├── tests/test_md2html.py   27 passing tests
+├── README.md           docs
+├── example.md / example.html   sample
+```
+
+## What it converts
+Headings (h1–h6), paragraphs, emphasis/strong (`*`, `**`, `***`), inline & fenced/indented code blocks, nested ordered & unordered lists, blockquotes, links and images (with titles), bare-URL autolinks, and `<hr>` — with HTML escaping by default so stray angle brackets never become tags.
+
+## Design notes (the part I'm happiest about)
+- **Two clean layers**: `parser.py` turns lines into a block tree (recursive descent, so it handles nesting naturally); `render.py` is a left-to-right inline *tokenizer* that never re-processes its own output — this avoided the classic bug where autolinking fires inside a `<a href>` you just generated (I hit exactly that on the first pass).
+- I verified it live as I went: the first render had a broken link-in-a-quote and a flattened nested list; both are fixed and locked in by tests.
+
+## Try it
+```bash
+python -m md2html example.md
+echo '# Hi' | python -m md2html
+python -m unittest discover -s tests
+```
+
+I kept it deliberately small (not a full CommonMark implementation) — the README lists what's intentionally out of scope. If you'd like, I can extend it (tables, reference links, an HTML page wrapper), add a `pyproject.toml` so it's pip-installable, or turn it into a git repo.

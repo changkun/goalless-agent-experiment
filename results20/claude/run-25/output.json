@@ -1,0 +1,16 @@
+Done. Since you said "just do something," I built **`lifegrid`** — a tiny terminal tool that renders your life as a grid of weeks (one dot per week, roughly 90 years tall), which is a genuinely thought-provoking thing to open every so often.
+
+**What it does:**
+- `python3 lifegrid.py --born 1993-04-15` — draws the grid with born-in birthdate
+- `--age 31.5` — works if you only know your age
+- `--until 80` / `--weeks N` — tweak the horizon and grid shape
+- Color dots on a real terminal (`●` in coral = lived, amber = this week, grey = to go), auto-falls back to plain `#`/`T`/`.` when piped so `lifegrid | less` stays clean
+- Prints a closing line: `33.4 years lived · 2,943 weeks left (to age 90) · 37.1% of the grid filled`
+
+**Files:** `/workspace/lifegrid.py` + `/workspace/README.md`
+
+I verified it runs in both color and plain modes, the today-marker lands correctly in the right year row, and bad input gives a friendly usage error.
+
+One small thing I noticed in passing: with a `--born` age of 33.4 you're already ~37% through the default 90-year box. But no pressure to do anything about it — that's the point of the tool. 😄
+
+Want me to add a GitHub-style commit graph to it (it tracks your "lived" weeks like contributions), or wire it into your shell prompt?

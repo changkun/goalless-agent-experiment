@@ -1,0 +1,20 @@
+Done. I tackled the empty workspace by building something self-contained and polished: a **single-file HTML acquisition dashboard** at `/workspace/dashboard.html`, plus a README.
+
+Since you gave me free rein, I used it to actually exercise the dataviz method end-to-end rather than just producing a chart. Concretely:
+
+- **KPI row** — active signups (with inline sparkline), avg/day, conversion
+- **Line chart** — signups over time, with the lead series in emphasis color (Direct) and the rest receding in gray; hover crosshair + tooltip
+- **Stacked bar** — part-to-whole share per channel for the period; per-mark hover
+- **Table view** — every value reachable without hovering (accessibility)
+- **One filter row** above everything — date-range presets (7/14/30/60d) + channel dimension, scoping all views consistently
+- **Dark mode** (both OS `prefers-color-scheme` and a manual toggle) and a **texture** accessibility toggle — colors drawn from the reference palette's validated slots, never cycle-generated hues
+
+No build step, no dependencies, no network — deterministic seeded data right in the file. Open it with:
+
+```sh
+open dashboard.html      # or xdg-open on Linux
+```
+
+I verified it three ways: the JS parses (`new Function`), a runtime smoke-test of the full render pipeline ran cleanly in a stubbed DOM (KPIs, line crosshair, stacked segments, table all produce output), and one thing I could **not** check is the actual rendered pixels — no browser is installed in this environment, so I couldn't screenshot it. The layout eyeball-check (label collisions, overflow) from the method's step 7 is the one step I couldn't do here; worth a quick look in your real browser.
+
+If you'd rather I point it at real data, replace the seeded `rows` block (marked in the script) and it renders the same. Otherwise — that's your something.

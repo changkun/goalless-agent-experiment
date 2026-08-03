@@ -1,0 +1,21 @@
+You gave me a blank slate, so I did what I felt like: built **`sysdash`**, a dependency-free live Linux system monitor in `/workspace`.
+
+**What it is**
+A self-contained Python dashboard (`sysdash.py`, 325 lines, stdlib-only — no `psutil` or anything else). It reads `/proc` and `/sys` directly and renders a self-updating terminal panel:
+
+- **CPU** util bar + real 1/5/15-min load averages
+- **Memory / swap** bars with used/total
+- **Network** RX/TX rate (from `/proc/net/dev` deltas)
+- **Disk** usage per mount — with bind-mount dedup so `/home/agent/.claude` and `/workspace` over the same `virtiofs` device collapse cleanly
+- **Scrolling sparkline** chart of CPU and memory over the last 120 samples
+- Live redraw via ANSI cursor-motion, `q` to quit, terminal state restored on exit
+
+**Verification** — it compiles clean, and I tested both a single frame (`--once`) and a couple of live frames; the output is accurate against the real machine's state (this box is 6 cores, 8.3G RAM, on a 994G virtiofs disk at ~84%).
+
+**Run it:**
+```bash
+python3 /workspace/sysdash.py              # live
+python3 /workspace/sysdash.py --once       # single frame for scripting
+```
+
+I deliberately kept it dependency-free and readable — every metric maps 1:1 to a kernel interface (documented in `README.md`). Enjoy, and let me know if you'd like extra panels (per-process top, temperatures from `/sys/class/thermal`, or GPU stats).

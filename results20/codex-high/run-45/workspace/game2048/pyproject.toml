@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "game2048"
+version = "1.0.0"
+description = "A classic 2048 sliding-tile puzzle playable in the terminal."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+game2048 = "game2048.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]

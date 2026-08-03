@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conway's Life</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #262b36;
+    --text: #e6e9ef;
+    --muted: #8b93a3;
+    --accent: #f5a623;
+    --alive: #f5a623;
+    --dead: #1b1f27;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  h1 {
+    font-size: 22px;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px;
+    color: var(--accent);
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 20px;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    max-width: 780px;
+  }
+  button {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: #20242e;
+    color: var(--text);
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    font-family: inherit;
+  }
+  button:hover { background: #2a2f3a; }
+  button.primary {
+    background: var(--accent);
+    color: #1a1403;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  button.primary:hover { filter: brightness(1.05); }
+  .sep { width: 1px; height: 28px; background: var(--border); }
+  select, input[type="range"] { accent-color: var(--accent); }
+  select {
+    background: #20242e;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  .stats {
+    display: flex;
+    gap: 16px;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats b { color: var(--text); font-weight: 600; }
+  #board-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  }
+  #board {
+    display: grid;
+    background: var(--dead);
+    border-radius: 6px;
+    overflow: hidden;
+    touch-action: none;
+  }
+  .cell { background: var(--dead); }
+  .cell.alive { background: var(--alive); }
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 14px;
+    max-width: 780px;
+  }
+  .legend-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .dot.alive { background: var(--alive); }
+  .dot.dead { background: #2a2f3a; }
+</style>
+</head>
+<body>
+  <h1>Conway's Life</h1>
+  <p class="subtitle">A cellular automaton — paint cells and watch them evolve.</p>
+
+  <div class="toolbar">
+    <button id="play" class="primary">Start</button>
+    <button id="step">Step</button>
+    <button id="clear">Clear</button>
+    <button id="random">Randomize</button>
+    <div class="sep"></div>
+    <label style="color:var(--muted);font-size:13px">Preset
+      <select id="preset">
+        <option value="">— none —</option>
+        <option value="glider">Glider</option>
+        <option value="gun">Gosper Gun</option>
+        <option value="pulsar">Pulsar</option>
+        <option value="lwss">LWSS</option>
+      </select>
+    </label>
+    <div class="sep"></div>
+    <label style="color:var(--muted);font-size:13px">Speed
+      <input type="range" id="speed" min="1" max="60" value="12">
+    </label>
+  </div>
+
+  <div class="stats">
+    <span>Generation <b id="gen">0</b></span>
+    <span>Population <b id="pop">0</b></span>
+    <span>Grid <b id="gridsize"></b></span>
+    <span><span class="dot alive"></span>draw · <span class="dot dead"></span>erase</span>
+  </div>
+
+  <div id="board-wrap">
+    <div id="board"></div>
+  </div>
+
+  <div class="cards">
+    <div class="legend-card">Click or drag on the grid to paint cells.</div>
+    <div class="legend-card">Press <b>Space</b> to start/pause · <b>N</b> for one step.</div>
+    <div class="legend-card">Right-click or hold <b>Shift</b> to erase.</div>
+  </div>
+
+<script>
+(() => {
+  // ---- grid definition ----
+  const ROWS = 60, COLS = 90, CELL = 9;
+  let grid = new Uint8Array(ROWS * COLS);
+
+  const board = document.getElementById('board');
+  const cells = new Array(ROWS * COLS);
+  board.style.gridTemplateColumns = `repeat(${COLS}, ${CELL}px)`;
+  board.style.gridTemplateRows = `repeat(${ROWS}, ${CELL}px)`;
+
+  for (let i = 0; i < ROWS * COLS; i++) {
+    const d = document.createElement('div');
+    d.className = 'cell';
+    d.dataset.i = i;
+    board.appendChild(d);
+    cells[i] = d;
+  }
+  document.getElementById('gridsize').textContent = `${ROWS}×${COLS}`;
+
+  // ---- DOM ----
+  const playBtn = document.getElementById('play');
+  const speed = document.getElementById('speed');
+  const genEl = document.getElementById('gen');
+  const popEl = document.getElementById('pop');
+  const presetSel = document.getElementById('preset');
+
+  let running = false;
+  let timer = null;
+  let generation = 0;
+
+  // ---- state helpers ----
+  const idx = (r, c) => ((r + ROWS) % ROWS) * COLS + ((c + COLS) % COLS);
+
+  function neighbors(r, c) {
+    let n = 0;
+    n += grid[idx(r-1, c-1)]; n += grid[idx(r-1, c)]; n += grid[idx(r-1, c+1)];
+    n += grid[idx(r,   c-1)];                         n += grid[idx(r,   c+1)];
+    n += grid[idx(r+1, c-1)]; n += grid[idx(r+1, c)]; n += grid[idx(r+1, c+1)];
+    return n;
+  }
+
+  function step() {
+    const next = new Uint8Array(grid.length);
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const i = r * COLS + c;
+        const n = neighbors(r, c);
+        next[i] = (grid[i] ? n === 2 || n === 3 : n === 3) ? 1 : 0;
+      }
+    }
+    grid = next;
+    generation++;
+    render();
+  }
+
+  function render() {
+    let pop = 0;
+    for (let i = 0; i < grid.length; i++) {
+      cells[i].classList.toggle('alive', !!grid[i]);
+      pop += grid[i];
+    }
+    popEl.textContent = pop;
+    genEl.textContent = generation;
+  }
+
+  function randomize(prob = 0.28) {
+    for (let i = 0; i < grid.length; i++) grid[i] = Math.random() < prob ? 1 : 0;
+    render();
+  }
+
+  function clearGrid() {
+    grid.fill(0);
+    generation = 0;
+    render();
+  }
+
+  // ---- painting ----
+  let painting = null; // 'draw' | 'erase' | null
+  const paintAt = (i) => {
+    grid[i] = painting === 'draw' ? 1 : 0;
+  };
+
+  function coordFromEvent(e) {
+    const rect = board.getBoundingClientRect();
+    const x = (e.clientX ?? e.touches[0].clientX) - rect.left;
+    const y = (e.clientY ?? e.touches[0].clientY) - rect.top;
+    if (x < 0 || y < 0 || x >= rect.width || y >= rect.height) return -1;
+    const c = Math.floor(x / CELL), r = Math.floor(y / CELL);
+    return r * COLS + c;
+  }
+
+  function beginPaint(e, mode) {
+    e.preventDefault();
+    painting = mode;
+    const i = coordFromEvent(e);
+    if (i >= 0) { paintAt(i); render(); }
+  }
+  const movePaint = (e) => {
+    if (!painting) return;
+    e.preventDefault();
+    const i = coordFromEvent(e);
+    if (i >= 0) { paintAt(i); render(); }
+  };
+  const endPaint = () => { painting = null; };
+
+  board.addEventListener('mousedown', (e) => beginPaint(e, e.button === 2 || e.shiftKey ? 'erase' : 'draw'));
+  board.addEventListener('mousemove', movePaint);
+  window.addEventListener('mouseup', endPaint);
+  board.addEventListener('contextmenu', (e) => e.preventDefault());
+  board.addEventListener('touchstart', (e) => beginPaint(e, 'draw'), { passive: false });
+  board.addEventListener('touchmove', movePaint, { passive: false });
+  board.addEventListener('touchend', endPaint, { passive: false });
+
+  // ---- patterns ----
+  const patterns = {
+    glider: [[0,1],[1,2],[2,0],[2,1],[2,2]],
+    lwss: [[0,1],[0,4],[1,0],[2,0],[2,4],[3,0],[3,1],[3,2],[3,3]],
+    pulsar: [[0, 2], [0, 3], [0, 4], [0, 8], [0, 9], [0, 10], [2, 0], [2, 5], [2, 7], [2, 12], [3, 0], [3, 5], [3, 7], [3, 12], [4, 0], [4, 5], [4, 7], [4, 12], [5, 2], [5, 3], [5, 4], [5, 8], [5, 9], [5, 10], [7, 2], [7, 3], [7, 4], [7, 8], [7, 9], [7, 10], [8, 0], [8, 5], [8, 7], [8, 12], [9, 0], [9, 5], [9, 7], [9, 12], [10, 0], [10, 5], [10, 7], [10, 12], [12, 2], [12, 3], [12, 4], [12, 8], [12, 9], [12, 10]],
+    gun: [[5, 1], [5, 2], [6, 1], [6, 2], [3, 13], [3, 14], [4, 12], [4, 16], [5, 11], [5, 17], [6, 11], [6, 15], [6, 17], [6, 18], [7, 11], [7, 17], [8, 12], [8, 16], [9, 13], [9, 14], [1, 25], [2, 23], [2, 25], [3, 21], [3, 22], [4, 21], [4, 22], [5, 21], [5, 22], [6, 23], [6, 25], [7, 25], [3, 35], [3, 36], [4, 35], [4, 36]]
+  };
+
+  function loadPattern(name) {
+    const pts = patterns[name];
+    if (!pts) return;
+    clearGrid();
+    const rows = pts.map(p => p[0]);
+    const cols = pts.map(p => p[1]);
+    const minR = Math.min(...rows), minC = Math.min(...cols);
+    const h = Math.max(...rows) - minR + 1, w = Math.max(...cols) - minC + 1;
+    const offR = Math.floor((ROWS - h) / 2) - minR;
+    const offC = Math.floor((COLS - w) / 2) - minC;
+    for (const [r, c] of pts) {
+      const rr = (r + offR + ROWS) % ROWS;
+      const cc = (c + offC + COLS) % COLS;
+      grid[rr * COLS + cc] = 1;
+    }
+    render();
+  }
+
+  // ---- controls ----
+  const loop = () => { step(); };
+  function setRunning(on) {
+    running = on;
+    playBtn.textContent = on ? 'Pause' : 'Start';
+    playBtn.classList.toggle('primary', !on);
+    if (on) timer = setInterval(loop, 1000 / speed.value);
+    else clearInterval(timer);
+  }
+  playBtn.addEventListener('click', () => setRunning(!running));
+  document.getElementById('step').addEventListener('click', () => { setRunning(false); step(); });
+  document.getElementById('clear').addEventListener('click', () => { setRunning(false); clearGrid(); });
+  document.getElementById('random').addEventListener('click', () => { setRunning(false); randomize(); });
+  presetSel.addEventListener('change', () => {
+    setRunning(false);
+    const v = presetSel.value;
+    presetSel.value = '';
+    if (v) loadPattern(v);
+  });
+  speed.addEventListener('input', () => {
+    if (running) { clearInterval(timer); timer = setInterval(loop, 1000 / speed.value); }
+  });
+
+  // ---- keyboard ----
+  window.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); setRunning(!running); }
+    else if (e.key === 'n' || e.key === 'N') { setRunning(false); step(); }
+    else if (e.key === 'c' || e.key === 'C') { setRunning(false); clearGrid(); }
+  });
+
+  // ---- init ----
+  randomize(0.28);
+  render();
+})();
+</script>
+</body>
+</html>

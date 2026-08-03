@@ -1,0 +1,26 @@
+The combined filter works too. Everything is committed and verified. 
+
+## What I built
+
+Since you gave me a blank workspace and a blank check, I built **`td`** — a tiny, zero-dependency terminal task manager in a single Python file. A genuinely useful tool (I'd want it on my own machine) that was also a complete, test-driven build: scaffold → implement → hit real bugs → fix with tests → document → commit.
+
+**`/workspace/td/`**
+- `td.py` — the tool: priorities, tags, due dates, done/reopen, filters, stats, colorful UI, plus atomic JSON storage
+- `test_td.py` — 16-check smoke test (all passing)
+- `README.md` — full docs and usage
+- `.gitignore` — and a git commit to capture it
+
+**What it does:**
+```bash
+td add "Ship v2" '#urgent' -p 2 -d 2026-08-20   # add high-priority task w/ tag & due date
+td                                                # list open tasks, sorted by priority
+td ls +work overdue                               # combine filters
+td done 3 && td stats                             # finish a task, see a summary
+```
+Colors show priority (red=high, cyan=normal, grey=done), due dates (red=overdue, yellow=today), and magenta tags.
+
+**Two real bugs I caught along the way** (the fun part):
+1. **The shell was silently eating `#tags`** — `#` starts a comment in bash/zsh, so `td add foo #work` stripped everything after `#` before my code saw it. Fixed my testing by quoting, and documented the gotcha in the README.
+2. **`argparse` was swallowing `-p`/`-d` flags** before my command handlers could see them — a genuine bug in the tool, not the test. Replaced argparse with a manual `sys.argv` pass-through. The `-p 2` priority flag now works, verified by the test suite.
+
+Everything tested and committed. Want me to add anything — e.g. a `td review` or `td next`, recurring tasks, or a colored summary bar?

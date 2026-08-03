@@ -1,0 +1,24 @@
+Done. I saw the workspace was empty, so I built a fully self-contained terminal app: **Conway's Game of Life** in pure Python (stdlib `curses` only, zero dependencies).
+
+**What's in `/workspace`:**
+- **`life.py`** — the simulation + interactive terminal UI
+- **`README.md`** — controls and usage
+
+**Features:**
+- Live simulation with a cursor you move around to draw cells
+- 7 preset patterns: glider, blinker, pulsar, **Gosper glider gun**, R-pentomino methuselah, switch engine, glider duo
+- Run/pause, single-step, adjustable speed, clear, random fill
+- Toroidal (wrapping) universe
+
+**Verified the engine** (not the curses UI, which needs an interactive terminal) by testing the core `step()` logic headlessly:
+- Blinker oscillates correctly (horizontal ↔ vertical) ✓
+- Glider returns to its exact shape after 4 generations (shifted across the torus) ✓
+- Block (still life) and empty board are stable ✓
+- Gosper gun steadily emits gliders over a 160-generation run ✓
+- 500-generation stress run from a random fill: correct and fast (~0.25s) ✓
+
+To play it, run:
+```bash
+cd /workspace && python3 life.py --random
+```
+Then `Tab` to a pattern, `p` to stamp it, `s` to run. If you'd rather I'd picked something else (a CLI tool, a different project, etc.), I'm happy to pivot — but this was a fun, self-contained thing to build in an empty workspace.

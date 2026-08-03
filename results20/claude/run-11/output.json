@@ -1,0 +1,22 @@
+Done. Since the workspace was empty, I built something self-contained and fun.
+
+## What I made
+
+**`/workspace/game-of-life.html`** — a complete Conway's Game of Life, as a single dependency-free HTML file. Open it in any browser and it just runs.
+
+**Features:**
+- 🎮 **Play/pause/step** with a speed slider (1–60 steps/sec)
+- 🖌️ **Paint mode** — click or drag to draw; shift-click / right-click erases
+- 🔄 **Wrapping borders** toggle — cells wrap around the edges
+- 📊 **Live stats** — generation, alive count, and steps-per-second
+- 🧩 **Pattern presets** — Glider, Gosper Gun (fires gliders forever), Pulsar, R-pentomino, Acorn, and random noise
+- ⌨️ **Keyboard shortcuts** — Space = pause, C = clear, R = random
+- 🌈 Dark, glowing aesthetic with a subtle grid
+
+**Verified, not just written:**
+- Tested the core rules in Node — solitary cell dies, 2-block doesn't birth, blinker oscillates, block is stable, and glider propagates while holding population. All 5 logic checks passed.
+- Syntax-checked the extracted inline JavaScript — clean.
+
+To try it: `open /workspace/game-of-life.html` (or just double-click). It runs entirely in your browser with zero dependencies or network access.
+
+Want me to take it further? I could add rule presets (HighLife, Seeds, etc.), an undo/restore, drag-to-move whole patterns, or a record/export-to-GIF feature. Or if you'd rather, I can build something entirely different.

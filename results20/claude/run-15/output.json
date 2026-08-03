@@ -1,0 +1,25 @@
+Done. Since the workspace was empty, I built something self-contained and genuinely useful: **a cryptographic-grade password & passphrase generator** with a full test suite, verified end-to-end.
+
+## What I made — `/workspace/passgen/`
+
+**`passgen.py`** — a dependency-free CLI that uses Python's `secrets` CSPRNG (never `random`, so output is unpredictable):
+
+- **`password`** — random string from chosen classes. *Guarantees* at least one char from each enabled class, then fills the rest. Flags: `--length`, `--symbols`, `--no-lower/--no-upper/--no-digits`, and `--entropy N` to auto-size to a target bit strength.
+- **`passphrase`** — memorable words joined by a separator, plus `--entropy N` to pick the fewest words meeting a bit budget.
+- Helpers exposed for reuse: `generate_password`, `generate_passphrase`, `password_entropy`, `passphrase_entropy`, `entropy_length_required`.
+
+**`test_passgen.py`** — 19 unit tests covering length, class inclusion/exclusion, error cases, entropy math, stake value variety, and the CLI. All pass (`Ran 19 tests ... OK`).
+
+### Example output
+```
+$ ./passgen.py password -s --length 24
+PuQrF+)%KK=yf1IQ9pK2LVp8
+$ ./passgen.py passphrase -w 6
+whale danube dolphin purple papaya lotus
+$ ./passgen.py password --entropy 128 -s      # sizes to ≥128 bits
+-<&d}6kftN6k#>$K7Cai
+```
+
+Quick sanity notes on the design choices: entropies are computed as `length × log2(pool)` under a uniform-random model; passphrase mode has ~250 words (~8 bits/word) in the embedded vocab, so e.g. 6 words ≈ 48 bits — the `--entropy` mode scales the count to hit a real target regardless.
+
+The workspace is empty otherwise, so this is self-contained and ready to use or extend. Want me to add anything on top — e.g. a shebang-aware install/`pyproject.toml` for `pip install`, a longer EFF word list, a `--clipboard` flag, or a small README?

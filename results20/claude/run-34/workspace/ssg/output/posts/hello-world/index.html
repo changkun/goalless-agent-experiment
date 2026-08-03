@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hello, Small Web — Field Notes</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="alternate" type="application/atom+xml" href="https://fieldnotes.example/rss.xml" title="Field Notes">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="https://fieldnotes.example/">Field Notes</a>
+  <nav><a href="https://fieldnotes.example/">Home</a> <a href="https://fieldnotes.example/about/">About</a></nav>
+</header>
+<main>
+<p>This is the first post on a site built by hand. There is no build framework, no node_modules, no gemfile -- just <strong>Python's standard library</strong> and a few thousand lines of plain text.</p>
+
+<h2>Why go small</h2>
+
+<p>The modern web is astonishingly capable, but most of us don't need most of it. A personal site wants to do four things:</p>
+
+<ol>
+  <li>Show writing</li>
+  <li>Link to things we love</li>
+  <li>Be fast</li>
+  <li>Be readable in twenty years</li>
+</ol>
+
+
+<p>That's it. A static site generator like the one powering this page does all of it with <em>zero dependencies</em>.</p>
+
+<blockquote>
+<p>The best tool is the one you can still run in a decade.</p>
+
+</blockquote>
+
+<p>You can read <a href="https://example.com/ssg">the source</a> any time, and it renders to plain HTML with an <code>inline code</code> touch here and there. <code>until</code> the end.</p>
+
+</main>
+<footer>
+  <div>© 2026 Aya Ito</div>
+  <form class="search" onsubmit="return false" role="search" aria-label="Search">
+    <input id="search-query" type="search" placeholder="Search posts…" autocomplete="off">
+    <div id="search-results"></div>
+  </form>
+</footer>
+<script src="/search.js"></script>
+</body>
+</html>

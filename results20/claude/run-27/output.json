@@ -1,0 +1,24 @@
+Everything works — colour on in a real terminal, plain when piped, and the data persists as JSON. The tests caught a genuine bug (I'd claimed TTY auto-detect in the README but never implemented it), which is exactly what tests are for.
+
+Here's what I built in the empty workspace, at `/workspace/tt/`:
+
+**`tt` — a tiny, zero-dependency task tracker.**
+- `tt.py` — the whole app in one file, stdlib only (`argparse`, `json`, `dataclasses`)
+- `tt` — a bash launcher so you can run it without installing anything
+- `test_tt.py` — 10 tests: full CLI round-trips, the JSON store, error handling, and the TTY/colour behavior
+- `README.md` — usage, design notes, test instructions
+
+**What it does:** `tt add`, `tt list`, `tt done N`, `tt undo N`, `tt delete N`, `tt clear`, `tt version`. Tasks live in `~/.tt/tasks.json` (overridable with `TT_STORE` for testing), writes are atomic via temp-file + `os.replace` so a crash can't corrupt the store, and colour auto-disables when stdout isn't a terminal so `tt list | grep milk` works cleanly.
+
+```
+$ ./tt add "buy milk" && ./tt add "write docs" && ./tt done 2 && ./tt list
+     1  buy milk
+
+     2  ✓ write docs
+
+1 open, 1 done (2 total)
+```
+
+The write-up documents the two design decisions I'm happiest with: commands are plain functions dispatched through argparse's `func` attribute (each one is a ~5-line testable unit), and all user-facing errors funnel through one `StoreError` handler that consistently exits 1.
+
+All 10 tests pass. If you'd like, I can wire it into your PATH, add due dates/priorities, or hook it up to a recurring reminder — otherwise it's there waiting whenever you want it.

@@ -1,0 +1,39 @@
+All 10 tests pass. Done. Here's what I built.
+
+## `gitpulse` — a dependency-free git health check
+
+Since the workspace was empty, I built a small, self-contained Python CLI that summarizes a repository's activity and health. It reads history through git plumbing only (no external libraries), which made it a nice exercise in writing a clean end-to-end tool.
+
+**What it reports** for any repo:
+- **Pace** — commit count, active days, date span, commits/day
+- **Authors** — commit share per author, with a per-author activity sparkline over their last 8 active days
+- **Bus factor** — the smallest set of authors responsible for ≥50% of commits
+- **Churn hotspots** — most productive author/day bursts
+
+```
+gitpulse 0.1.0  —  /tmp/.../r  (main)
+========================================================================
+Commits          7
+Active days      4
+Commit span      2024-01-10 → 2024-01-13
+Pace             1.75 commits/active day (2.33/day overall)
+Bus factor       2
+
+author                   commits  share  activity (last 8 active days)
+Alice                          3  42.9%  █▄
+Bob                            3  42.9%  █▄
+Carol                          1  14.3%  █
+```
+
+**Structure** (`/workspace/gitpulse/`):
+- `gitpulse/git.py` — git plumbing (`git log --pretty=format:... --shortstat`, `--no-merges`) parsed with record/unit-separator delimiters
+- `gitpulse/analyzer.py` — pure computation (bus factor, per-author daily counts)
+- `gitpulse/cli.py` — argparse CLI + sparkline table rendering
+- `tests/test_gitpulse.py` — 10 end-to-end tests against a throwaway real repo (`unittest`, no pytest needed)
+- `pyproject.toml` + `README.md` — installable via `pip install .` (verified in a clean venv)
+
+**Bugs I caught along the way** (from actually running it): Python's `splitlines()` silently splits on `\x1e`/`\x1f`, which ate the header delimiters; `git log --pretty=format:` + `--shortstat` parsing; and the sparkline initially showed global daily counts on every row instead of each author's own — all fixed and covered by tests.
+
+**Usage:** `python -m gitpulse.cli .` — or `pip install .` then `gitpulse [path] [-n N]`.
+
+Run it against any repo you care about with `gitpulse <path>`. Want me to add anything — a `--json` output mode, `--since`/`--until` date filters, or line-change (insertions/deletions) totals?

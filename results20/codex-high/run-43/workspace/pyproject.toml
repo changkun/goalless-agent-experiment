@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "habits"
+version = "0.1.0"
+description = "A small habit and streak tracking library with a CLI."
+requires-python = ">=3.10"
+
+[project.scripts]
+habits = "habits.__main__:cli"
+
+[tool.setuptools]
+packages = ["habits"]

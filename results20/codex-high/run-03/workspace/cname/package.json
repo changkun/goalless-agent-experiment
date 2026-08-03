@@ -1,0 +1,17 @@
+{
+  "name": "cname",
+  "version": "1.0.0",
+  "description": "Generate memorable, human-friendly codenames for projects, releases, and environments.",
+  "main": "lib/generator.js",
+  "bin": {
+    "cname": "bin/cname.js"
+  },
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

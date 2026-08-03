@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gitpulse"
+version = "0.1.0"
+description = "Quick health check for a git repository — pace, authors, bus factor, churn."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+gitpulse = "gitpulse.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gitpulse*"]

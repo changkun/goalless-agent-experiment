@@ -1,0 +1,45 @@
+package passgen
+
+// words is a curated wordlist of common, memorable English words (one per line),
+// all distinct so that each word has equal probability of selection.
+var words = []string{
+	"acorn", "anchor", "apple", "arrow", "bacon", "badge", "bagel", "bamboo",
+	"banjo", "beacon", "beetle", "birch", "blimp", "blossom", "bonnet", "breeze",
+	"brick", "bridge", "brooch", "bubble", "cabin", "cactus", "canary", "candle",
+	"canyon", "carrot", "castle", "cattle", "cedar", "cherry", "cinder", "cloud",
+	"cluster", "coastal", "comet", "copper", "corner", "cotton", "courage", "coyote",
+	"cranberry", "cricket", "crystal", "cubby", "curtain", "dagger", "dandelion",
+	"dapper", "deacon", "denim", "desert", "diamond", "diesel", "dinosaur", "donkey",
+	"dove", "dragon", "drizzle", "eagle", "ember", "falcon", "feather", "fender",
+	"fennel", "ferret", "fiddle", "figment", "flamingo", "flannel", "foothill",
+	"forest", "fountain", "freckle", "frigate", "gadget", "garden", "garlic", "geyser",
+	"ginger", "giraffe", "glacier", "glider", "goblet", "gondola", "grape", "green",
+	"guitar", "harbor", "hazelnut", "hedgehog", "herring", "hollow", "honey", "hoopoe",
+	"horseshoe", "huckleberry", "hurricane", "igloo", "impala", "iris", "island",
+	"jackal", "jasmine", "javelin", "jeans", "jelly", "jigsaw", "juniper", "kayak",
+	"kettle", "keyboard", "kiwi", "knight", "ladder", "lamprey", "lantern", "lavender",
+	"lemon", "lemur", "library", "liger", "lilac", "lobster", "locomotive", "lotus",
+	"lullaby", "lumber", "lynx", "macaw", "mango", "maple", "marble", "marshmallow",
+	"meadow", "meteor", "mimosa", "moccasin", "molehill", "monsoon", "moose", "morning",
+	"mosaic", "mosquito", "mushroom", "mustard", "nacelle", "napkin", "nectar",
+	"neptune", "nickel", "nightingale", "nimbus", "noodle", "nugget", "nutmeg", "oasis",
+	"obelisk", "octopus", "olive", "onyx", "orchid", "osprey", "otter", "oyster",
+	"paddle", "palette", "panda", "pancake", "pantry", "papaya", "parrot", "pasture",
+	"patio", "pebble", "pepper", "periwinkle", "phoenix", "pickle", "pigeon", "pillow",
+	"pinecone", "pixel", "platypus", "plum", "poncho", "porcupine", "praline", "pumpkin",
+	"puzzle", "quartz", "quicksand", "quill", "raccoon", "radish", "rainbow", "raven",
+	"razor", "rivulet", "robin", "rocket", "rose", "saffron", "sapling", "sardine",
+	"sasquatch", "satellite", "scallop", "scarf", "sequoia", "shack", "shimmer",
+	"shoelace", "silhouette", "silver", "sizzle", "skillet", "sloth", "snowflake",
+	"sorrel", "souvenir", "sparrow", "spatula", "spinach", "squash", "starling",
+	"steel", "strawberry", "sunflower", "sunrise", "surfboard", "sweater", "tadpole",
+	"tangerine", "tempest", "thistle", "thunder", "tiger", "timber", "toboggan",
+	"tomato", "topaz", "tornado", "tortoise", "treasure", "trident", "tulip", "tumble",
+	"turquoise", "turtle", "umbrella", "unicorn", "valley", "vanilla", "velvet",
+	"veranda", "violet", "walnut", "wander", "waterfall", "willow", "windmill",
+	"wombat", "wren", "yacht", "yak", "yellow", "yew", "yodel", "zeppelin", "zephyr",
+	"zinnia", "zodiac", "zucchini",
+}
+
+// WordlistSize is the number of entries in the wordlist.
+var WordlistSize = len(words)

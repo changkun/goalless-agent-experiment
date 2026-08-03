@@ -1,0 +1,26 @@
+Done. I built a small, self-contained CLI todo app in `/workspace` and verified it works end to end.
+
+**What's there:**
+- `todo.py` — zero-dependency Python todo manager with:
+  - `add <text> [--project NAME] [--priority p1|p2|p3]`
+  - `ls [--project NAME] [--all] [--done]` (sorted by priority, color-coded)
+  - `done <id>` / `undo <id>` / `rm <id>` (multiple ids at once)
+  - `projects` — bar-chart of open/total per project
+  - JSON persistence to `~/.todo/tasks.json` (overridable via `TODO_DIR` env var)
+- `test_todo.py` — 6 unit tests covering id assignment, priority defaults/validation, done/undo timestamps, filtering/sorting, find/remove, and id-counter resume.
+
+**Verification:**
+- Unit tests: `Ran 6 tests ... OK`
+- End-to-end CLI smoke test: add → list → done → projects → rm → inspect stored JSON, all correct.
+
+I also caught and fixed a real semantic bug along the way: `ls --done` was documented to "show only done tasks" but behaved identically to `--all`. The `visible()` filter now honors `done_only` properly, and I confirmed `--done` shows only completed tasks while `--all` shows all.
+
+Quick demo:
+```
+$ todo add "refactor auth module" --project backend --priority p1
+Added task 1: refactor auth module
+$ todo ls
+  1 · ⚠ refactor auth module [backend]
+```
+
+Want me to wire it up as an installable command (`pip install .` / shell alias), add due dates, or turn this into a git repo?

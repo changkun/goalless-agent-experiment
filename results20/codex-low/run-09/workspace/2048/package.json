@@ -1,0 +1,14 @@
+{
+  "name": "2048",
+  "version": "1.0.0",
+  "description": "Terminal-based 2048 game in Node.js (zero dependencies)",
+  "main": "game.js",
+  "bin": {
+    "2048": "./game.js"
+  },
+  "scripts": {
+    "start": "node game.js",
+    "test": "node test.js"
+  },
+  "license": "MIT"
+}

@@ -19,3 +19,8 @@ venv/
 *.swo
 *~
 
+
+# Compiled binaries produced by experiment runs (build output, like __pycache__).
+# The Go/Python sources that produced them are committed.
+results*/**/workspace/**/snake
+results*/**/workspace/**/gol

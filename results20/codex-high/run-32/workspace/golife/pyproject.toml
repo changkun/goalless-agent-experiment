@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "golife"
+version = "0.1.0"
+description = "A zero-dependency Conway's Game of Life in your terminal."
+readme = "README.md"
+requires-python = ">=3.9"
+
+[project.scripts]
+golife = "golife.cli:main"
+
+[tool.setuptools]
+packages = ["golife"]

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tables, Code, and Other Furniture — Field Notes</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="alternate" type="application/atom+xml" href="https://fieldnotes.example/rss.xml" title="Field Notes">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="https://fieldnotes.example/">Field Notes</a>
+  <nav><a href="https://fieldnotes.example/">Home</a> <a href="https://fieldnotes.example/about/">About</a></nav>
+</header>
+<main>
+<p>A blog needs more than paragraphs. Let's exercise some block elements.</p>
+
+<h2>A table</h2>
+
+<table>
+<thead><tr>
+<th>Tool</th>
+<th style="text-align:center">Dependency</th>
+<th style="text-align:center">Renders in a decade</th>
+</tr></thead><tbody>
+<tr>
+<td>Python</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">yes</td>
+</tr>
+<tr>
+<td>Node</td>
+<td style="text-align:center">many</td>
+<td style="text-align:center">maybe</td>
+</tr>
+<tr>
+<td>Umbrella</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">no</td>
+</tr>
+</tbody></table>
+
+<h2>A fenced code block</h2>
+
+<pre><code class="language-python">def greet(name: str) -&gt; str:
+    return f&quot;hello, {name}&quot;
+
+print(greet(&quot;reader&quot;))</code></pre>
+
+
+<h2>A quote with a citation</h2>
+
+<blockquote>
+<p>Slow is smooth, and smooth is fast.</p>
+
+</blockquote>
+
+<hr>
+
+<p>And a little <em>emphasis</em> to close out: <strong>strong</strong>, <em>em</em>, and <code>code</code> all work.</p>
+
+</main>
+<footer>
+  <div>© 2026 Aya Ito</div>
+  <form class="search" onsubmit="return false" role="search" aria-label="Search">
+    <input id="search-query" type="search" placeholder="Search posts…" autocomplete="off">
+    <div id="search-results"></div>
+  </form>
+</footer>
+<script src="/search.js"></script>
+</body>
+</html>

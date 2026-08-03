@@ -1,0 +1,23 @@
+Done! Since the workspace was empty and you gave me free rein, I built a complete, polished little project: **`todo`** — a zero-dependency CLI task manager in pure Python.
+
+**What's in `/workspace`:**
+
+- **`todo.py`** — single-file, no third-party deps
+  - `add`, `list` (default), `done`, `remove`, `clear` commands
+  - Priorities (high/medium/low), project tags, due dates (`YYYY-MM-DD`, `today`, `tomorrow`)
+  - Sensible sorting: overdue first → priority → due date
+  - JSON persistence to `~/.todo/tasks.json` (override with `-f` or `$TODO_FILE`), written **atomically** so a crash never corrupts the list
+  - Color output auto-disabled when piped (`NO_COLOR` supported); overdue shown in red
+  - Confirmation prompts on destructive `remove`/`clear`
+- **`test_todo.py`** — 27 unit tests, all passing: round-trips, sorting rules, date parsing, id assignment, and end-to-end CLI + filter behavior
+- **`README.md`** — full docs with usage table, examples, and a dev section
+
+I verified everything end-to-end with a live smoke test (add/list/filter/done/remove/clear, error handling, `--version`). It's ready to use:
+
+```sh
+alias todo="python3 /workspace/todo.py"
+todo add "write the report" --project work -p high
+todo
+```
+
+One thing worth noting: I hit and fixed a few real bugs while building it (argparse global-flag ordering, an inverted overdue-sort, and the `--version`/default-command interaction), and the test-suite catch that filter tests need to assert on output rather than the underlying store. All green now.

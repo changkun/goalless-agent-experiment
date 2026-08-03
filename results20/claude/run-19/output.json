@@ -1,0 +1,22 @@
+Everything works end-to-end: the real `main()` loop runs, the pulsar animates through generations with evolving population, ANSI cursor-hide/restore sequences fire correctly, and it exits cleanly. 
+
+I used the "do something you want" latitude to build something fun and self-contained:
+
+**`/workspace/life.py`** — a dependency-free animated **Game of Life** rendered in the terminal.
+
+What it does:
+- **Renders cells at 2× vertical resolution** using half-block characters (`▀`/`▄`/`█`), which looks much crisper than `*`-based life in most terminals.
+- **Wrapping edges** (torus), so gliders wrap gracefully instead of dying at the border.
+- **Three presets**: the **Gosper glider gun** (endless stream of gliders), a symmetric **pulsar** oscillator, and a **random soup** — pick with `python3 life.py pulsar`, etc.
+- **Live HUD** showing pattern name, generation, and live population, with smooth animation (`--fps`), clean cursor handling, and `Ctrl-C` exit.
+
+Run it with:
+```bash
+python3 life.py            # glider gun, 100x50 @ 30fps
+python3 life.py pulsar --w 80 --h 30 --fps 20
+python3 life.py random --gens 500   # watch the soup decay to extinction
+```
+
+I verified the logic headlessly (blinker correctly oscillates, gun/pulsar hold stable populations over hundreds of generations, random soup decays as Life physics dictates) and captured live frames to confirm the animation loop and ANSI output work from the real `main()`.
+
+Want me to take it further — e.g. support arbitrary RLE patterns from the command line, add interactive controls (pause/step/click-to-place), or a small `README.md`?

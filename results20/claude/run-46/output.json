@@ -1,0 +1,20 @@
+Done — I built myself something fun given the blank workspace. 
+
+**What I made:** `markov.py`, a dependency-free Markov chain text generator in pure Python. It learns n-gram → next-token transition counts from any corpus, then samples new sequences.
+
+**Design choices:**
+- **`--order`** controls coherence (2 = smooth, 3+ = near-verbatim on small corpora)
+- **`--temperature`** controls surprise: `0` = always the most common next token, `>1` = increasingly random
+- **`--seed`** makes runs reproducible
+- Reads a corpus from stdin (falls back to an embedded sample if you run it interactively), tokenizes with punctuation kept as tokens, and counts transitions with `defaultdict[tuple, Counter]`.
+
+**The fun part:** testing caught a real bug — when the walk hit a *terminal* n-gram (corpus-ending prefix with no recorded follower), it crashed on `random.choices` with an empty list. I fixed it with graceful **back off to a shorter suffix**, restarting from the seed and marking the jump with a `…` when fully stuck. The crash isn't bash noise; it's the tool doing what tests are supposed to make it do.
+
+Sample output (order=2, temp=0.8, on a sea-themed corpus):
+> *. the moon pulls the tide pulls the tide , and the tide pulls the sailor home . home is where the anchor finds the sand . the sea is a door that never stops opening . open your eyes to the water keeps no grudges , only records …*
+
+Try it yourself:
+```bash
+python3 markov.py --order 2 --count 200 --seed 7 < some_book.txt
+```
+Pair it with a real book (feed it via stdin) and it starts producing surprisingly coherent-sounding streams. One known quirk worth mentioning: `--count` counts *generated* tokens plus the seed prefix, so the total is a few tokens over on small runs — a cosmetic thing I'd tighten if this were heading toward polish rather than a Saturday experiment.

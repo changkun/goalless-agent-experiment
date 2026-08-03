@@ -1,0 +1,21 @@
+Done! Since the workspace was empty and you gave me free rein, I built something self-contained and fun: **`termray.py`** — a first-person raycaster that runs entirely in your terminal.
+
+## What it is
+A Wolfenstein‑3D‑style raycasting engine in a single 452‑line Python file, **zero dependencies** (stdlib only). It's the classic DDA technique: for every screen column it marches a ray through a grid until it hits a wall, then draws that wall column at a height and brightness determined by distance.
+
+## What it does
+- **Wall rendering** — distance shading through an ASCII glyph ramp (`.`,`:`,`*`,`=`,`#`,`%`,`@`), lower horizontal and vertical walls for perspective, plus an alternate-row skew so north/south walls read as a distinct texture.
+- **Billboarded sprites** — bouncing `@` demons and blinking `+` treasure, drawn after the walls and correctly hidden where the wall z-buffer says they should be. They even drift around and bounce off walls.
+- **Interactive mode** — `python3 termray.py` gives you WASD movement, arrow-key turning, wall collision, color rendering (colored sprites when the terminal supports it), and a live minimap with a `P` marker.
+- **Headless demo** — `python3 termray.py --demo` prints frames as text so it works without a TTY (that's how I verified it here). `--width`/`--height`/`--frames`/`--seed` give you control.
+
+## Verification
+I ran it end-to-end headless. The demo sweeps the camera through a corridor, showing the depth gradient, sprite parallax, and wall occlusion all tracking correctly. I also hit a few real bugs along the way and fixed them: a broken DDA stepping formula (all rays were hitting one wall), a shading clamp that rendered nearest walls as blank spaces, and — the sneaky one — interactive mode never actually drew sprites. All verified fixed.
+
+Try it yourself if you're on a real terminal:
+```
+python3 termray.py          # play it (WASD + arrows, q to quit)
+python3 termray.py --demo   # watch it
+```
+
+The `__pycache__` dir is just Python's compiled-bytecode cache from testing — safe to delete.

@@ -1,0 +1,32 @@
+I built you a small, dependency-free command-line task manager called `todo.py`. I wasn't sure what you wanted, so I picked something useful, self-contained, and genuinely pleasant to use — something you could drop into any Linux/macOS shell.
+
+**What it does**
+- Add tasks with a project, priority, due date, and tags
+- List/filter by project, tag, priority, status, and due/overdue status
+- Sort by priority, due date, or creation date
+- Mark done/reopen, rename, delete, and clear completed tasks
+- Persists to plain JSON at `~/.todo.json` (override with `$TODO_FILE`)
+- Pure Python standard library — no `pip install` needed
+
+**Quick tour of the output** (with color: strikethrough for done, red `(OVERDUE)` for late tasks):
+
+```
+[ ] #1 Ship v1.0 release
+    project:core  prio:high  due:2026-08-10  #release
+[x] #2 Write README
+    project:docs  prio:medium  due:2026-08-01  #docs
+```
+
+Usage examples:
+```bash
+./todo.py add "Write README" -p docs -d 2026-08-01 -t docs
+./todo.py ls                    # all open tasks, priority-first
+./todo.py ls -p core --overdue  # filter
+./todo.py ls --sort due --count
+./todo.py done 2                # mark done
+./todo.py clear --force         # purge completed
+```
+
+I tested every command, the filters, sorting, error paths, and the JSON round-trip — all passing, and it compiles clean.
+
+Want me to extend it — e.g. reminders via cron, a `--json` machine-readable output flag, `projects`/`tags` summary views, or editing an existing task's fields? Happy to keep going.

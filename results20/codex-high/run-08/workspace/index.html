@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Constellation Toy</title>
+<style>
+  :root {
+    --bg: #05060f;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: "Helvetica Neue", system-ui, sans-serif;
+  }
+  #sky { display: block; width: 100vw; height: 100vh; }
+  .ui {
+    position: fixed;
+    top: 18px;
+    left: 22px;
+    color: rgba(220, 230, 255, 0.75);
+    font-size: 13px;
+    line-height: 1.7;
+    letter-spacing: 0.4px;
+    pointer-events: none;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+  .ui h1 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: rgba(235, 242, 255, 0.9);
+    text-transform: uppercase;
+  }
+  .hint { opacity: 0.7; }
+  .controls {
+    position: fixed;
+    bottom: 18px;
+    right: 22px;
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+  }
+  .controls button {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(230, 238, 255, 0.85);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .controls button:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.35);
+  }
+</style>
+</head>
+<body>
+  <canvas id="sky"></canvas>
+  <div class="ui">
+    <h1>Constellation Toy</h1>
+    <div class="hint">move your cursor to guide the night sky &middot; scroll to zoom</div>
+  </div>
+  <div class="controls">
+    <button id="toggle">pause</button>
+    <button id="scatter">scatter</button>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("sky");
+  const ctx = canvas.getContext("2d");
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  let W = 0, H = 0;
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    placeStars();
+  }
+
+  // ---- star generation ----
+  const STAR_COUNT = 220;
+  let stars = [];
+
+  function randomStar() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 0.6 + Math.random() * 1.9,
+      vx: (Math.random() - 0.5) * 0.12,
+      vy: (Math.random() - 0.5) * 0.12,
+      tw: Math.random() * Math.PI * 2,
+      twSpeed: 0.01 + Math.random() * 0.04,
+      hue: 210 + Math.random() * 40,
+      baseLight: 0.6 + Math.random() * 0.4
+    };
+  }
+
+  function placeStars() {
+    stars = Array.from({ length: STAR_COUNT }, randomStar);
+  }
+
+  // ---- interaction ----
+  let mouse = { x: W / 2, y: H / 2, active: false };
+  let zoom = 1;
+  let targetZoom = 1;
+
+  window.addEventListener("mousemove", (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  });
+  window.addEventListener("touchmove", (e) => {
+    const t = e.touches[0];
+    mouse.x = t.clientX;
+    mouse.y = t.clientY;
+    mouse.active = true;
+  });
+  window.addEventListener("wheel", (e) => {
+    targetZoom = Math.max(0.6, Math.min(2.2, targetZoom - e.deltaY * 0.0012));
+    e.preventDefault();
+  }, { passive: false });
+
+  let paused = false;
+  document.getElementById("toggle").addEventListener("click", () => {
+    paused = !paused;
+    document.getElementById("toggle").textContent = paused ? "play" : "pause";
+  });
+  document.getElementById("scatter").addEventListener("click", scatter);
+  window.addEventListener("resize", resize);
+
+  function scatter() {
+    stars.forEach((s) => {
+      s.x = Math.random() * W;
+      s.y = Math.random() * H;
+      s.warm = 0;
+    });
+  }
+
+  // ---- rendering ----
+  const LINK_DIST = 130;
+
+  function step() {
+    zoom += (targetZoom - zoom) * 0.08;
+
+    // gentle drift
+    if (!paused) {
+      for (const s of stars) {
+        s.x += s.vx;
+        s.y += s.vy;
+        if (s.x < -20) s.x = W + 20;
+        if (s.x > W + 20) s.x = -20;
+        if (s.y < -20) s.y = H + 20;
+        if (s.y > H + 20) s.y = -20;
+        s.tw += s.twSpeed;
+      }
+    }
+
+    // warmth toward cursor: closest stars glow
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      const warmTarget = 0;
+      const dxm = s.x - mouse.x;
+      const dym = s.y - mouse.y;
+      const dm = Math.hypot(dxm, dym);
+      const desired = dm < 90 ? (1 - dm / 90) : 0;
+      s.warm = s.warm + (desired - s.warm) * 0.12;
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    // soft vignette / gradient background
+    const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H)*0.6);
+    bg.addColorStop(0, "#0a0d22");
+    bg.addColorStop(1, "#04050d");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // constellation links
+    const c = W / 2, cy = H / 2;
+    for (let i = 0; i < stars.length; i++) {
+      const a = stars[i];
+      for (let j = i + 1; j < stars.length; j++) {
+        const b = stars[j];
+        const dx = (a.x - c) * zoom + c - ((b.x - c) * zoom + c);
+        const dy = (a.y - cy) * zoom + cy - ((b.y - cy) * zoom + cy);
+        const d = Math.hypot(dx, dy);
+        if (d < LINK_DIST) {
+          const alpha = (1 - d / LINK_DIST) * 0.22;
+          ctx.strokeStyle = `rgba(140, 180, 255, ${alpha})`;
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.moveTo((a.x - c) * zoom + c, (a.y - cy) * zoom + cy);
+          ctx.lineTo((b.x - c) * zoom + c, (b.y - cy) * zoom + cy);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // stars
+    for (const s of stars) {
+      const sx = (s.x - c) * zoom + c;
+      const sy = (s.y - cy) * zoom + cy;
+      const pulse = 0.5 + 0.5 * Math.sin(s.tw);
+      const bright = s.baseLight + 0.25 * pulse + s.warm * 0.9;
+      const r = Math.max(0.4, s.r * zoom * (0.9 + 0.3 * pulse + s.warm * 0.5));
+
+      const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 5);
+      glow.addColorStop(0, `hsla(${s.hue}, 90%, 80%, ${Math.min(1, bright)})`);
+      glow.addColorStop(1, `hsla(${s.hue}, 90%, 80%, 0)`);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  resize();
+  step();
+})();
+</script>
+</body>
+</html>

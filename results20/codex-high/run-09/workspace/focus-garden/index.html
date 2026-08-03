@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Garden 🌱</title>
+<style>
+  :root {
+    --sky: #eaf6e4;
+    --soil: #8a5a44;
+    --leaf: #4caf50;
+    --leaf-dark: #2e7d32;
+    --bloom: #ff9f43;
+    --ink: #2c3e50;
+    --panel: rgba(255, 255, 255, 0.82);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 20% 15%, #fff7 0 3px, transparent 4px) 0 0 / 40px 40px,
+      linear-gradient(180deg, #bfe9c4 0%, var(--sky) 45%, #dff2d0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .app {
+    width: min(920px, 100%);
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .card {
+    background: var(--panel);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(6px);
+    padding: 24px 26px;
+  }
+
+  h1 {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+  }
+  .tagline { margin: 0 0 16px; opacity: 0.75; font-size: 0.95rem; }
+
+  .timer { font-size: 4.4rem; font-weight: 800; text-align: center; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
+  .mode { text-align: center; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; opacity: 0.8; margin-bottom: 4px; }
+  .timer.flash { color: var(--bloom); }
+
+  .status { text-align: center; margin: 6px 0 18px; min-height: 22px; font-size: 0.95rem; }
+
+  .controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button {
+    border: none;
+    border-radius: 12px;
+    padding: 11px 18px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    background: var(--leaf);
+    transition: transform .08s ease, filter .12s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+  }
+  button:hover { filter: brightness(1.05); }
+  button:active { transform: translateY(1px); }
+  button.secondary { background: #95a5a6; }
+  button.danger { background: #e74c3c; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+
+  .settings { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { display: block; font-size: .8rem; font-weight: 600; opacity: .8; margin-bottom: 4px; }
+  .field input {
+    width: 100%; padding: 8px 10px; border: 1px solid #d5d8dc; border-radius: 9px; font-size: 1rem;
+  }
+
+  /* Garden */
+  .garden-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .garden-head h2 { margin: 0; font-size: 1.25rem; }
+  .mirror { background: none; box-shadow: none; color: var(--ink); padding: 2px 6px; font-size: .85rem; }
+  .weather { font-size: .9rem; }
+
+  .soil {
+    position: relative;
+    min-height: 260px;
+    margin-top: 14px;
+    border-radius: 0 0 18px 18px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #d0a276 0%, #a9713f 55%, #8a5a44 100%);
+    border-top: 6px solid #7d4e36;
+  }
+  .plant {
+    position: absolute;
+    bottom: 12px;
+    transform-origin: center bottom;
+  }
+  .plant .stem { width: 5px; margin: 0 auto; background: var(--leaf-dark); }
+  .plant .leaf {
+    position: absolute; width: 16px; height: 24px; border-radius: 60% 10% 60% 10%;
+    background: linear-gradient(135deg, var(--leaf), var(--leaf-dark));
+  }
+  .plant .bloom {
+    position: absolute; width: 16px; height: 16px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--bloom), #e67e22);
+  }
+  .seed {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #5d4037; bottom: 18px;
+  }
+
+  .empty {
+    text-align: center; color: #5d4037; padding: 30px 12px; font-weight: 600;
+  }
+  .empty .big { font-size: 2.4rem; display: block; margin-bottom: 8px; }
+
+  .milestones { margin-top: 12px; font-size: .85rem; opacity: .85; }
+
+  footer {
+    position: fixed; bottom: 10px; left: 0; right: 0; text-align: center;
+    font-size: .75rem; opacity: .55;
+  }
+
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <section class="card">
+      <h1>🌱 Focus Garden</h1>
+      <p class="tagline">Plant a seed. Focus. Watch your garden grow.</p>
+
+      <div class="mode" id="modeLabel">Focus</div>
+      <div class="timer" id="timeDisplay">25:00</div>
+
+      <div class="status" id="statusText"></div>
+
+      <div class="controls">
+        <button id="startBtn">Start</button>
+        <button id="resetBtn" class="secondary">Reset</button>
+        <button id="skipBtn" class="secondary">Skip</button>
+        <button id="clearBtn" class="danger">Clear Garden</button>
+      </div>
+
+      <div class="settings">
+        <div class="field">
+          <label for="focusMin">Focus (min)</label>
+          <input id="focusMin" type="number" min="1" max="180" value="25">
+        </div>
+        <div class="field">
+          <label for="breakMin">Break (min)</label>
+          <input id="breakMin" type="number" min="1" max="60" value="5">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="garden-head">
+        <h2>Your Garden</h2>
+        <button id="mirrorBtn" class="mirror" title="Render garden as plain text">#</button>
+      </div>
+      <div class="weather" id="weatherText"></div>
+      <div class="soil" id="soil"></div>
+      <div class="milestones" id="milestoneText"></div>
+    </section>
+  </div>
+
+  <footer>Sessions are saved in your browser. No servers, no tracking.</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const STORE_KEY = "focus-garden:v1";
+  const FOCUS = "focus";
+  const BREAK = "break";
+
+  // ---------- state ----------
+  let state = {
+    mode: FOCUS,
+    running: false,
+    remaining: 25 * 60,
+    plants: 0,          // completed focus sessions
+    totalMin: 0,        // total focused minutes
+    longestStreak: 0,
+    currentStreak: 0,
+    lastCompletedDay: null,
+  };
+
+  let timerId = null;
+  const $ = (id) => document.getElementById(id);
+
+  const el = {
+    time: $("timeDisplay"),
+    mode: $("modeLabel"),
+    status: $("statusText"),
+    start: $("startBtn"),
+    reset: $("resetBtn"),
+    skip: $("skipBtn"),
+    clear: $("clearBtn"),
+    focusMin: $("focusMin"),
+    breakMin: $("breakMin"),
+    soil: $("soil"),
+    weather: $("weatherText"),
+    milestone: $("milestoneText"),
+    mirror: $("mirrorBtn"),
+  };
+
+  // ---------- persistence ----------
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (_) {}
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) state = Object.assign(state, JSON.parse(raw));
+    } catch (_) {}
+  }
+
+  // ---------- timer ----------
+  function focusSeconds() {
+    return Math.max(1, Math.round(Number(el.focusMin.value) || 25)) * 60;
+  }
+  function breakSeconds() {
+    return Math.max(1, Math.round(Number(el.breakMin.value) || 5)) * 60;
+  }
+
+  function format(s) {
+    s = Math.max(0, Math.round(s));
+    const m = String(Math.floor(s / 60)).padStart(2, "0");
+    const ss = String(s % 60).padStart(2, "0");
+    return `${m}:${ss}`;
+  }
+
+  function tick() {
+    if (!state.running) return;
+    state.remaining -= 1;
+    if (state.remaining <= 0) {
+      state.remaining = 0;
+      completePhase();
+    }
+    render();
+  }
+
+  function completePhase() {
+    if (state.mode === FOCUS) {
+      state.plants += 1;
+      const mins = Math.round(focusSeconds() / 60);
+      state.totalMin += mins;
+      // streak: consecutive calendar days
+      const today = new Date().toDateString();
+      const yest = new Date(Date.now() - 864e5).toDateString();
+      if (state.lastCompletedDay === undefined || state.lastCompletedDay === null || state.lastCompletedDay === "") {
+        state.currentStreak = 1;
+      } else if (state.lastCompletedDay === yest) {
+        state.currentStreak += 1;
+      } else if (state.lastCompletedDay !== today) {
+        state.currentStreak = 1;
+      }
+      state.lastCompletedDay = today;
+      state.longestStreak = Math.max(state.longestStreak, state.currentStreak);
+      flash();
+      el.status.textContent = "🌾 Focus complete! A plant has grown.";
+    } else {
+      el.status.textContent = "✨ Break's over. Back to it!";
+    }
+    state.mode = state.mode === FOCUS ? BREAK : FOCUS;
+    state.remaining = state.mode === FOCUS ? focusSeconds() : breakSeconds();
+    save();
+  }
+
+  function flash() {
+    el.time.classList.add("flash");
+    setTimeout(() => el.time.classList.remove("flash"), 1200);
+  }
+
+  // ---------- controls ----------
+  function setRunning(on) {
+    state.running = on;
+    clearInterval(timerId);
+    if (on) timerId = setInterval(tick, 1000);
+    el.start.textContent = on ? "Pause" : "Resume";
+    save();
+    render();
+  }
+
+  el.start.addEventListener("click", () => setRunning(!state.running));
+
+  el.reset.addEventListener("click", () => {
+    clearInterval(timerId);
+    state.running = false;
+    state.mode = FOCUS;
+    state.remaining = focusSeconds();
+    el.status.textContent = "";
+    el.start.textContent = "Start";
+    save();
+    render();
+  });
+
+  el.skip.addEventListener("click", () => {
+    clearInterval(timerId);
+    state.running = false;
+    state.remaining = 0;
+    el.start.textContent = "Start";
+    completePhase();
+    render();
+  });
+
+  el.clear.addEventListener("click", () => {
+    if (!confirm("Clear all plants and progress?")) return;
+    clearInterval(timerId);
+    state = { mode: FOCUS, running: false, remaining: focusSeconds(), plants: 0, totalMin: 0, longestStreak: 0, currentStreak: 0, lastCompletedDay: null };
+    el.status.textContent = "";
+    el.start.textContent = "Start";
+    save();
+    render();
+  });
+
+  [el.focusMin, el.breakMin].forEach((inp) =>
+    inp.addEventListener("change", () => {
+      if (!state.running && state.plants === 0 && state.totalMin === 0) {
+        state.mode = FOCUS;
+        state.remaining = focusSeconds();
+        render();
+      }
+    })
+  );
+
+  // ---------- rendering ----------
+  function render() {
+    el.time.textContent = format(state.remaining);
+    el.mode.textContent = state.mode === FOCUS ? "Focus" : "Break";
+    el.mode.style.color = state.mode === BREAK ? "var(--bloom)" : "";
+    renderWeather();
+    renderGarden();
+  }
+
+  function renderWeather() {
+    const n = state.plants;
+    let sky = "☀️ Sunny";
+    if (n >= 10) sky = "🌤️ Bright";
+    if (n >= 25) sky = "🌸 Blooming";
+    if (n >= 50) sky = "🌳 Flourishing";
+    el.weather.textContent = `${sky} · ${n} plant${n === 1 ? "" : "s"} · ${state.totalMin} min focused`;
+  }
+
+  function R(min, max) { return min + Math.random() * (max - min); }
+
+  function plantEl(idx) {
+    const d = document.createElement("div");
+    d.className = "plant";
+    const left = 6 + idx * 17 + R(-2, 2);
+    d.style.left = `${left}%`;
+
+    const status = state.plants < 10 ? "growing" : Math.random() < 0.7 ? "tall" : "bloom";
+    let height, leafCount, hasBloom;
+
+    if (status === "growing") {
+      height = R(24, 42); leafCount = idx % 3; hasBloom = false;
+    } else if (status === "bloom") {
+      height = R(60, 84); leafCount = 4; hasBloom = true;
+    } else {
+      height = R(52, 74); leafCount = 3; hasBloom = false;
+    }
+
+    const stem = document.createElement("div");
+    stem.className = "stem";
+    stem.style.height = `${height}px`;
+    d.appendChild(stem);
+
+    for (let l = 0; l < leafCount; l++) {
+      const leaf = document.createElement("div");
+      leaf.className = "leaf";
+      leaf.style.left = l % 2 === 0 ? `${-8 - R(0, 6)}px` : `${14 + R(0, 6)}px`;
+      leaf.style.top = `${R(8, height * 0.7)}px`;
+      leaf.style.transform = l % 2 === 0 ? "rotate(-20deg)" : "rotate(160deg)";
+      leaf.style.background = `linear-gradient(135deg, hsl(${118 + R(0, 20)}, 60%, ${48 + R(0, 12)}%), #2e7d32)`;
+      d.appendChild(leaf);
+    }
+
+    if (hasBloom) {
+      const b = document.createElement("div");
+      b.className = "bloom";
+      b.style.left = "50%";
+      b.style.transform = "translateX(-50%)";
+      b.style.top = `${Math.max(4, height)}px`;
+      d.appendChild(b);
+    }
+    return d;
+  }
+
+  function renderGarden() {
+    el.soil.innerHTML = "";
+
+    if (state.plants === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.innerHTML = `<span class="big">🪴</span>Finish your first focus session to plant a seed.`;
+      el.soil.appendChild(empty);
+    } else {
+      for (let i = 0; i < state.plants; i++) {
+        el.soil.appendChild(plantEl(i));
+      }
+    }
+
+    const goals = [1, 5, 10, 25, 50];
+    const next = goals.find((g) => state.plants < g);
+    el.milestone.textContent = next
+      ? `Next milestone: ${next} plants (${state.plants}/${next}) · 🔥 ${state.currentStreak}-day streak (best ${state.longestStreak})`
+      : `🏆 All milestones reached · best streak ${state.longestStreak} days · 🔥 current ${state.currentStreak}`;
+  }
+
+  // ---------- mirror (text view) ----------
+  el.mirror.addEventListener("click", () => {
+    const rows = [];
+    rows.push(`Focus Garden — ${state.plants} plant(s)`);
+    rows.push(`Focused ${state.totalMin} minutes total · ${state.currentStreak}-day streak (best ${state.longestStreak})`);
+    let bar = "";
+    for (let i = 0; i < state.plants; i++) bar += "🌱";
+    bar += state.plants >= 10 ? " 🌳" : "";
+    rows.push(bar || "🪴 nothing yet");
+    alert(rows.join("\n"));
+  });
+
+  // ---------- init ----------
+  load();
+  if (!state.remaining) state.remaining = focusSeconds();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+It works beautifully — you can see the gun emitting gliders that travel diagonally off-screen. The simulator is complete and verified. Here's what I built:
+
+## 🧬 `lifegrid.py` — Conway's Game of Life in your terminal
+
+Since the workspace was empty, I made a self-contained, zero-dependency ASCII cellular automaton. It's the pure-Python version of those hypnotic "conway's life" browser screens, but running straight in your terminal with `█`/`·` glyphs.
+
+**Tested and verified:**
+- ✅ Blinker oscillator — stable 3-cell cycle
+- ✅ Glider — travels diagonally at 5 cells, unchanged
+- ✅ Block still-life — persists
+- ✅ Gosper glider gun — 36 cells, emits gliders (grows to 61+)
+- ✅ Clean interactive boot on a real terminal
+
+```bash
+python3 lifegrid.py                              # random soup
+python3 lifegrid.py --pattern gun                # Gosper glider gun
+python3 lifegrid.py --width 100 --height 40 --speed 20
+```
+
+**Live keys:**
+| Key | Action |
+|-----|--------|
+| `space` | pause / resume |
+| `+` / `-` | faster / slower |
+| `r` | randomize |
+| `c` | clear |
+| `n` | step one gen (when paused) |
+| `g` / `G` | glider / glider gun |
+| `q` | quit |
+
+The `next_generation` function uses toroidal wrap-around and is a clean, readable pure function you could drop into any other project. Want me to add a pattern editor, save/load patterns, or a sparser stipple character set for higher density?

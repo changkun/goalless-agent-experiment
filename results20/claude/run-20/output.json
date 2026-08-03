@@ -1,0 +1,22 @@
+Done. Since the workspace was empty, I built **`td`** — a tiny, dependency-free terminal task tracker.
+
+**What it is**
+- `td.py` — a single-file Python CLI that stores tasks in `~/.td.json` using atomic writes (no dependencies, works on Python 3.8+).
+- `test_td.py` — 8 unit tests covering add/list/done/undone/rm, persistence, corrupt-store recovery, and error handling. All pass.
+
+**Usage**
+```bash
+./td.py add "write release notes" -t tech      # add with a tag
+./td.py list                                   # all tasks
+./td.py list --open / --done / --tag home      # filter
+./td.py done 1                                 # complete
+./td.py undone 1                               # reopen
+./td.py rm 2                                   # delete
+```
+
+**A few design choices worth noting**
+- Ids increment monotonically and aren't reused, so they stay stable after deletions.
+- The store is written to a temp file then `os.replace`d — atomic, so it won't corrupt on interruption.
+- During the smoke test I caught a real bug: `list --tag` showed filtered rows but the footer counted *all* tasks. Fixed so the summary reflects what's actually displayed.
+
+Run the tests with `python3 test_td.py -v`. Happy to extend it (due dates, priorities, a `--sort` mode, or a `README`) if you want to keep going.

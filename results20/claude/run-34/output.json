@@ -1,0 +1,23 @@
+Done. Since you gave me free rein, I built **tiny-ssg** — a complete, zero-dependency static site generator in `/workspace/ssg/` using only Python's standard library.
+
+## What it does
+- **`markdown.py`** — a from-scratch Markdown→HTML converter: headings, paragraphs, ordered/unordered lists (incl. nesting), blockquotes, fenced code blocks, alignment-aware tables, horizontal rules, and inline bold/italic/code/links/images.
+- **`ssg.py`** — the engine: YAML-ish frontmatter parsing, a Jinja-lite template renderer, drafts filtering, per-tag archives, an Atom feed (`rss.xml`), a client-side search index (`search.json` + live `search.js`), a CSS-variable theme with light/dark mode, and a dev server.
+- **Sample content** — a "Field Notes" blog with three posts, an about page, and a PNG, demonstrating every feature.
+
+## Verified working
+- Build runs, draft correctly excluded (3 posts published, not 4)
+- Search index/RSS/tag pages valid; all 9 HTML files parse clean
+- Server smoke test: **all 15 routes → 200**, missing paths → 404
+
+## Two bugs I found and fixed along the way
+1. **Infinite loop in the markdown parser** — the list/code block renderers returned *relative* consumed-counts, but `convert()` assigned them to the *absolute* index, so any content before a list re-processed the same block forever. Fixed by advancing with the relative offset.
+2. **Dev server 404s on everything** — `SimpleHTTPRequestHandler` needs an absolute `directory`; a relative `Path` made it resolve files against the wrong cwd. Fixed with `.resolve()`.
+
+## Try it
+```bash
+cd /workspace/ssg
+python3 ssg.py serve output 8000   # then open http://127.0.0.1:8000
+```
+
+A README documents the layout and usage. Want me to add anything — e.g. a `--watch` rebuild flag, syntax highlighting for code blocks, or pagination?

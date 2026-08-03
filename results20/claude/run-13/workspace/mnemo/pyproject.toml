@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mnemo"
+version = "0.1.0"
+description = "A minimal spaced-repetition flashcard CLI (SM-2)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+mnemo = "mnemo.cli:main"
+
+[tool.setuptools]
+packages = ["mnemo"]

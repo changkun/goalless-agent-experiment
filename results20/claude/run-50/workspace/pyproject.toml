@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "markovtext"
+version = "0.1.0"
+description = "A small, dependency-free Markov chain text generator."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+markovtext = "markov.cli:main"
+
+[tool.setuptools]
+packages = ["markov"]

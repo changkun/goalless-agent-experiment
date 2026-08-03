@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Notes</title>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --panel: #ffffff;
+    --ink: #2b2620;
+    --muted: #8a8378;
+    --accent: #b3893f;
+    --accent-soft: #f1e7d7;
+    --border: #e6ded2;
+    --code-bg: #f4f1ea;
+    --shadow: 0 8px 30px rgba(43,38,32,.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+  .brand .dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent); display: inline-block;
+  }
+  .stats { color: var(--muted); font-size: 13px; }
+  .stats b { color: var(--ink); font-weight: 600; }
+  .spacer { flex: 1; }
+  .save-state { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .save-state .led { width: 8px; height: 8px; border-radius: 50%; background: #58a05b; opacity: .35; transition: opacity .3s; }
+  .save-state.saving .led { opacity: 1; }
+  button {
+    font: inherit; border: 1px solid var(--border); background: var(--panel);
+    color: var(--ink); padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  button:hover { background: var(--accent-soft); border-color: var(--accent); }
+  main { flex: 1; display: flex; min-height: 0; }
+  .col {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    border-right: 1px solid var(--border); background: var(--panel);
+  }
+  .col:last-child { border-right: none; }
+  .col-title {
+    padding: 8px 18px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;
+  }
+  textarea {
+    flex: 1; border: none; outline: none; resize: none; padding: 20px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px; line-height: 1.7; background: transparent; color: var(--ink);
+  }
+  #preview {
+    flex: 1; overflow-y: auto; padding: 20px 28px;
+    font-size: 15px; line-height: 1.75;
+  }
+  #preview h1, #preview h2, #preview h3 { line-height: 1.3; margin-top: 1.2em; }
+  #preview h1 { font-size: 1.7em; border-bottom: 2px solid var(--border); padding-bottom: .3em; }
+  #preview h2 { font-size: 1.4em; }
+  #preview h3 { font-size: 1.15em; }
+  #preview code {
+    background: var(--code-bg); padding: .15em .4em; border-radius: 4px;
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em;
+  }
+  #preview pre {
+    background: var(--code-bg); padding: 14px 16px; border-radius: 8px; overflow-x: auto;
+  }
+  #preview pre code { padding: 0; background: none; }
+  #preview blockquote {
+    margin: 0; padding-left: 16px; border-left: 3px solid var(--accent);
+    color: var(--muted); font-style: italic;
+  }
+  #preview a { color: var(--accent); text-decoration: none; }
+  #preview a:hover { text-decoration: underline; }
+  #preview img { max-width: 100%; border-radius: 8px; }
+  #preview hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+  #preview table { border-collapse: collapse; width: 100%; }
+  #preview th, #preview td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+  #preview ul, #preview ol { padding-left: 1.4em; }
+  .empty-hint { color: var(--muted); font-style: italic; }
+  @media (max-width: 720px) {
+    main { flex-direction: column; }
+    .col { border-right: none; border-bottom: 1px solid var(--border); min-height: 45vh; }
+    .col:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot"></span>Field Notes</div>
+  <div class="stats"><b id="words">0</b> words · <b id="chars">0</b> chars · <b id="minutes">0</b> min read</div>
+  <div class="spacer"></div>
+  <div class="save-state" id="saveState"><span class="led"></span><span id="saveText">Saved</span></div>
+  <button id="exportMd">Export .md</button>
+  <button id="exportHtml">Export .html</button>
+  <button id="clear">Clear</button>
+</header>
+<main>
+  <section class="col">
+    <div class="col-title">Write <span>Markdown</span></div>
+    <textarea id="editor" placeholder="Start writing...&#10;&#10;# Title&#10;Some **bold** and *italic* text.&#10;&#10;> A little quote.&#10;&#10;- One&#10;- Two"></textarea>
+  </section>
+  <section class="col">
+    <div class="col-title">Preview <span>Live</span></div>
+    <div id="preview"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "fieldnotes.draft";
+  var editor = document.getElementById("editor");
+  var preview = document.getElementById("preview");
+  var wordsEl = document.getElementById("words");
+  var charsEl = document.getElementById("chars");
+  var minutesEl = document.getElementById("minutes");
+  var saveState = document.getElementById("saveState");
+  var saveText = document.getElementById("saveText");
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  // Minimal but safe Markdown renderer (no inline HTML passthrough,
+  // escaping everything first so no HTML/XSS can be injected).
+  function render(md) {
+    var lines = md.replace(/\r\n/g, "\n").split("\n");
+    var html = "";
+    var i = 0;
+    var listStack = [];
+    var inCode = false;
+    var codeBuf = [];
+    var para = [];
+
+    function flushPara() {
+      if (para.length) {
+        html += "<p>" + para.join(" ") + "</p>\n";
+        para = [];
+      }
+    }
+    function closeLists(until) {
+      while (listStack.length > until) {
+        var t = listStack.pop();
+        html += "</" + t + ">\n";
+      }
+    }
+    function inline(s) {
+      return s
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    }
+
+    for (; i < lines.length; i++) {
+      var line = lines[i];
+
+      if (/^```/.test(line)) {
+        flushPara(); closeLists(0);
+        if (!inCode) {
+          inCode = true; codeBuf = []; html += "<pre><code>";
+        } else {
+          inCode = false; html += escapeHtml(codeBuf.join("\n")) + "</code></pre>\n";
+        }
+        continue;
+      }
+      if (inCode) { codeBuf.push(line); continue; }
+
+      if (/^\s*$/.test(line)) {
+        flushPara(); closeLists(0);
+        continue;
+      }
+
+      var h;
+      if ((h = /^(#{1,6})\s+(.*)$/.exec(line))) {
+        flushPara(); closeLists(0);
+        var lvl = h[1].length;
+        html += "<h" + lvl + ">" + inline(escapeHtml(h[2])) + "</h" + lvl + ">\n";
+        continue;
+      }
+      if (/^---+$/.test(line) || /^\*\*\*+$/.test(line)) {
+        flushPara(); closeLists(0); html += "<hr>\n"; continue;
+      }
+      if (/^>\s?/.test(line)) {
+        flushPara(); closeLists(0);
+        html += "<blockquote>" + inline(escapeHtml(line.replace(/^>\s?/, ""))) + "</blockquote>\n";
+        continue;
+      }
+      if (/^[-*+]\s+/.test(line)) {
+        flushPara(); closeLists(1);
+        if (listStack[0] !== "ul") { listStack.unshift("ul"); html += "<ul>\n"; }
+        var item = inline(escapeHtml(line.replace(/^[-*+]\s+/, "")));
+        html += "<li>" + item + "</li>\n";
+        continue;
+      }
+      if (/^\d+[.)]\s+/.test(line)) {
+        flushPara(); closeLists(1);
+        if (listStack[0] !== "ol") { listStack.unshift("ol"); html += "<ol>\n"; }
+        var oitem = inline(escapeHtml(line.replace(/^\d+[.)]\s+/, "")));
+        html += "<li>" + oitem + "</li>\n";
+        continue;
+      }
+      // table row separator
+      if (/^\|[\s:|-]+\|$/.test(line)) { continue; }
+      if (/^\|/.test(line) && line.indexOf("|", 1) > -1) {
+        flushPara(); closeLists(0);
+        var cells = line.split("|").slice(1, -1).map(function (c) {
+          return inline(escapeHtml(c.trim()));
+        });
+        html += "<tr>" + cells.map(function (c) { return "<td>" + c + "</td>"; }).join("") + "</tr>\n";
+        continue;
+      }
+      // fallback: paragraph text
+      para.push(inline(escapeHtml(line)));
+    }
+    flushPara(); closeLists(0);
+    if (inCode) html += escapeHtml(codeBuf.join("\n")) + "</code></pre>\n";
+    return html || "<span class=\"empty-hint\">Nothing yet — start writing on the left.</span>";
+  }
+
+  function updateStats(text) {
+    var trimmed = text.trim();
+    var words = trimmed ? trimmed.split(/\s+/).length : 0;
+    var chars = text.length;
+    var minutes = Math.max(1, Math.round(words / 200));
+    wordsEl.textContent = words;
+    charsEl.textContent = chars;
+    minutesEl.textContent = minutes;
+  }
+
+  function refresh() {
+    var text = editor.value;
+    preview.innerHTML = render(text);
+    updateStats(text);
+    save();
+  }
+
+  var saveTimer = null;
+  function save() {
+    saveState.classList.add("saving");
+    saveText.textContent = "Saving…";
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try { localStorage.setItem(STORAGE_KEY, editor.value); } catch (e) {}
+      saveState.classList.remove("saving");
+      saveText.textContent = "Saved";
+    }, 300);
+  }
+
+  function load() {
+    var saved = "";
+    try { saved = localStorage.getItem(STORAGE_KEY) || ""; } catch (e) {}
+    editor.value = saved;
+    refresh();
+  }
+
+  function download(name, content, type) {
+    var blob = new Blob([content], { type: type });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () {
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+    }, 100);
+  }
+
+  function stampName() {
+    var d = new Date();
+    var p = function (n) { return String(n).padStart(2, "0"); };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+      "-" + p(d.getHours()) + p(d.getMinutes());
+  }
+
+  function exportMd() { download("notes-" + stampName() + ".md", editor.value, "text/markdown"); }
+  function exportHtml() {
+    var doc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Field Notes</title></head>" +
+      "<body style='font-family:sans-serif;line-height:1.7;max-width:740px;margin:40px auto'>" +
+      render(editor.value) + "</body></html>";
+    download("notes-" + stampName() + ".html", doc, "text/html");
+  }
+
+  editor.addEventListener("input", refresh);
+  document.getElementById("exportMd").addEventListener("click", exportMd);
+  document.getElementById("exportHtml").addEventListener("click", exportHtml);
+  document.getElementById("clear").addEventListener("click", function () {
+    if (confirm("Clear the current note? This cannot be undone.")) {
+      editor.value = ""; refresh();
+    }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

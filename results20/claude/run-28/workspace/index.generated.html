@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northwind SaaS — Revenue &amp; Acquisition</title>
+<style>
+  /* ============================================================
+     Design tokens (roles, not raw hex). Light + selected dark.
+     Based on the documented data-viz reference palette.
+     ============================================================ */
+  .viz-root {
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --ink-1: #0b0b0b;
+    --ink-2: #52514e;
+    --ink-3: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --delta-up: #006300;
+    --series-1: #2a78d6;  /* blue    — Organic */
+    --series-2: #eb6834;  /* orange  — Paid    */
+    --series-3: #1baf7a;  /* aqua    — Referral*/
+    --series-4: #eda100;  /* yellow  — Social  */
+    --status-good: #0ca30c;
+    --status-warn: #fab219;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --ink-1: #ffffff;
+      --ink-2: #c3c2b7;
+      --ink-3: #898781;
+      --grid: #2c2c2a;
+      --axis: #383835;
+      --border: rgba(255,255,255,0.10);
+      --delta-up: #0ca30c;
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255,255,255,0.10);
+    --delta-up: #0ca30c;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink-1);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .viz-root { max-width: 1080px; margin: 0 auto; padding: 40px 24px 72px; }
+
+  /* ---- header ---- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  h1 { font-size: 22px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 14px; margin: 4px 0 0; }
+  .theme-toggle {
+    border: 1px solid var(--border); background: var(--surface-1);
+    color: var(--ink-1); border-radius: 8px; padding: 7px 12px;
+    font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .theme-toggle:hover { background: var(--grid); }
+
+  /* ---- filter row (one row, above the charts) ---- */
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin: 24px 0 8px;
+  }
+  .filters button {
+    border: 1px solid var(--border); background: var(--surface-1);
+    color: var(--ink-2); border-radius: 999px; padding: 6px 14px;
+    font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .filters button:hover { background: var(--grid); }
+  .filters button.active {
+    color: var(--ink-1); border-color: var(--ink-2); font-weight: 600;
+  }
+
+  /* ---- hero + KPI row ---- */
+  .herostats { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px;
+  }
+  .hero .label { color: var(--ink-2); font-size: 14px; }
+  .hero .value {
+    font-size: 52px; font-weight: 650; letter-spacing: -0.02em;
+    margin: 6px 0 2px;
+  }
+  .hero .value small { font-size: 22px; font-weight: 500; color: var(--ink-2); }
+  .delta { font-size: 13px; margin-top: 8px; }
+  .delta .up { color: var(--delta-up); font-weight: 600; }
+  .delta .dn { color: var(--ink-2); }
+  .stat .label { color: var(--ink-2); font-size: 13px; }
+  .stat .value { font-size: 28px; font-weight: 650; margin: 4px 0 2px; }
+  .stat .spark { display: block; margin-top: 8px; }
+  .stat .spark text { font-size: 10px; }
+
+  /* ---- chart cards ---- */
+  .chart-card { margin-top: 16px; }
+  .chart-card .card { padding: 20px 20px 12px; }
+  .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .chart-head h2 { font-size: 16px; margin: 0; font-weight: 650; }
+  .chart-head .cap { color: var(--ink-2); font-size: 13px; margin-top: 2px; }
+  .tview { font: inherit; font-size: 12px; color: var(--ink-3); cursor: pointer;
+           background: none; border: none; padding: 4px 6px; border-radius: 6px; }
+  .tview:hover { color: var(--ink-1); background: var(--grid); }
+
+  /* ---- legend ---- */
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 12px 2px 4px;
+            justify-content: flex-end; }
+  .legend .item { display: inline-flex; align-items: center; gap: 7px;
+                  font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+  .legend .item:hover { color: var(--ink-1); }
+  .legend .item.dim { opacity: 0.38; }
+  .legend .sw {
+    width: 14px; height: 14px; border-radius: 4px; flex: none;
+    border: 0; background: var(--sc);
+  }
+
+  /* ---- plot / axis ---- */
+  .plot-wrap { margin-top: 8px; overflow-x: auto; }
+  svg.chart { display: block; width: 100%; height: auto; }
+  .axis text { fill: var(--ink-3); font-size: 11px; }
+  .axis line, .axis path { stroke: var(--axis); stroke-width: 1; }
+  .grid-h line { stroke: var(--grid); stroke-width: 1; }
+  .grid-h line.zero { stroke: var(--axis); }
+
+  /* ---- data labels & marks ---- */
+  .dlabel { fill: var(--ink-2); font-size: 11.5px; font-weight: 500; }
+  .endlabel { fill: var(--ink-2); font-size: 11.5px; font-weight: 600; }
+
+  /* ---- table twin ---- */
+  .table-wrap { margin-top: 8px; overflow-x: auto; }
+  table.data { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.data th, table.data td {
+    text-align: right; padding: 7px 12px; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  table.data th:first-child, table.data td:first-child { text-align: left; }
+  table.data thead th { color: var(--ink-3); font-weight: 500; border-bottom: 1px solid var(--axis); }
+  table.data tbody tr:nth-child(even) { background: var(--page); }
+  table.data td { color: var(--ink-1); }
+
+  /* ---- tooltip ---- */
+  .tooltip {
+    position: fixed; pointer-events: none; z-index: 30;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; min-width: 150px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    opacity: 0; transform: translateY(4px);
+    transition: opacity .12s ease, transform .12s ease;
+    font-size: 12.5px;
+  }
+  .tooltip.show { opacity: 1; transform: translateY(0); }
+  .tooltip .tt-title { color: var(--ink-2); font-size: 12px; margin-bottom: 6px; }
+  .tooltip .tt-row { display: flex; align-items: center; gap: 7px; padding: 2.5px 0; }
+  .tooltip .tt-k { width: 14px; height: 3px; border-radius: 2px; flex: none; }
+  .tooltip .tt-name { color: var(--ink-2); }
+  .tooltip .tt-val { margin-left: auto; font-weight: 600; padding-left: 18px; }
+  .tooltip .tt-cell { display: flex; justify-content: space-between; gap: 20px; }
+  .tooltip .tt-cell .tv { font-weight: 600; }
+
+  .heat-swatch { width: 14px; height: 3px; border-radius: 2px; flex: none; }
+
+  footer { color: var(--ink-3); font-size: 12px; margin-top: 32px; text-align: center; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="viz-root" id="root">
+
+  <!-- header + theme toggle -->
+  <header class="topbar">
+    <div>
+      <h1>Revenue &amp; acquisition</h1>
+      <p class="sub">Fictional SaaS · 12-month view · generated 2026-08-03</p>
+    </div>
+    <button class="theme-toggle" id="themeBtn" type="button" aria-pressed="false">Dark</button>
+  </header>
+
+  <!-- one filter row, scopes everything below -->
+  <div class="filters" id="filters" role="group" aria-label="Date range">
+    <button data-range="ytd" class="active">YTD</button>
+    <button data-range="6m">Last 6 mo</button>
+    <button data-range="q4">Q4</button>
+    <button data-range="all">All 12 mo</button>
+  </div>
+
+  <!-- hero + KPI stat tiles -->
+  <div class="herostats">
+    <div class="card hero">
+      <div class="label">Annual revenue</div>
+      <div class="value" id="heroVal">—</div>
+      <div class="delta"><span class="up" id="heroDelta">—</span> vs previous period</div>
+    </div>
+    <div class="card stat">
+      <div class="label">Sessions</div>
+      <div class="value" id="kpiSes">—</div>
+      <div class="delta"><span class="up" id="kpiSesD">—</span> <span style="color:var(--ink-2)">vs prev</span></div>
+      <svg class="spark" id="sparkSes" width="140" height="34" aria-hidden="true"></svg>
+    </div>
+    <div class="card stat">
+      <div class="label">Conversion rate</div>
+      <div class="value" id="kpiConv">—</div>
+      <div class="delta"><span class="up" id="kpiConvD">—</span> <span style="color:var(--ink-2)">pp vs prev</span></div>
+      <svg class="spark" id="sparkConv" width="140" height="34" aria-hidden="true"></svg>
+    </div>
+    <div class="card stat">
+      <div class="label">Avg revenue / session</div>
+      <div class="value" id="kpiArps">—</div>
+      <div class="delta"><span class="up" id="kpiArpsD">—</span> <span style="color:var(--ink-2)">vs prev</span></div>
+      <svg class="spark" id="sparkArps" width="140" height="34" aria-hidden="true"></svg>
+    </div>
+  </div>
+
+  <!-- chart 1: revenue by channel, multi-line -->
+  <section class="chart-card">
+    <div class="card">
+      <div class="chart-head">
+        <div>
+          <h2>Revenue by channel</h2>
+          <p class="cap" id="cap1">Monthly revenue, by acquisition channel</p>
+        </div>
+        <button class="tview" data-toggle="chart1" type="button">Table</button>
+      </div>
+      <div class="legend" id="legend1"></div>
+      <div class="plot-wrap">
+        <svg class="chart" id="chart1" viewBox="0 0 880 380" role="img"
+             aria-labelledby="cap1"></svg>
+      </div>
+      <div class="table-wrap hidden" id="table1"></div>
+    </div>
+  </section>
+
+  <!-- chart 2: channel mix, horizontal stacked bar -->
+  <section class="chart-card">
+    <div class="card">
+      <div class="chart-head">
+        <div>
+          <h2>Channel mix</h2>
+          <p class="cap" id="cap2">Share of sessions by channel, full period</p>
+        </div>
+        <button class="tview" data-toggle="chart2" type="button">Table</button>
+      </div>
+      <div class="legend" id="legend2"></div>
+      <div class="plot-wrap">
+        <svg class="chart" id="chart2" viewBox="0 0 880 300" role="img"
+             aria-labelledby="cap2"></svg>
+      </div>
+      <div class="table-wrap hidden" id="table2"></div>
+    </div>
+  </section>
+
+  <!-- chart 3: sessions heatmap, weekday x month -->
+  <section class="chart-card">
+    <div class="card">
+      <div class="chart-head">
+        <div>
+          <h2>Sessions by weekday</h2>
+          <p class="cap" id="cap3">Average daily sessions (k), weekday by month</p>
+        </div>
+        <button class="tview" data-toggle="chart3" type="button">Table</button>
+      </div>
+      <div class="plot-wrap">
+        <svg class="chart" id="chart3" viewBox="0 0 880 360" role="img"
+             aria-labelledby="cap3"></svg>
+      </div>
+      <div class="table-wrap hidden" id="table3"></div>
+    </div>
+  </section>
+
+  <footer>Northwind SaaS · illustrative data generated deterministically ·
+         built with plain standards — no libraries. Colors are the documented,
+         CVD-validated reference palette.</footer>
+</div>
+
+<div class="tooltip" id="tooltip" role="status"></div>
+
+<script>
+"use strict";
+const DATA = {"channels": ["Organic", "Paid", "Referral", "Social"], "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "generated": "2026-08-03", "monthly_sessions": [[2886.9866, 3065.1215, 3332.7336, 3254.5456, 3611.3102, 3778.1585, 3280.0386, 3651.7092, 3691.8728, 3475.9426, 3635.159, 4290.2197], [2297.2058, 2309.5831, 2509.0161, 2546.1673, 2427.175, 2602.6642, 2293.3172, 2818.2888, 2538.1581, 2621.9336, 2524.4805, 2836.6327], [1423.0475, 1611.8618, 1714.9722, 1762.1941, 1804.8983, 1953.63, 1774.3913, 1842.8156, 1925.582, 1861.931, 1741.1625, 2046.159], [1786.6773, 1770.707, 2090.7295, 1987.5137, 2229.547, 2024.0554, 1843.1423, 2256.3492, 2254.7556, 2229.8644, 2112.7779, 2572.6033]], "monthly_revenue": [[3.4358, 3.9546, 3.9919, 4.1106, 4.3144, 5.4416, 4.0725, 4.4263, 4.5739, 4.6253, 5.164, 5.0849], [1.9891, 2.0792, 2.0506, 2.3233, 1.9068, 2.3321, 1.8392, 2.2727, 2.3162, 2.3814, 2.3409, 2.4293], [1.5774, 1.7358, 1.896, 1.861, 2.0737, 2.2517, 1.896, 2.2112, 2.1888, 2.1806, 1.8357, 2.3284], [1.0929, 1.0013, 1.3174, 1.2326, 1.3441, 1.3436, 1.068, 1.4001, 1.5217, 1.4111, 1.2479, 1.5652]], "rev_total": [8.0952, 8.7709, 9.2559, 9.5275, 9.639, 11.369, 8.8757, 10.3103, 10.6006, 10.5984, 10.5885, 11.4078], "ses_total": [8393.9172, 8757.2734, 9647.4514, 9550.4207, 10072.9305, 10358.5081, 9190.8894, 10569.1628, 10410.3685, 10189.6716, 10013.5799, 11745.6147], "conv_rate": [[2.98, 2.95, 2.82, 3.14, 2.92, 3.31, 2.89, 2.97, 2.87, 3.23, 3.26, 2.83], [2.29, 2.44, 2.2, 2.53, 2.29, 2.49, 2.2, 2.35, 2.5, 2.44, 2.61, 2.44], [2.91, 2.86, 2.91, 2.73, 2.81, 2.98, 2.72, 2.97, 2.87, 3.11, 2.74, 2.99], [1.91, 1.9, 2.11, 2.04, 2.02, 2.2, 1.89, 2.08, 2.08, 1.97, 1.89, 2.02]], "channel_share": [35.285, 25.5044, 18.051, 21.1596], "heatmap": [[26.5615, 23.5189, 28.4726, 29.8112, 26.8984, 28.5484, 25.2777, 31.963, 33.0822, 30.4679, 29.7722, 34.0111], [23.2408, 21.9646, 24.3786, 21.407, 27.209, 28.6892, 21.2161, 26.3826, 27.0222, 23.0484, 26.3526, 29.8982], [29.3297, 32.3152, 31.7703, 39.0389, 37.6098, 37.7068, 29.8578, 35.7474, 40.3517, 38.0532, 36.3306, 47.3652], [22.9699, 24.8879, 28.7975, 26.9123, 31.5096, 29.9774, 26.5363, 31.8812, 34.6762, 32.0481, 29.0016, 37.3352], [29.0746, 29.3274, 38.4131, 35.9055, 40.1902, 33.733, 36.7321, 35.4704, 39.2074, 39.8274, 36.6049, 44.3617], [30.592, 33.6563, 32.8583, 31.9258, 36.2693, 39.4316, 30.8708, 39.5742, 39.8722, 39.9309, 38.6146, 44.7436], [30.626, 29.5882, 34.2111, 35.6358, 37.4557, 37.4687, 36.547, 38.9642, 39.2415, 42.5655, 37.3393, 43.331]], "weekly_rev": [279.2375, 271.3924, 280.422, 298.0265, 307.6888, 273.7693, 331.335, 307.0852, 311.9741, 330.272, 305.5394, 347.0522, 365.8318, 306.3756, 315.6484, 381.6473, 341.2951, 370.5133, 387.7101, 364.3198, 399.756, 413.4277, 373.8649, 384.8708, 389.6035, 410.1977, 406.7468, 409.8044, 461.0068, 460.9913, 456.0359, 403.8836, 417.607, 457.4711, 479.3754, 432.9645, 465.9868, 496.3016, 532.1134, 530.8593, 507.9748, 509.0015, 555.6447, 488.4131, 495.8394, 553.7685, 519.4201, 534.785, 592.7068, 536.4129, 600.2435, 550.5928]};
+
+/* ===================================================================
+   Design tokens as CSS vars so both renderers share the same slots.
+   The chart body reads roles (--series-N, --ink-*) — never raw hex.
+   =================================================================== */
+const CHANNELS = DATA.channels;      // ["Organic","Paid","Referral","Social"]
+const MONTHS   = DATA.months;        // 12 abbreviations
+const WEEKDAYS = DATA.weekdays;      // Mon..Sun
+const SRC = {
+  series: ["--series-1","--series-2","--series-3","--series-4"],
+  ink1: "var(--ink-1)", ink2: "var(--ink-2)", ink3: "var(--ink-3)",
+  grid: "var(--grid)", axis: "var(--axis)", border: "var(--border)",
+  surf: "var(--surface-1)", up: "var(--delta-up)",
+};
+const ROOT = document.getElementById("root");
+
+/* ---------- tiny helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const fmt  = n => Math.round(n).toLocaleString("en-US");
+const fmt1 = n => Math.round(n*10)/10;
+const fmtK = n => n >= 1000 ? (n/1000).toFixed(1)+"k" : fmt(n);
+const numFmt = n => n >= 100 ? fmt(n) : fmt1(n);
+const css = (name) => getComputedStyle(ROOT).getPropertyValue(name).trim();
+
+/* ---------- tooltip (single shared, values-lead) ---------- */
+const tip = {
+  el: $("#tooltip"),
+  show(x, y, html) {
+    this.el.innerHTML = html;
+    this.el.classList.add("show");
+    const r = this.el.getBoundingClientRect();
+    let left = x + 14, top = y - r.height - 10;
+    if (left + r.width > innerWidth - 8) left = x - r.width - 14;
+    if (top < 8) top = y + 16;
+    this.el.style.left = left + "px";
+    this.el.style.top  = top + "px";
+  },
+  hide() { this.el.classList.remove("show"); }
+};
+function ttRow(seriesIdx, name, value) {
+  return `<div class="tt-row"><span class="tt-k" style="background:${css(SRC.series[seriesIdx])}"></span>` +
+    `<span class="tt-name">${name}</span><span class="tt-val">${value}</span></div>`;
+}
+function esc(s) {
+  const t = document.createElement("span");
+  t.textContent = s; return t.innerHTML;
+}
+
+/* ===================================================================
+   Range filter — one row scopes every chart, stat, and table below it.
+   =================================================================== */
+let range = "ytd";
+const RANGES = {
+  ytd: [0, 8],      // Jan..Aug
+  "6m": [6, 12],    // Jul..Dec
+  q4:  [9, 12],     // Oct..Dec
+  all: [0, 12],
+};
+$("#filters").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  range = b.dataset.range;
+  document.querySelectorAll("#filters button").forEach(x =>
+    x.classList.toggle("active", x === b));
+  setThemeMeta();
+  renderAll();
+});
+
+/* ===================================================================
+   Theme toggle (light / dark / os) — data-theme stamp + media query.
+   =================================================================== */
+function applyTheme(next) {
+  const osDark = matchMedia("(prefers-color-scheme: dark)").matches;
+  if (next === "os") {
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    document.documentElement.dataset.theme = next;
+  }
+  const isDark = next === "dark" || (next === "os" && osDark);
+  $("#themeBtn").textContent = next === "os"
+    ? (osDark ? "Light" : "Dark")
+    : (isDark ? "Light" : "Dark");
+  $("#themeBtn").setAttribute("aria-pressed", String(isDark));
+  renderAll(); // charts are canvas-agnostic CSS, but spark SVGs re-read vars
+}
+let themeState = "os";
+$("#themeBtn").addEventListener("click", () => {
+  themeState = themeState === "os" ? "dark" : themeState === "dark" ? "light" : "dark";
+  applyTheme(themeState);
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => applyTheme(themeState));
+
+/* ===================================================================
+   KPIs + hero + stat tiles
+   =================================================================== */
+function slice() {
+  const [a, b] = RANGES[range];
+  const rev  = DATA.rev_total.slice(a, b);
+  const ses  = DATA.ses_total.slice(a, b);
+  const cvr  = DATA.conv_rate;              // [channel][month] (percent)
+  // weighted-mean conversion % by month (weighted by channel sessions)
+  const cvrByMonth = [];
+  for (let m = 0; m < MONTHS.length; m++) {
+    let w = 0; for (let c = 0; c < CHANNELS.length; c++)
+      w += cvr[c][m] * DATA.monthly_sessions[c][m];
+    cvrByMonth[m] = DATA.ses_total[m] ? w / DATA.ses_total[m] : 0;
+  }
+  // previous period of equal length immediately before the slice
+  const span = b - a;
+  const prevA = Math.max(0, a - span);
+  const prevSes = DATA.ses_total.slice(prevA, a)
+    .reduce((x, y) => x + y, 0);
+  const prevRev = DATA.rev_total.slice(prevA, a)
+    .reduce((x, y) => x + y, 0);
+  return {
+    months: MONTHS.slice(a, b),
+    rev, ses,
+    cvr: cvrByMonth.slice(a, b),
+    arps: rev.map((r, i) => r * 1000 / (ses[i] || 1)),
+    prevRev, prevSes,
+  };
+}
+function pct(d, base) {
+  if (!base) return "—";
+  const p = (d / base) * 100 - 100;
+  return `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
+}
+function renderKPIs() {
+  const s = slice();
+  const curRev = s.rev.reduce((x, y) => x + y, 0);
+  const curSes = s.ses.reduce((x, y) => x + y, 0);
+  const curCvr = s.cvr.length ? s.cvr.reduce((x, y) => x + y, 0) / s.cvr.length : 0;
+  const curArps = curSes ? (curRev * 1000) / curSes : 0;
+
+  const prevArps = s.prevSes ? (s.prevRev * 1000) / s.prevSes : 0;
+  $("#heroVal").innerHTML = "$" + fmt(curRev) + "<small>k</small>";
+  $("#heroDelta").textContent = pct(curRev, s.prevRev);
+  $("#kpiSes").textContent = fmtK(curSes);
+  $("#kpiSesD").textContent = pct(curSes, s.prevSes);
+  $("#kpiConv").textContent = curCvr.toFixed(1) + "%";
+  const convSpan = s.cvr[s.cvr.length - 1] - s.cvr[0];
+  $("#kpiConvD").textContent = (convSpan >= 0 ? "+" : "") + convSpan.toFixed(1) + " pp";
+  $("#kpiArps").textContent = "$" + curArps.toFixed(2);
+  const arpsD = (curArps - prevArps) * 100 / (prevArps || 1);
+  $("#kpiArpsD").textContent = (arpsD >= 0 ? "+" : "") + arpsD.toFixed(1) + "%";
+  // sparklines
+  spark($("#sparkSes"), s.ses, "var(--ink-3)");
+  spark($("#sparkConv"), s.cvr, "var(--ink-3)");
+  spark($("#sparkArps"), s.arps, "var(--ink-3)");
+}
+function spark(svg, vals, color) {
+  const W = 140, H = 34, P = 2;
+  if (!vals.length) return;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const rng = (max - min) || 1;
+  const pts = vals.map((v, i) => {
+    const x = P + (i / (vals.length - 1)) * (W - 2 * P);
+    const y = H - P - ((v - min) / rng) * (H - 2 * P);
+    return [x, y];
+  });
+  const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  svg.innerHTML = `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>`;
+}
+
+/* ===================================================================
+   Legend: toggle-to-isolate; color follows the entity, never rank.
+   =================================================================== */
+function renderLegend(container, names, onToggle) {
+  container.innerHTML = "";
+  names.forEach((n, i) => {
+    const item = document.createElement("div");
+    item.className = "item";
+    item.innerHTML = `<span class="sw" style="--sc:${css(SRC.series[i])}"></span><span>${esc(n)}</span>`;
+    item.addEventListener("click", () => {
+      const allOn = [...container.children].every(el => !el.classList.contains("dim"));
+      container.querySelectorAll(".item").forEach(el =>
+        el.classList.toggle("dim", allOn ? el !== item : false));
+      onToggle();
+    });
+    container.appendChild(item);
+  });
+}
+function legendDimmed(container) {
+  const dimmed = [];
+  container.querySelectorAll(".item").forEach((el, i) => {
+    if (el.classList.contains("dim")) dimmed.push(i);
+  });
+  return dimmed;
+}
+
+/* ===================================================================
+   Chart 1 — Revenue by channel (multi-line, one shared axis)
+   =================================================================== */
+function renderChart1() {
+  const s = slice();
+  const svg = $("#chart1");
+  const W = 880, H = 380, mL = 62, mR = 212, mT = 16, mB = 34;
+  const iw = W - mL - mR, ih = H - mT - mB;
+  const n = s.months.length;
+  const maxAll = Math.max(...CHANNELS.map((_, c) =>
+    Math.max(...sliceRange(c).map(x => x))));
+  function sliceRange(c) {
+    const [a, b] = RANGES[range];
+    return DATA.monthly_revenue[c].slice(a, b);
+  }
+  const x = i => mL + (n === 1 ? iw / 2 : (i / (n - 1)) * iw);
+  const y = v => mT + ih - (v / maxAll) * ih;
+  const dimmed = legendDimmed($("#legend1"));
+
+  // gridlines + axis
+  let g = "";
+  const ticks = 4;
+  for (let t = 0; t <= ticks; t++) {
+    const v = (maxAll * t) / ticks;
+    const yy = y(v);
+    g += `<line x1="${mL}" y1="${yy}" x2="${W - mR}" y2="${yy}"></line>` +
+         `<text x="${mL - 8}" y="${yy + 3.5}" text-anchor="end">${numFmt(v)}</text>`;
+  }
+  g += `<line x1="${mL}" y1="${mT + ih}" x2="${W - mR}" y2="${mT + ih}" class="zero"></line>`;
+  s.months.forEach((m, i) => {
+    g += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${m}</text>`;
+  });
+
+  // series lines (color follows the entity — survivors keep their hue)
+  let body = "";
+  const ends = [];   // {c, y, v} endpoints for leader-line placement
+  CHANNELS.forEach((ch, c) => {
+    if (dimmed.includes(c)) return;
+    const vals = sliceRange(c);
+    const col = css(SRC.series[c]);
+    const d = vals.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
+    body += `<path d="${d}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>`;
+    // end marker dot (2px surface ring keeps it legible over the line)
+    const lx = x(n - 1), ly = y(vals[n - 1]);
+    body += `<circle cx="${lx}" cy="${ly}" r="4" fill="${col}" stroke="var(--surface-1)" stroke-width="2"></circle>`;
+    ends.push({ c, x: lx, y: ly, v: vals[n - 1], ch });
+  });
+
+  // direct end-labels with leader lines. Ends sit at the same x as the lines
+  // converge at the right edge, so stack labels vertically with a 14px line pitch
+  // and connect each label to its line-end with a thin leader.
+  const labelX = x(n - 1) + 14 + 70;   // right margin holds the label column
+  const sorted = [...ends].sort((a, b) => a.y - b.y);
+  let labelY0 = sorted[0] ? Math.max(mT + 8, sorted[0].y - 8) : mT + 8;
+  sorted.forEach((e, idx) => {
+    const rowY = labelY0 + idx * 16;   // 16px pitch prevents vertical collision
+    const col = css(SRC.series[e.c]);
+    // leader: from the line-end dot to the label column
+    body += `<line x1="${e.x + 5}" y1="${e.y}" x2="${labelX - 6}" y2="${rowY}"
+                    stroke="${col}" stroke-width="1" opacity="0.5"></line>` +
+            `<text class="endlabel" x="${labelX}" y="${rowY + 3.5}">${esc(e.ch)} $${numFmt(e.v)}k</text>`;
+  });
+
+  // hover layer (single crosshair + per-X tooltip listing every series)
+  let hover = "";
+  const halfX = iw / n / 2;
+  s.months.forEach((m, i) => {
+    const cx = x(i);
+    const col = css(SRC.series[0]);
+    hover += `<g class="hv" data-i="${i}" style="cursor:crosshair">
+        <rect x="${cx - halfX}" y="${mT}" width="${halfX * 2}" height="${ih}"
+              fill="transparent"></rect>
+        <line x1="${cx}" y1="${mT}" x2="${cx}" y2="${mT + ih}" stroke="${col}"
+              stroke-width="1" opacity="0.35"></line>
+        <circle cx="${cx}" cy="${mT + ih}" r="${Math.min(4, halfX - 2)}" fill="var(--surface-1)" stroke="var(--axis)"></circle>
+      </g>`;
+  });
+
+  svg.innerHTML =
+    `<g class="grid-h">${g}</g>` +
+    body +
+    `<g class="hover">${hover}</g>` +
+    `<g class="axis"></g>`;
+
+  // tooltip wiring
+  svg.querySelectorAll(".hv").forEach(hv => {
+    const i = +hv.dataset.i;
+    const pos = hv.getBoundingClientRect();
+    const bind = ev => {
+      const rr = svg.getBoundingClientRect();
+      const cx = x(i);
+      const px = rr.left + cx;
+      const py = rr.top + mT + ih;
+      let html = `<div class="tt-title">${esc(s.months[i])}</div>`;
+      CHANNELS.forEach((ch, c) => {
+        if (legendDimmed($("#legend1")).includes(c)) return;
+        const v = sliceRange(c)[i];
+        html += ttRow(c, ch, "$" + numFmt(v) + "k");
+      });
+      tip.show(px, py, html);
+    };
+    hv.addEventListener("mousemove", bind);
+    hv.addEventListener("mouseleave", () => tip.hide());
+    hv.addEventListener("focus", bind);
+  });
+}
+
+/* ===================================================================
+   Chart 2 — Channel mix (horizontal stacked bar)
+   =================================================================== */
+function renderChart2() {
+  const s = slice();
+  const svg = $("#chart2");
+  const W = 880, H = 300, mL = 200, mR = 20, mT = 10, mB = 26;
+  const iw = W - mL - mR;
+
+  // compute shares over the current slice
+  const [a, b] = RANGES[range];
+  const per = DATA.monthly_sessions.map(ch => ch.slice(a, b).reduce((x, y) => x + y, 0));
+  const tot = per.reduce((x, y) => x + y, 0) || 1;
+  const share = per.map(v => (v / tot) * 100);
+
+  const barH = 44, y0 = mT;
+  const dimmed = legendDimmed($("#legend2"));
+  const colR = iw - 120;
+  let acc = 0;
+  const segs = CHANNELS.map((ch, c) => {
+    const w = (share[c] / 100) * colR;
+    const x0 = mL + acc;
+    acc += w;
+    return { c, x0, x1: x0 + w, p: share[c], w };
+  });
+
+  // build everything as strings, single innerHTML assignment
+  let body = "";
+  segs.forEach(seg => {
+    body += `<rect x="${seg.x0}" y="${y0}" width="${Math.max(seg.w, 0)}" height="${barH}" rx="6"
+             fill="${css(SRC.series[seg.c])}" data-c="${seg.c}"></rect>`;
+  });
+  let labels = `<text class="endlabel" x="${mL + colR + 12}" y="${y0 + barH / 2 + 3.5}">${fmt(tot)}</text>`;
+  segs.forEach(seg => {
+    // only place a label inside when it fits with padding (≥4% share)
+    if (seg.p >= 4) {
+      const cx = (seg.x0 + seg.x1) / 2;
+      labels += `<text class="dlabel" x="${cx}" y="${y0 + barH / 2 + 3.5}" text-anchor="middle">${seg.p.toFixed(0)}%</text>`;
+    }
+  });
+  svg.innerHTML = body + labels;
+
+  // hover: the segment mark is the hit target (values-lead tooltip)
+  svg.querySelectorAll("rect[data-c]").forEach(r => {
+    const c = +r.dataset.c;
+    if (dimmed.includes(c)) return;
+    const show = () => {
+      const rr = svg.getBoundingClientRect();
+      const seg = segs.find(s => s.c === c);
+      tip.show(rr.left + (seg.x0 + seg.w / 2), rr.top + y0 + barH / 2,
+        `<div class="tt-row"><span class="tt-k" style="background:${css(SRC.series[c])}"></span>` +
+        `<span class="tt-name">${esc(CHANNELS[c])}</span><span class="tt-val">${share[c].toFixed(1)}%</span></div>`);
+    };
+    r.addEventListener("mousemove", show);
+    r.addEventListener("mouseleave", () => tip.hide());
+  });
+}
+
+/* ===================================================================
+   Chart 3 — Sessions heatmap (sequential blue ramp, weekday x month)
+   =================================================================== */
+const HEAT_STEPS = ["#cde2fb","#9ec5f4","#6da7ec","#3987e5","#256abf","#1c5cab","#104281"];
+function renderChart3() {
+  const svg = $("#chart3");
+  const W = 880, H = 360, mL = 48, mR = 12, mT = 12, mB = 30;
+  const iw = W - mL - mR, ih = H - mT - mB;
+  const [a, b] = RANGES[range];
+  const cols = b - a;
+  const cw = iw / cols, ch = ih / 7;
+  const heat = DATA.heatmap;
+  const maxHeat = Math.max(...heat.map(r => Math.max(...r.slice(a, b))));
+  const minHeat = Math.min(...heat.map(r => Math.min(...r.slice(a, b))));
+
+  let body = "";
+  heat.forEach((row, w) => {
+    row.slice(a, b).forEach((v, mi) => {
+      const m0 = a + mi;
+      const t = (v - minHeat) / (maxHeat - minHeat || 1);
+      const col = HEAT_STEPS[Math.min(HEAT_STEPS.length - 1, Math.max(0, Math.round(t * (HEAT_STEPS.length - 1))))];
+      const x0 = mL + mi * cw, y0 = mT + w * ch;
+      body += `<rect x="${x0}" y="${y0}" width="${cw}" height="${ch}" rx="3"
+               fill="${col}" data-w="${w}" data-m="${m0}"></rect>`;
+    });
+  });
+
+  // month labels (top) + weekday labels (left)
+  MONTHS.slice(a, b).forEach((mm, mi) => {
+    body += `<text x="${mL + mi * cw + cw / 2}" y="${mT - 6}" text-anchor="middle">${mm}</text>`;
+  });
+  WEEKDAYS.forEach((wd, w) => {
+    body += `<text x="${mL - 8}" y="${mT + w * ch + ch / 2 + 4}" text-anchor="end">${wd}</text>`;
+  });
+
+  // scale legend (blue ramp) in the top-right, folded into the same string
+  body += scaleLegend(maxHeat, minHeat);
+  svg.innerHTML = body;
+
+  // hover: mark is the hit target
+  svg.querySelectorAll("rect[data-w]").forEach(r => {
+    const w = +r.dataset.w, m = +r.dataset.m;
+    const bind = ev => {
+      const rr = svg.getBoundingClientRect();
+      const cx = rr.left + (+r.getAttribute("x")) + cw / 2;
+      const cy = rr.top + (+r.getAttribute("y")) + ch / 2;
+      const v = heat[w][m];
+      tip.show(cx, cy,
+        `<div class="tt-title">${WEEKDAYS[w]} · ${MONTHS[m]}</div>` +
+        `<div class="tt-cell"><span style="color:var(--ink-2)">Sessions</span><span class="tv">${numFmt(v)}k</span></div>`);
+    };
+    r.addEventListener("mousemove", bind);
+    r.addEventListener("mouseleave", () => tip.hide());
+    r.addEventListener("focus", bind);
+  });
+}
+function scaleLegend(max, min) {
+  // small sequential legend: swatches + labels
+  let sw = "";
+  HEAT_STEPS.forEach(h => { sw += `<rect width="12" height="12" rx="2" fill="${h}"></rect>`; });
+  return `<g transform="translate(720,4)">
+    <rect width="${14 * HEAT_STEPS.length + 8}" height="26" fill="none"></rect>
+    ${HEAT_STEPS.map((h, i) =>
+      `<rect x="${i * 15}" y="2" width="12" height="12" rx="2" fill="${h}"></rect>`).join("")}
+    <text x="0" y="22" font-size="10" fill="var(--ink-3)">low</text>
+    <text x="${12 * HEAT_STEPS.length}" y="22" text-anchor="end" font-size="10" fill="var(--ink-3)">high</text>
+  </g>`;
+}
+
+/* ===================================================================
+   Table-view twins (WCAG-clean equivalents — tooltips never gate)
+   =================================================================== */
+function renderTables() {
+  // chart1 table
+  const s = slice();
+  let h1 = `<table class="data"><thead><tr><th>Month</th>` +
+    CHANNELS.map(c => `<th>${esc(c)}</th>`).join("") + `<th>Total</th></tr></thead><tbody>`;
+  s.months.forEach((m, i) => {
+    const cells = CHANNELS.map((_, c) =>
+      `<td>$${numFmt(sliceRev(c)[i])}k</td>`).join("");
+    h1 += `<tr><td>${esc(m)}</td>${cells}<td>$${numFmt(s.rev[i])}k</td></tr>`;
+  });
+  h1 += "</tbody></table>";
+  $("#table1").innerHTML = h1;
+
+  // chart2 table
+  const [a2, b2] = RANGES[range];
+  const per = DATA.monthly_sessions.map(ch => ch.slice(a2, b2).reduce((x, y) => x + y, 0));
+  const tot = per.reduce((x, y) => x + y, 0) || 1;
+  let h2 = `<table class="data"><thead><tr><th>Channel</th><th>Sessions</th><th>Share</th></tr></thead><tbody>`;
+  CHANNELS.forEach((c, i) => {
+    h2 += `<tr><td>${esc(c)}</td><td>${fmt(per[i])}</td><td>${((per[i] / tot) * 100).toFixed(1)}%</td></tr>`;
+  });
+  h2 += `<tr><td><strong>Total</strong></td><td><strong>${fmt(tot)}</strong></td><td>100%</td></tr></tbody></table>`;
+  $("#table2").innerHTML = h2;
+
+  // chart3 table
+  let h3 = `<table class="data"><thead><tr><th>Weekday</th>` +
+    MONTHS.slice(a2, b2).map(m => `<th>${esc(m)}</th>`).join("") + `</tr></thead><tbody>`;
+  WEEKDAYS.forEach((wd, w) => {
+    h3 += `<tr><td>${esc(wd)}</td>` +
+      DATA.heatmap[w].slice(a2, b2).map(v => `<td>${numFmt(v)}k</td>`).join("") + `</tr>`;
+  });
+  h3 += "</tbody></table>";
+  $("#table3").innerHTML = h3;
+}
+function sliceRev(c) { const [a, b] = RANGES[range]; return DATA.monthly_revenue[c].slice(a, b); }
+
+/* ===================================================================
+   Table toggle buttons
+   =================================================================== */
+document.querySelectorAll(".tview").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = "#" + btn.dataset.toggle;      // svg id, e.g. #chart1
+    const tableId = id.replace("chart", "table");
+    const t = $(tableId), svg = $(id);
+    const isTable = !t.classList.contains("hidden");
+    if (isTable) { t.classList.add("hidden"); svg.classList.remove("hidden"); btn.textContent = "Table"; }
+    else {
+      t.classList.remove("hidden");
+      svg.classList.add("hidden");
+      btn.textContent = "Chart";
+    }
+  });
+});
+
+/* ===================================================================
+   renderAll — re-render everything against the current slice.
+   Re-renders are stateless (innerHTML) so no stale-frame fade is needed.
+   =================================================================== */
+function renderAll() {
+  const names = CHANNELS;
+  renderLegend($("#legend1"), names, () => renderChart1());
+  renderLegend($("#legend2"), names, () => renderChart2());
+  renderKPIs();
+  renderChart1();
+  renderChart2();
+  renderChart3();
+  renderTables();
+  const s = slice();
+  $("#cap1").textContent = `Monthly revenue ($k), by channel · ${s.months[0]}–${s.months[s.months.length-1]}`;
+  $("#cap2").textContent = `Share of sessions by channel · ${s.months[0]}–${s.months[s.months.length-1]}`;
+  $("#cap3").textContent = `Average daily sessions (k) by weekday · ${s.months[0]}–${s.months[s.months.length-1]}`;
+}
+
+renderAll();
+applyTheme("os");
+</script>
+</body>
+</html>

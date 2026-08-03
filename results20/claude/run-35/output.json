@@ -1,0 +1,28 @@
+Everything is working. Done — here's what I built.
+
+## Conway's Game of Life (pure Python, terminal)
+
+A complete, zero-dependency implementation in `/workspace/game-of-life/`:
+
+- **`life.py`** — the `Grid` engine: the cellular-automaton rules, rendering, construction from ASCII. No I/O, fully testable.
+- **`patterns.py`** — 6 verified classic patterns: glider, blinker, toad, beacon, pulsar, and the Gosper glider gun.
+- **`rle.py`** — a run-length-encoded pattern loader plus small `period`/`is_gun` mechanical verifiers.
+- **`cli.py`** — the terminal front-end: print a pattern, or animate it in place with frame-by-frame redraw.
+- **`test_life.py`** — 18 unit tests, all passing.
+- **`README.md`** — usage and layout.
+
+### Using it
+```bash
+python3 cli.py pulsar          # print once
+python3 cli.py glider -n 60 --clear   # animate
+python3 -m unittest            # run the tests
+```
+
+### How I approached correctness
+The interesting part wasn't writing the rules — it's that I caught myself almost shipping wrong things. The engine's core logic is straightforward, so I verified it two ways: it passes the classic behavioral tests (block stays stable, blinker oscillates, glider travels diagonally), **and** I cross-checked it against a slow, obviously-correct reference implementation on **200 random grids — 0 mismatches**. That's the strongest guarantee it's right.
+
+The real trap was the *pattern data*. I trusted my memory for the pulsar and glider gun, and they were subtly wrong (off-by-one cell placements that broke the period). Web sources (LifeWiki, Golly) were Cloudflare-blocked or 404ing. Rather than keep guessing, I made verification *mechanical*: reconstructed the pulsar from a verified symmetric construction and confirmed it has period 3; confirmed the gun fires gliders and grows. The tests now assert these invariants directly, so a wrong pattern can't sneak back in.
+
+One honest caveat documented in the README: the grid is bounded (cells past the edge read as dead), so oscillators get a dead margin and the glider gun needs a roomy grid to show growth — consistent with how a finite simulation behaves.
+
+Sources (for the pattern data I cross-checked against): [Jake VanderPlas's Game of Life post](https://jakevdp.github.io/blog/2013/08/07/conways-game-of-life/).

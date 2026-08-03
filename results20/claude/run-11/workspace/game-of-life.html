@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Game of Life</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1e222c;
+    --text: #e6e9ef;
+    --muted: #8b93a3;
+    --border: #2a2f3a;
+    --accent: #4fd1c5;
+    --accent-2: #7c8cff;
+    --danger: #ff6b6b;
+    --alive: #4fd1c5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: radial-gradient(1200px 800px at 50% -10%, #1a1f2b, var(--bg));
+    color: var(--text);
+    font-family: "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  header { text-align: center; margin-bottom: 20px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }
+  h1 .live { color: var(--accent); }
+  .sub { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .sub b { color: var(--text); font-weight: 500; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  }
+
+  /* ---- Board ---- */
+  #boardWrap { position: relative; padding: 0; overflow: hidden; }
+  canvas {
+    display: block;
+    border-radius: 10px;
+    background: var(--panel-2);
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  /* ---- Controls ---- */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 14px;
+  }
+
+  button {
+    appearance: none;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 13px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, transform .05s;
+  }
+  button:hover { background: #262b38; border-color: #3a4150; }
+  button:active { transform: translateY(1px); }
+  button.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #0b0e12;
+    border: none;
+    font-weight: 600;
+  }
+  button.primary:hover { filter: brightness(1.1); }
+  button.danger { color: var(--danger); border-color: #4a2f35; }
+  button.danger:hover { background: #2a1d22; }
+
+  .group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel-2);
+  }
+  .group label { font-size: 12px; color: var(--muted); padding-left: 8px; }
+  select, input[type=range] {
+    font-family: inherit;
+    background: transparent;
+    color: var(--text);
+    border: none;
+    outline: none;
+  }
+  select { font-size: 12px; padding: 4px 6px; cursor: pointer; }
+  input[type=range] { accent-color: var(--accent); width: 110px; }
+
+  /* ---- Stats ---- */
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 2px 2px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .stats span b { color: var(--text); font-weight: 600; }
+  #genVal { color: var(--accent); }
+
+  .hint { color: var(--muted); font-size: 11px; text-align: center; margin-top: 12px; }
+  footer { color: var(--muted); font-size: 11px; margin-top: 22px; text-align: center; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Game of <span class="live">Life</span></h1>
+    <div class="sub">Conway's cellular automaton · <b>B3/S23</b> · click or drag to paint</div>
+  </header>
+
+  <div class="card" id="boardWrap">
+    <div class="stats">
+      <span>Gen <b id="genVal">0</b></span>
+      <span>Alive <b id="aliveVal">0</b></span>
+      <span>Rate <b id="rateVal">0</b>/s</span>
+    </div>
+    <canvas id="board"></canvas>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="toggle">▶ Play</button>
+    <button id="step">Step ⏭</button>
+    <button id="clear">Clear</button>
+    <button class="danger" id="random">Random</button>
+
+    <div class="group">
+      <label>Pattern</label>
+      <select id="pattern">
+        <option value="glider">Glider</option>
+        <option value="gosper">Gosper Gun</option>
+        <option value="pulsar">Pulsar</option>
+        <option value="rpentomino">R-pentomino</option>
+        <option value="acorn">Acorn</option>
+        <option value="random">Noise</option>
+      </select>
+    </div>
+
+    <div class="group">
+      <label>Speed</label>
+      <input type="range" id="speed" min="1" max="60" value="20" />
+    </div>
+
+    <div class="group">
+      <label><input type="checkbox" id="wrap" checked /> Wrap</label>
+    </div>
+  </div>
+
+  <div class="hint">Space = pause · C = clear · R = random · Shift-click = napalm (erase)</div>
+
+  <footer>Self-contained · no dependencies · open this file in any browser</footer>
+
+<script>
+(() => {
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+
+  const CELL = 9;              // px per cell
+  const COLS = 88;
+  const ROWS = 50;
+  canvas.width = COLS * CELL;
+  canvas.height = ROWS * CELL;
+
+  let grid = makeGrid();
+  let running = false;
+  let raf = null;
+  let lastStep = 0;
+  let interval = 50;           // ms between steps
+  let lastFrame = performance.now();
+  let stepsLastSecond = 0;
+  let secondWindow = performance.now();
+  let gen = 0;
+
+  const $ = id => document.getElementById(id);
+
+  function makeGrid() {
+    return Array.from({ length: ROWS }, () => new Uint8Array(COLS));
+  }
+
+  function countAlive() {
+    let n = 0;
+    for (let y = 0; y < ROWS; y++)
+      for (let x = 0; x < COLS; x++)
+        n += grid[y][x];
+    return n;
+  }
+
+  function neighbors(x, y) {
+    let n = 0;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        let nx = x + dx, ny = y + dy;
+        if ($('wrap').checked) {
+          nx = (nx + COLS) % COLS;
+          ny = (ny + ROWS) % ROWS;
+        } else if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) {
+          continue;
+        }
+        n += grid[ny][nx];
+      }
+    }
+    return n;
+  }
+
+  // Classic Game of Life rule: B3/S23 (birth on 3, survive on 2 or 3)
+  function tick() {
+    const next = makeGrid();
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const n = neighbors(x, y);
+        const alive = grid[y][x];
+        next[y][x] = (alive ? (n === 2 || n === 3) : (n === 3)) ? 1 : 0;
+      }
+    }
+    grid = next;
+    gen++;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    // subtle grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) {
+      ctx.beginPath(); ctx.moveTo(x * CELL, 0); ctx.lineTo(x * CELL, canvas.height); ctx.stroke();
+    }
+    for (let y = 1; y < ROWS; y++) {
+      ctx.beginPath(); ctx.moveTo(0, y * CELL); ctx.lineTo(canvas.width, y * CELL); ctx.stroke();
+    }
+    // cells with a soft glow
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (grid[y][x]) {
+          ctx.fillStyle = '#4fd1c5';
+          ctx.shadowColor = 'rgba(79,209,197,0.5)';
+          ctx.shadowBlur = 6;
+          ctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
+          ctx.shadowBlur = 0;
+        }
+      }
+    }
+  }
+
+  function updateUI() {
+    $('genVal').textContent = gen;
+    $('aliveVal').textContent = countAlive();
+    $('rateVal').textContent = stepsLastSecond;
+  }
+
+  function loop(now) {
+    if (running && now - lastStep >= interval) {
+      tick();
+      lastStep = now;
+      stepsLastSecond++;
+    }
+    // recompute rate each second
+    if (now - secondWindow >= 1000) {
+      updateUI();
+      $('rateVal').textContent = stepsLastSecond;
+      stepsLastSecond = 0;
+      secondWindow = now;
+    }
+    draw();
+    raf = requestAnimationFrame(loop);
+  }
+
+  // ---- Pattern seeding ----
+  const patterns = {
+    glider: [[0,0],[1,0],[2,0],[0,1],[1,2]],
+    rpentomino: [[0,1],[1,0],[1,1],[2,1],[0,2]],
+    acorn:
+      [[0,1],[1,3],[2,0],[2,1],[2,4],[2,5],[2,6]],
+    pulsar: (() => {
+      const c = [];
+      const co = [[2,0],[3,0],[4,0],[2,5],[3,5],[4,5],[2,7],[3,7],[4,7],
+                  [2,12],[3,12],[4,12],[0,2],[0,3],[0,4],[5,2],[5,3],[5,4],
+                  [7,2],[7,3],[7,4],[12,2],[12,3],[12,4],[0,7],[0,8],[0,9],
+                  [5,7],[5,8],[5,9],[7,7],[7,8],[7,9],[12,7],[12,8],[12,9],
+                  [0,2+7],[0,3+7],[0,4+7] ];
+      return co;
+    })(),
+  };
+
+  function seedGosper() {
+    const cells = [
+      [0,2],[0,3],[1,0],[1,1],[2,1],[2,3],[3,1],[3,2],[3,3],[3,4],[3,7],[3,8],[3,9],
+      [4,1],[4,6],[4,10],[4,11],[5,6],[5,8],[5,10],[5,11],[6,3],[6,11],[7,6],[7,7],
+      [8,-1],[8,0],[8,8],[8,9],[9,-1],[9,0]
+    ];
+    // Gosper gun fires gliders forever — classic demonstration of unlimited growth
+    seed(cells, 5, 8);
+  }
+
+  function seed(cells, ox = 0, oy = 0) {
+    grid = makeGrid();
+    for (const [x, y] of cells) {
+      const gx = x + Math.floor(COLS / 2) - 6 + ox;
+      const gy = y + Math.floor(ROWS / 2) - 6 + oy;
+      if (gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS) grid[gy][gx] = 1;
+    }
+    draw(); updateUI();
+  }
+
+  function seedRandom() {
+    grid = makeGrid();
+    for (let y = 0; y < ROWS; y++)
+      for (let x = 0; x < COLS; x++)
+        grid[y][x] = Math.random() < 0.28 ? 1 : 0;
+    gen = 0;
+    draw(); updateUI();
+  }
+
+  function seedPattern() {
+    const name = $('pattern').value;
+    if (name === 'gosper') return seedGosper();
+    if (name === 'random') return seedRandom();
+    if (!patterns[name]) return;
+    seed(patterns[name]);
+  }
+
+  // ---- Painting ----
+  let painting = null; // { mode: 1 | 0 }
+  function setCellAt(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / CELL * (canvas.width / rect.width));
+    const y = Math.floor((e.clientY - rect.top) / CELL * (canvas.height / rect.height));
+    if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+      grid[y][x] = painting.mode;
+      draw(); updateUI();
+    }
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / CELL * (canvas.width / rect.width));
+    const y = Math.floor((e.clientY - rect.top) / CELL * (canvas.height / rect.height));
+    if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return;
+    painting = { mode: e.shiftKey || e.button === 2 ? 0 : (grid[y][x] ? 0 : 1) };
+    setCellAt(e);
+  });
+  canvas.addEventListener('pointermove', (e) => { if (painting) setCellAt(e); });
+  canvas.addEventListener('pointerup', () => { painting = null; });
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // ---- Controls wiring ----
+  const toggle = $('toggle');
+  function setRunning(on) {
+    running = on;
+    toggle.textContent = on ? '❚❚ Pause' : '▶ Play';
+    if (on && !raf) raf = requestAnimationFrame(loop);
+  }
+
+  toggle.addEventListener('click', () => setRunning(!running));
+  $('step').addEventListener('click', () => { tick(); draw(); updateUI(); });
+  $('clear').addEventListener('click', () => { grid = makeGrid(); gen = 0; draw(); updateUI(); });
+  $('random').addEventListener('click', seedRandom);
+  $('pattern').addEventListener('change', seedPattern);
+  $('speed').addEventListener('input', (e) => {
+    interval = Math.max(8, 1000 / e.target.value);
+  });
+
+  // keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    switch (e.key) {
+      case ' ': e.preventDefault(); setRunning(!running); break;
+      case 'c': case 'C': grid = makeGrid(); gen = 0; draw(); updateUI(); break;
+      case 'r': case 'R': seedRandom(); break;
+    }
+  });
+
+  // ---- Boot ----
+  seedGosper();
+  setRunning(true);
+  raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

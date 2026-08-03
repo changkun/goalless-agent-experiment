@@ -1,0 +1,12 @@
+The workspace was empty, so I built a small, self-contained tool from scratch: **`todo.py`** — a dependency-free CLI task manager in a single file (~340 lines, pure Python stdlib).
+
+**What it does:**
+- `todo add 'buy milk' --due tomorrow --p high --tag errands` — add tasks with flexible due dates (`today`, `tomorrow`, `+2`, or ISO), priority, and tags
+- `todo` — color-coded list of open tasks, sorted by priority then due date, with a stats bar
+- `todo do 3` / `todo rm 1` — mark done or remove (match by id or unique substring)
+- `todo list --done`, `todo list --tag work`, `todo search report`, `todo stats`
+- Stores tasks in `todo.json` (override with `TODO_STORE`), respects `NO_COLOR`, auto-pipes to plain text when not a TTY
+
+I hit a real bug along the way: argparse was rejecting the `--due`/`--p`/`--tag` flags on `add` (they collided with the top-level option parsing), so I pulled `add`'s argument handling out before argparse. Then I exercised every command end-to-end — add, list, sort, search, complete, filter, remove, stats, and the progress bar — all verified working, and confirmed the file compiles cleanly.
+
+If you'd like, I can add recurring tasks, priorities affecting sort more heavily, a `tag` command to make tags first-class, or wire up a git-style `todo edit` to open the current task's title in `$EDITOR`.

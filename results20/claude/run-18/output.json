@@ -1,0 +1,28 @@
+Done. Since you gave me a blank workspace and a free hand, I built a small but polished **command-line task manager** — `todo.py`, a single Python file with zero dependencies.
+
+## What it does
+
+- **Add** tasks with priorities (`high`/`medium`/`low`), due dates, and tags
+- **List** tasks, filtered by tag or priority, with `--all`/`--done` variants
+- **Done / undo / edit / rm / purge** individual tasks
+- **Stats** for a quick overview
+- *Smart sorting*: open first, then by due date, then priority
+- **`TODAY` / `OVERD`** markers in the due-date column
+- Data persisted as JSON in `~/.todo.json`, saved atomically (temp file + rename) so it never gets corrupted
+- Clear error handling and non-zero exit codes for bad ids/dates/missing titles
+
+## Files
+
+- `todo/todo.py` — the tool (self-contained, stdlib only)
+- `todo/README.md` — usage docs
+
+I tested it end-to-end: add/list/filter/done/edit/rm/purge, marker display, error cases, and confirmed it compiles clean. Example run:
+
+```
+ID   PRI    DUE     TAGS        TITLE
+------------------------------------------------------------
+1    high   08-05   work        Write the final report
+4    medium         home        Replace the kitchen tap
+```
+
+Try it with `./todo.py add "Write the report" -p high -d 2026-08-10 -t work`. Want me to add recurring tasks, due reminders, or drag in a shell alias?

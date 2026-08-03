@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "habit-tracker"
+version = "0.1.0"
+description = "A dependency-free CLI habit tracker."
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.scripts]
+habit = "habit_tracker.cli:main"
+
+[tool.setuptools]
+packages = ["habit_tracker"]

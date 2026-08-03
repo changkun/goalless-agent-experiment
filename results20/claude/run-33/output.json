@@ -1,0 +1,21 @@
+Since the workspace was empty, I built something useful from scratch: **focustrack**, a dependency-free Python CLI for tracking focus sessions.
+
+## What it does
+- **`start`** — an interactive timer (counts up live); Ctrl+C ends it and saves the session
+- **`add`** — record a finished session with `minutes`, `project`, `tags`, `note`
+- **`today` / `week`** — colorized view of sessions with per-project totals
+- **`list`** — recent sessions
+- **`summary --days N`** — breakdown by project, day, and tag with a progress-bar
+- **`export -o file.md`** — dumps the day as a Markdown report
+
+Sessions persist to `~/.focustrack.json` (override with `--db`), and the reader tolerates missing/corrupt fields.
+
+## What I verified
+- End-to-end: added sessions, ran `today`, `summary`, `list`, `export` — all correct output
+- The **interactive timer** under a real PTY: it ticks, and a synthetic SIGINT saves a valid session to JSON (`id`, tags, start/end, minutes) and exits 0
+- Edge cases: empty store, corrupt-file recovery warning, `add` without `--minutes` (errors cleanly)
+- Syntax compiles cleanly
+
+The full file is at `focustrack/focustrack.py` with `README.md` right next to it.
+
+If you'd like, I can extend it — e.g. add a `--project` filter to `summary`, Git-integrated auto-tagging from the current branch, or a lightweight visualization of the day's sessions.

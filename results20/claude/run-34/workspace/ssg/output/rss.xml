@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<feed xmlns='http://www.w3.org/2005/Atom'>
+  <title>Field Notes</title>
+  <id>https://fieldnotes.example/</id>
+  <link href='https://fieldnotes.example/rss.xml' rel='self'/>
+  <updated>2026-08-03T19:51:45.542917+00:00</updated>
+  <author><name>Aya Ito</name></author>
+  <entry>
+    <title>Hello, Small Web</title>
+    <link href='https://fieldnotes.example/posts/hello-world/'/>
+    <id>https://fieldnotes.example/posts/hello-world/</id>
+    <updated>2026-08-01T00:00:00Z</updated>
+    <content type='html'>This is the first post on a site built by hand. There is no build framework, no node_modules, no gemfile -- just Python&#x27;s standard library and a few thousand lines of plain text. Why go small The mode…</content>
+  </entry>
+  <entry>
+    <title>Tables, Code, and Other Furniture</title>
+    <link href='https://fieldnotes.example/posts/tables-and-code/'/>
+    <id>https://fieldnotes.example/posts/tables-and-code/</id>
+    <updated>2026-07-20T00:00:00Z</updated>
+    <content type='html'>A blog needs more than paragraphs. Let&#x27;s exercise some block elements. A table Tool Dependency Renders in a decade Python 0 yes Node many maybe Umbrella 1 no A fenced code block def greet(name: str) -…</content>
+  </entry>
+  <entry>
+    <title>Feature Checklist</title>
+    <link href='https://fieldnotes.example/posts/markdown-features/'/>
+    <id>https://fieldnotes.example/posts/markdown-features/</id>
+    <updated>2026-07-05T00:00:00Z</updated>
+    <content type='html'>A grab-bag of syntax to make sure nothing crashes. An unordered list first second nested deeper third Mixed inline A link , an image ! tiny , icicles , and boulders . Horizontal rule and headings Sub-…</content>
+  </entry>
+</feed>

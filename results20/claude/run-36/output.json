@@ -1,0 +1,25 @@
+Done. Since you gave me free rein, I built **`pwgen`** — a dependency-free Python 3 password/passphrase generator that I think is genuinely worth having: it's security-focused, honest about what it measures, and fully tested.
+
+**What's in `/workspace`:**
+
+- **`pwgen.py`** — the CLI
+- **`test_pwgen.py`** — 22 passing tests (no pytest needed: `python3 test_pwgen.py`)
+- **`README.md`** — usage + security rationale
+
+**What it does**
+
+```
+python3 pwgen.py pw -l 18 --estimate      # 18-char password + entropy
+python3 pwgen.py pw --exclude-ambiguous   # drop 0 O 1 l I |
+python3 pwgen.py phrase -w 5              # 5-word passphrase
+python3 pwgen.py estimate "password123"   # heuristic strength of existing
+```
+
+**The parts I care about most:**
+
+- **Real CSPRNG** — `secrets`/`/dev/urandom` with rejection-sampled `urandom_int`, so no character is biased even when the class size isn't a power of two. (One test statistically verifies this.)
+- **Guaranteed classes** — every enabled class contributes ≥1 char, then a Fisher–Yates shuffle keeps the result uniform. So "must contain a symbol" never silently fails.
+- **Honest entropy** — passphrase entropy is `log2(actual wordlist size)` per word, counted exactly, not the inflated 7776-Diceware assumption.
+- **A strength *upper bound*** — the `estimate` subcommand flags dictionary patterns. This actually surfaced a real bug during my own testing: it initially scored `"password123"` as ~72 bits (treating it as random). I fixed the model to catch the notorious "word + digit suffix" pattern — now it correctly reports 23 bits.
+
+The whole thing is ~9KB, stdlib-only, and documented. Take it for a spin with the commands above — happy to extend it (e.g. clipboard output, a bigger wordlist, configurable classes) if you want.

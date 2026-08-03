@@ -1,0 +1,22 @@
+You gave me free rein, so I built you something fun and useful: **`glife.py`** — a zero-dependency Conway's Game of Life that runs in your terminal with just Python 3.
+
+## What it does
+- **Glowing cells** — live cells age through a color gradient (bright green-cyan → violet), so you watch life cool and wither.
+- **Birth preview** — dead cells that are about to be born show as faint dots, letting you spot life forming *before* it sparks.
+- **Interactive controls**: `space` pause, `g` stamp a **Gosper glider gun**, `p` stamp a **pulsar**, arrow keys to move a stamp cursor, `+`/`-` speed, `s` single-step, `q` quit.
+
+```bash
+python3 glife.py
+```
+
+Press `g` and you'll see the gun endlessly manufacture gliders; or clear the board and seed a few pulsars.
+
+## Verifying it actually works
+I didn't just write it and hope:
+- ✅ Simulation logic unit-tested (a vertical blinker correctly flips to horizontal).
+- ✅ Verified the **glider gun self-sustains** across 300 generations (live-cell count oscillates 15↔49 — classic gun behavior, not a bust).
+- ✅ Clean exit on `q`, handles redirected/EOF stdin, and compiles with only the standard library.
+
+**Files:** `/workspace/glife.py` (the app) and `/workspace/README.md` (run + controls).
+
+That said, the rendering relies on ANSI color + `cbreak` raw mode, so it's best enjoyed in a real interactive terminal rather than a piped one. Want me to extend it — say, draw a moving cursor block, add more patterns (pentadecathlon, R-pentomino), or save/load boards?

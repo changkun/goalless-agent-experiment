@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus · Pomodoro Timer</title>
+<style>
+  :root {
+    --bg: #1e1e2e;
+    --panel: #27273a;
+    --text: #e4e4ef;
+    --muted: #9a9ab0;
+    --accent: #f38ba8;
+    --accent-dark: #c96a86;
+    --ring: #b4befe;
+    --serif: Georgia, 'Times New Roman', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 800px at 20% -10%, #2a2a44 0%, var(--bg) 55%);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid #ffffff14;
+    border-radius: 24px;
+    padding: 40px 44px 36px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 30px 60px rgba(0,0,0,.5);
+    text-align: center;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: .5px;
+    margin-bottom: 4px;
+  }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+  .tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
+  .tab {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid #ffffff18;
+    border-radius: 999px;
+    padding: 7px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s ease;
+    font-family: inherit;
+  }
+  .tab:hover { color: var(--text); border-color: #ffffff30; }
+  .tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #1e1e2e;
+    font-weight: 600;
+  }
+  .dial-wrap { position: relative; width: 260px; height: 260px; margin: 0 auto 26px; }
+  .dial-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent) 0%, var(--accent) var(--progress, 0%), #ffffff14 var(--progress, 0%));
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px));
+    transition: background .2s;
+  }
+  .dial-inner {
+    position: absolute; inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .time {
+    font-family: var(--serif);
+    font-size: 64px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .phase-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
+  .control-row { display: flex; gap: 12px; justify-content: center; margin: 10px 0 24px; }
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 13px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform .1s ease, background .2s ease;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary {
+    background: var(--accent);
+    color: #1e1e2e;
+    min-width: 120px;
+  }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid #ffffff18; }
+  .btn-ghost:hover { color: var(--text); border-color: #ffffff30; }
+  .stats { display: flex; justify-content: space-around; color: var(--muted); font-size: 13px; }
+  .stats strong { display: block; color: var(--text); font-size: 20px; font-family: var(--serif); font-weight: 600; }
+  .settings { margin-top: 26px; padding-top: 20px; border-top: 1px solid #ffffff12; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .field label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .field input {
+    width: 78px;
+    background: #1e1e2e;
+    border: 1px solid #ffffff18;
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 14px;
+    text-align: center;
+    font-family: inherit;
+  }
+  .field input:focus { outline: none; border-color: var(--accent); }
+  .title-notification { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <main class="card">
+    <h1>Focus</h1>
+    <p class="subtitle">A quiet Pomodoro timer</p>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-mode="focus">Focus</button>
+      <button class="tab" data-mode="short">Short Break</button>
+      <button class="tab" data-mode="long">Long Break</button>
+    </div>
+
+    <div class="dial-wrap">
+      <div class="dial-ring" id="ring"></div>
+      <div class="dial-inner">
+        <div class="time" id="time">25:00</div>
+        <div class="phase-label" id="phaseLabel">Ready</div>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <button class="btn btn-primary" id="startBtn">Start</button>
+      <button class="btn btn-ghost" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="stats">
+      <div><strong id="sessionsDone">0</strong> sessions</div>
+      <div><strong id="minutesFocused">0</strong> min focused</div>
+    </div>
+
+    <div class="settings">
+      <div class="field">
+        <label for="focusLen">Focus</label>
+        <input id="focusLen" type="number" min="1" max="120" value="25">
+      </div>
+      <div class="field">
+        <label for="shortLen">Short</label>
+        <input id="shortLen" type="number" min="1" max="60" value="5">
+      </div>
+      <div class="field">
+        <label for="longLen">Long</label>
+        <input id="longLen" type="number" min="1" max="60" value="15">
+      </div>
+    </div>
+  </main>
+
+<script>
+(function () {
+  'use strict';
+
+  var DEFAULTS = {
+    durations: { focus: 25, short: 5, long: 15 },
+    sessionsDone: 0,
+    minutesFocused: 0
+  };
+
+  var STORAGE_KEY = 'focus-pomodoro-v1';
+
+  var state = load() || DEFAULTS;
+  var elapsed = 0;          // seconds elapsed in current phase
+  var totalSec = 0;         // total seconds for current phase
+  var running = false;
+  var mode = 'focus';
+  var timerId = null;
+
+  var els = {
+    time: document.getElementById('time'),
+    phaseLabel: document.getElementById('phaseLabel'),
+    ring: document.getElementById('ring'),
+    startBtn: document.getElementById('startBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    tabs: Array.prototype.slice.call(document.querySelectorAll('.tab')),
+    sessionsDone: document.getElementById('sessionsDone'),
+    minutesFocused: document.getElementById('minutesFocused'),
+    focusLen: document.getElementById('focusLen'),
+    shortLen: document.getElementById('shortLen'),
+    longLen: document.getElementById('longLen')
+  };
+
+  var LAST_OF_CYCLE = { focus: 'short', short: 'focus', long: 'focus' };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      return {
+        durations: Object.assign({}, DEFAULTS.durations, d.durations || {}),
+        sessionsDone: parseInt(d.sessionsDone, 10) || 0,
+        minutesFocused: parseInt(d.minutesFocused, 10) || 0
+      };
+    } catch (e) { return null; }
+  }
+
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function durationFor(m) { return parseInt(state.durations[m], 10) || DEFAULTS.durations[m]; }
+
+  function startPhase(m) {
+    mode = m;
+    totalSec = durationFor(m) * 60;
+    elapsed = 0;
+    render();
+  }
+
+  function render() {
+    var remaining = Math.max(0, totalSec - elapsed);
+    var m = Math.floor(remaining / 60);
+    var s = remaining % 60;
+    els.time.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+
+    var progress = totalSec > 0 ? Math.min(100, (elapsed / totalSec) * 100) : 0;
+    els.ring.style.setProperty('--progress', progress + '%');
+
+    var labels = {
+      focus: [running ? 'Focused' : 'Ready', 'Focus'],
+      short: 'Short break',
+      long: 'Long break'
+    };
+    els.phaseLabel.textContent = typeof labels[mode] === 'string' ? labels[mode] : labels[mode][running ? 0 : 1];
+
+    document.title = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s + ' — Focus';
+
+    setActiveTab(mode);
+    renderStats();
+  }
+
+  function renderStats() {
+    els.sessionsDone.textContent = state.sessionsDone;
+    els.minutesFocused.textContent = state.minutesFocused;
+    els.focusLen.value = state.durations.focus;
+    els.shortLen.value = state.durations.short;
+    els.longLen.value = state.durations.long;
+  }
+
+  function setActiveTab(m) {
+    els.tabs.forEach(function (t) { t.classList.toggle('active', t.dataset.mode === m); });
+  }
+
+  function completePhase() {
+    if (mode === 'focus') {
+      state.sessionsDone += 1;
+      state.minutesFocused += durationFor('focus');
+      persist();
+      notify('Focus complete — take a break!');
+      var next = durationFor('focus') >= 45 ? 'long' : 'short';
+      startPhase(next);
+    } else {
+      notify('Break over — time to focus.');
+      startPhase('focus');
+    }
+  }
+
+  function notify(msg) {
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Focus', { body: msg });
+      }
+    } catch (e) {}
+  }
+
+  function tick() {
+    elapsed += 1;
+    if (elapsed >= totalSec) {
+      completePhase();
+      if (!running) return;
+    }
+    render();
+  }
+
+  function start() {
+    if (running) return;
+    running = true;
+    els.startBtn.textContent = 'Pause';
+    timerId = setInterval(tick, 1000);
+    render();
+  }
+
+  function stop() {
+    if (!running) return;
+    running = false;
+    clearInterval(timerId);
+    timerId = null;
+    els.startBtn.textContent = 'Start';
+    render();
+  }
+
+  function reset() {
+    stop();
+    startPhase(mode);
+  }
+
+  function onTab(e) {
+    var m = e.currentTarget.dataset.mode;
+    if (m === mode) return;
+    stop();
+    startPhase(m);
+  }
+
+  function onDurationChange(m, len) {
+    var val = Math.max(1, Math.min(120, parseInt(len.value, 10) || 1));
+    len.value = val;
+    state.durations[m] = val;
+    persist();
+    if (mode === m && !running && elapsed === 0) { startPhase(m); }
+  }
+
+  els.startBtn.addEventListener('click', function () { running ? stop() : start(); });
+  els.resetBtn.addEventListener('click', reset);
+  els.tabs.forEach(function (t) { t.addEventListener('click', onTab); });
+
+  els.focusLen.addEventListener('change', function () { onDurationChange('focus', this); });
+  els.shortLen.addEventListener('change', function () { onDurationChange('short', this); });
+  els.longLen.addEventListener('change', function () { onDurationChange('long', this); });
+
+  // Request notification permission on first user interaction.
+  document.addEventListener('click', function once() {
+    document.removeEventListener('click', once);
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  });
+
+  startPhase('focus');
+  render();
+})();
+</script>
+</body>
+</html>

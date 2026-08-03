@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""tnote - a tiny dependency-free notes/TODO manager that stores plain Markdown.
+
+Everything lives in a single file (default: ~/.tnote.md). Each line is one entry:
+  - [ ] a pending task
+  - [x] a completed task
+
+Commands:
+  tnote add <text>      add a pending entry
+  tnote list [--all]    show pending entries (with --all, show everything)
+  tnote done <n>        mark entry n as done
+  tnote rm <n>          remove entry n
+  tnote stats            show a small summary
+"""
+
+import argparse
+import os
+import re
+import sys
+
+ENTRY_RE = re.compile(r"^\- \[( |x)\] (.*)$")
+
+
+def default_path():
+    return os.environ.get("TNOTE_FILE", os.path.expanduser("~/.tnote.md"))
+
+
+def load(path):
+    entries = []
+    if not os.path.exists(path):
+        return entries
+    with open(path, "r", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            m = ENTRY_RE.match(line)
+            if m:
+                entries.append([m.group(1) == "x", m.group(2)])
+    return entries
+
+
+def save(path, entries):
+    with open(path, "w", encoding="utf-8") as fh:
+        for done, text in entries:
+            mark = "x" if done else " "
+            fh.write(f"- [{mark}] {text}\n")
+
+
+def cmd_add(args):
+    path = args.path
+    entries = load(path)
+    entries.append([False, args.text])
+    save(path, entries)
+    print(f"added #{len(entries)}: {args.text}")
+
+
+def cmd_list(args):
+    path = args.path
+    entries = load(path)
+    shown = entries if args.all else [e for e in entries if not e[0]]
+    for i, (done, text) in enumerate(shown, start=1):
+        mark = "x" if done else " "
+        print(f"{i:>3}. [{mark}] {text}")
+    if not shown:
+        print("nothing here.")
+
+
+def _resolve(entries, n, allow_done):
+    if n < 1 or n > len(entries):
+        sys.exit(f"error: entry {n} does not exist (have {len(entries)})")
+    return entries[n - 1]
+
+
+def cmd_done(args):
+    path = args.path
+    entries = load(path)
+    entry = _resolve(entries, args.n, True)
+    entry[0] = True
+    save(path, entries)
+    print(f"done #{args.n}: {entry[1]}")
+
+
+def cmd_rm(args):
+    path = args.path
+    entries = load(path)
+    _resolve(entries, args.n, True)
+    removed = entries.pop(args.n - 1)
+    save(path, entries)
+    print(f"removed #{args.n}: {removed[1]}")
+
+
+def cmd_stats(args):
+    path = args.path
+    entries = load(path)
+    done = sum(1 for d, _ in entries if d)
+    pending = len(entries) - done
+    total = len(entries)
+    pct = round(100 * done / total) if total else 0
+    print(f"{pending} pending, {done} done, {total} total ({pct}% complete)")
+
+
+def build_parser():
+    p = argparse.ArgumentParser(
+        prog="tnote", description="tiny dependency-free Markdown notes/TODO manager"
+    )
+    p.add_argument(
+        "--file",
+        dest="path",
+        default=default_path(),
+        help=f"notes file (default: {default_path()})",
+    )
+    sub = p.add_subparsers(dest="command", required=True)
+
+    a = sub.add_parser("add", help="add a pending entry")
+    a.add_argument("text", help="the entry text")
+    a.set_defaults(func=cmd_add)
+
+    l = sub.add_parser("list", help="list entries")
+    l.add_argument("--all", action="store_true", help="include completed entries")
+    l.set_defaults(func=cmd_list)
+
+    d = sub.add_parser("done", help="mark an entry done")
+    d.add_argument("n", type=int, help="entry number (1-based)")
+    d.set_defaults(func=cmd_done)
+
+    r = sub.add_parser("rm", help="remove an entry")
+    r.add_argument("n", type=int, help="entry number (1-based)")
+    r.set_defaults(func=cmd_rm)
+
+    s = sub.add_parser("stats", help="show a summary")
+    s.set_defaults(func=cmd_stats)
+
+    return p
+
+
+def main(argv=None):
+    args = build_parser().parse_args(argv)
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tasky"
+version = "0.1.0"
+description = "A tiny, zero-dependency command-line task tracker."
+requires-python = ">=3.9"
+
+[project.scripts]
+tasky = "tasky.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["tasky*"]

@@ -1,0 +1,19 @@
+Done! Since you gave me free rein, I built **Ember — a Focus Timer web app** in `/workspace`. It's a single self-contained `index.html` (no deps, no build, works offline from `file://`).
+
+**What it does:**
+- **Pomodoro timer** — focus / short break / long break, animated progress ring, configurable durations, and a per-cycle pip tracker toward a daily goal
+- **Ambient soundscapes** — Rain, brown noise, crickets, and fire, all **synthesized live with the Web Audio API** (no audio files, pure noise/oscillator graphs)
+- **Statistics dashboard** — records every completed focus session to `localStorage` and renders a 16-week GitHub-style heatmap + a 7-day bar chart, session count, focus minutes, and day streak
+- **Keyboard shortcuts** — `space` start/pause, `r` reset, `n` stats, `m` mode, `s` ambience
+
+**How I verified it** — no display/browser exists on this aarch64 box (Chromium would need x86 emulation), so I tested the full logic headlessly with jsdom: confirmed sessions complete and advance the cycle, pips fill, stats aggregate, the heatmap renders 112 cells, and the bar chart spans the right week. That testing caught and fixed several real bugs:
+- A JavaScript syntax error from a botched edit
+- The bar chart showing the *wrong week* (Monday-first math was off)
+- 8 pips appearing "filled" on fresh load (cycle state wasn't initialized/reset)
+- A stray `</rect>` in generated heatmap markup
+
+I also applied the dataviz skill's methodology for the charts: a validated monotonic sequential blue ramp for the heatmap, sorted into the dark theme, with hover tooltips on every cell and bar and a proper legend.
+
+Open `index.html` in any browser to use it — everything works offline and nothing leaves your machine.
+
+Want me to take it further — e.g. a full history view, export/reset of stats, more soundscapes, or a desktop PWA wrapper?

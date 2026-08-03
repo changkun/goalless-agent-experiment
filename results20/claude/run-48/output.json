@@ -1,0 +1,31 @@
+Everything checks out. Here's what I built:
+
+## Conway's Game of Life — live in your terminal
+
+Since `/workspace` was empty, I built something self-contained and satisfying: a proper **Life simulator** that renders in real time with ANSI escape codes. **Zero dependencies** — pure Python standard library.
+
+**Files**
+- `life.py` — the whole thing (simulation logic + TUI, ~230 lines)
+
+**What it does**
+- Runs on a **toroidal grid** (cells wrap around the edges)
+- Live terminal rendering with the classic green-on-black look — live cells are solid blocks, and **ghost mode** (`g`) previews which cells are about to be born
+- **Adaptive pacing** so a dense grid doesn't crawl
+- A status bar with generation count, population, speed, and density — plus a help belt of keybindings
+- A **pattern library** (`1–9`): glider, R-pentomino, pulsar, **Gosper glider gun**, beehive, diehard, block, toad, acorn
+- Controls: `space` pause, `+/-` speed, `r` randomize, `c` clear, `q` quit
+- Auto-pauses if the universe goes static, cleans up the terminal on exit
+
+**Verified it actually works:**
+- Pulsar confirmed as a true **period-3 oscillator** (48 cells, returns to its exact state after 3 generations)
+- Glider gun emits gliders (population swings 36→257 over 200 generations)
+- Birth/survival/overpopulation rules all checked against known behavior
+- Live smoke test under a pseudo-terminal: enters and exits the alternate screen cleanly, draws frames, quits without leaving the terminal in a broken state
+
+Run it yourself with:
+
+```bash
+cd /workspace && python3 life.py
+```
+
+The hardest part was nailing the pulsar's 48-cell layout — my first two attempts had the wrong geometry, but the tests caught it both times. Want me to add anything — a mouse-drawing mode, saved files, or more patterns like the R-pentomino explosion timer?

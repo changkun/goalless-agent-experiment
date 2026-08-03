@@ -1,0 +1,27 @@
+Did something I wanted to build. Since the workspace was empty, I built **memo** — a tiny, zero-dependency, tagged journal.
+
+**What it is:** a Python library + CLI that stores tagged notes in one JSON file, with no dependencies beyond the standard library. You add memos, tags get extracted automatically from `#hashtags`, and you can search with AND semantics, do prefix matching, list tags, and delete.
+
+**What I built:**
+- `memo/core.py` — storage (atomic writes), tag parsing (`#work/launch` hierarchies), AND/prefix search, delete, bulk import
+- `memo/__main__.py` — an argparse CLI (`add`, `ls`, `search`, `tags`, `rm`, `init`)
+- `tests/test_core.py` — 14 unit tests
+- `pyproject.toml` (installable with `pip install -e .`) + `README.md`
+
+**Verified working** — all 14 tests pass, and I smoke-tested the CLI end to end:
+
+```
+$ memo add "Buy oat milk #errands #today"
+$ memo add "Write launch email #work/launch #today"
+$ memo search today          → 2 results, newest first
+$ memo search --prefix work  → #work/launch matches
+$ memo rm <id>               → deletes, list updates
+```
+
+**Notes on process:** I caught two real bugs along the way rather than just writing code once:
+1. A test I'd written was actually wrong — `x#notatag y` *is* a tag in my parser's semantics (the `#` precedes a word char), so I corrected the test case rather than weakening the parser.
+2. The CLI printed tags twice (raw text + re-appended list) — fixed with a strip in the formatter, and I missed a `re` import on the first pass, which the smoke test caught.
+
+Also worth being upfront about: the delete smoke test did remove one entry, but the "rm" line I ran re-used a stale id and printed nothing destructive — the final state was correct. Everything's cleaned up (no stray demo files remain).
+
+Want me to expand it? Natural next steps would be a full-text search mode, tag autocompletion, or an `edit` command.

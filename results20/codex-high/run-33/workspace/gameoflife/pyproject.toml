@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gameoflife"
+version = "0.1.0"
+description = "A terminal Conway's Game of Life with a curses UI"
+requires-python = ">=3.9"
+
+[project.scripts]
+gameoflife = "gameoflife.ui:main"
+
+[tool.setuptools]
+packages = ["gameoflife"]

@@ -1,0 +1,27 @@
+Done. I built a small, self-contained analytics dashboard in `/workspace` — a fictional SaaS "Northwind" report.
+
+## What's there
+
+- **`dashboard.py`** — a deterministic synthetic-data generator (seeded) for 12 months × 4 acquisition channels (Organic/Paid/Referral/Social): sessions, revenue, conversion, weekday×month heatmap, weekly trend.
+- **`index.html`** — the dashboard template (works standalone if you paste data over the `/*__DATA_JSON__*/` marker).
+- **`index.generated.html`** — the fully-rendered output; just open it in a browser. Regenerate with `python3 dashboard.py`.
+
+## What it does
+
+- **KPI row** — hero figure (annual revenue), stat tiles (sessions, conversion rate, revenue/session) each with a sparkline and period deltas.
+- **Revenue by channel** — 4-series multi-line with crosshair + values-lead tooltip, and direct end-labels with **leader lines** (labels never collide, even where the lines converge).
+- **Channel mix** — horizontal stacked bar with surface-gap separation, fit-checked inline labels, hover tooltips, total at the tip.
+- **Sessions heatmap** — weekday × month, one-hue sequential blue ramp with a scale legend and per-cell tooltips.
+- **One filter row** (YTD / 6mo / Q4 / All) that re-scopes every chart, stat, and table together; **table-view twin** per chart (toggle button); **light/dark theme** toggle honoring the OS setting; click-to-isolate legends.
+
+## Built to the dataviz method
+
+- **Colors are the validated reference palette** — I ran `validate_palette.js` for both modes (all checks pass; the light-mode contrast WARN is why every chart ships direct labels + a table view).
+- Categorical hues assigned in fixed order, never cycled; sequential heatmap is one hue, light→dark; no dual axes; thin 2px marks, hairline recessive grids; 2px surface rings on markers; text never wears series color.
+- Tooltips use `textContent`-safe insertion; hover shows the same data as keyboard focus.
+
+## Verification
+
+No headless browser exists on this arm64 box, so I validated by rendering the charts in jsdom and rasterizing the SVG with resvg — then checking geometry programmatically (no overflow, no label collisions after a Paid/Referral end-label fix), all four filter ranges, dark-mode tokens, table toggles, and legend isolation. One bug was caught and fixed along the way (the generator was injecting JSON without the `const DATA =` declaration).
+
+One honest caveat: I couldn't *eyeball* a screenshot — there's no arm64 Chromium available here. The geometry/overflow checks are programmatic, so it's well-verified but not human-viewed. If you can open `index.generated.html`, that's the one check I couldn't do.

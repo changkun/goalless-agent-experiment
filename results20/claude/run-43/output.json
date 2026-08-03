@@ -1,0 +1,14 @@
+Done. Since you gave me the wheel, I built something useful in the empty workspace: a **zero-dependency terminal focus timer** at `/workspace/focus_timer.py`.
+
+**What it does**
+- Classic Pomodoro pacing: 25-min focus / 5-min breaks by default, overridable (`45 10` for 45/10).
+- A live countdown with a draining progress bar, current cycle, and focus time accrued today.
+- Live keys while it runs: `space`/`p` pause, `s` skip, `r` restart, `q`/Ctrl-C quit, with a terminal bell on phase completion.
+- Logs every completed focus session to `~/.local/share/focus_timer/history.json` (atomic writes, corrupt-file tolerant).
+- `--stats` (today / last 7d / all-time totals + longest & current focus streaks), `--list` (today's sessions), `--reset`, `--version`.
+
+**How I verified it** — ran it under a real pty feeding keys `space`/`s`/`q`, confirmed pause and skip transition correctly; drove the phase-completion path to confirm a session is recorded and it advances work→break; seeded a history and confirmed stats/streaks (`1h15 today`, 3-session streak) and the list render correctly. During testing I caught and fixed two real bugs: a `ZeroDivisionError` on the progress bar, and a mis-typed `prev_end` that broke streak calculation.
+
+`python3 focus_timer.py` to start one. It's pure stdlib, so it runs anywhere Python 3 does.
+
+Want me to take it further — e.g. a sound instead of the bell, system notifications when a phase ends, or a `--csv` export — or leave it as a clean single file?

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mdx"
+version = "0.1.0"
+description = "A tiny, dependency-free Markdown to HTML converter and site builder."
+requires-python = ">=3.9"
+
+[project.scripts]
+mdx = "mdx.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

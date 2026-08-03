@@ -1,0 +1,29 @@
+Since you gave me free rein, I built a complete, working project from scratch: **Mnemo**, a spaced-repetition flashcard CLI. It's written entirely in Python's standard library (zero dependencies), so it's portable and demonstrable — and I proved it works end-to-end.
+
+**What it does**
+- Implements the classic **SM-2 algorithm** as a pure function — cards grow a review interval (1 → 6 → ~ease× previous) on success, and *lapse* (ease −0.2, reset to 1 day) when you forget.
+- Stores decks in a single **sqlite** file (`~/.mnemo/deck.db` by default).
+- Ships an argparse CLI: `add`, `list`, `due`, `review` (interactive), and `stats`.
+
+**Verified working**
+- `mnemo add`, `list`, `due`, a scripted interactive `review` session, and `stats` all ran correctly — the scheduler pushed reviewed cards out of the due queue and produced sensible ease/interval values.
+- **12/12 unit tests pass** (scheduler edge cases + storage round-trips).
+
+**Project layout** (`/workspace/mnemo`)
+```
+mnemo/sm2.py      # SM-2 scheduling (pure function)
+mnemo/db.py       # sqlite storage + day math
+mnemo/cli.py      # argparse frontend
+tests/            # test_sm2.py, test_db.py
+pyproject.toml, README.md, .gitignore
+```
+Committed as the initial commit on a fresh git repo.
+
+Try it yourself:
+```
+cd /workspace/mnemo
+python3 -m mnemo.cli add "add 1 card" "then run: python3 -m mnemo.cli review"
+python3 -m mnemo.cli review
+```
+
+If you'd like, I can gate a scheduling fix (e.g. `pip install -e . && mnemo`), add an Anki-format import/export, or wire up a simple TUI. Otherwise this is a self-contained, tested little tool that does what it says.

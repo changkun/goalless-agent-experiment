@@ -1,0 +1,22 @@
+Done. Since the workspace was empty and you gave me free rein, I built a small, genuinely useful tool rather than a throwaway demo.
+
+## What I made: `pnotes` — a dependency-free terminal notes & todo manager
+
+`/workspace/pnotes/` is a self-contained Python project (stdlib only, so it runs anywhere Python 3.10+ is).
+
+**Features**
+- `add` — create notes with todo items and an optional due date (flag-based or interactive)
+- `list` — sort: overdue first, then by due date, then title (with `--tag` and `--do` filters)
+- `show` / `done` / `rm` — drill in, tick items off, delete
+- `tags` — tally of `#tag` items (skips completed), `stats` — quick totals
+
+**Design choices worth noting:**
+- **Plain-text storage** — each note is a directory of `meta.json` + `todos.txt`, so everything is greppable and trivially syncable with git. The `index` file is rebuilt on writes and the per-note files are the source of truth, so a corrupt index never hides data.
+- **Zero deps, ASCII-safe output** — works in minimal environments.
+- Slug collisions are de-duplicated automatically rather than clobbered.
+
+**Verification:** 12 passing tests (`python3 test_pnotes.py`), an end-to-end demo covering overdue sorting, done-state, and tag tallying, plus `py_compile` clean. All committed as one initial commit.
+
+I also fixed two real bugs the tests caught along the way (Unicode leaking into slugs, and empty titles falling through to an interactive prompt when run non-interactively).
+
+If you'd like, I can add a `search` command, a `--from-file` import mode, or wire it into git for sync — just say the word.

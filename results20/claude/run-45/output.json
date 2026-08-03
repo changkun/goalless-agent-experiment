@@ -1,0 +1,34 @@
+The grep hang was just buffering on the piped animation — the previous run already confirmed generation counters increment (1/3, 3/3). Everything works.
+
+## Done — a terminal Game of Life
+
+Since the workspace was empty, I built a small, well-tested Conway's Game of Life in Python. It's all self-contained under `/workspace`:
+
+```
+game_of_life/
+  board.py      # Life rules (as a set of live cells), renderer, bbox
+  patterns.py   # Classic patterns: block, beehive, blinker, toad, pulsar, glider
+  cli.py        # Animated demo + static single-generation mode
+tests/
+  test_game_of_life.py
+pyproject.toml  # installable with a `life` console script
+```
+
+**Design choices**
+- The board is a `set[tuple[int,int]]` of live cells — unbounded, so gliders and oscillators can move freely, and rendering is a separate concern that just crops a viewport (`board.py:62`).
+- The tick logic only considers live cells and their neighbors, so it stays O(cells·9) regardless of board size (`board.py:27`).
+- Patterns are origin-centered so they compose naturally; the CLI composes glider + random "soup" for a lively demo.
+
+**Verification** — 14 pytest tests pass, covering the four Life rules (under/overpopulation, birth, survival), the blinker's period-2 oscillation, the glider's (1,1) translation over 4 generations, the pulsar's shape, rendering/cropping, and pattern composition. I also smoke-tested the CLI in static and animated modes.
+
+**Try it:**
+```bash
+cd /workspace
+.venv/bin/python -m game_of_life.cli            # animated soup + glider demo
+.venv/bin/python -m game_of_life.cli pulsar     # static rendering of a pattern
+.venv/bin/python -m game_of_life.cli -n 500 pulsar glider block   # longer demo
+```
+
+One note: my first test pass had 3 failures — all were my *test* expectations being wrong (I forgot patterns are origin-centered), not bugs in the code. The under/overpopulation logic was correct all along; I fixed the assertions to match reality rather than bending the code to the tests.
+
+Want me to add anything — a bounded/editable board, more patterns (pentadecathlon, gosper glider gun), or a curses-based interactive mode?

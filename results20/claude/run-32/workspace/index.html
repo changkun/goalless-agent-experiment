@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ember · Focus Timer</title>
+<meta name="description" content="A calm Pomodoro focus timer with ambient soundscapes and session statistics. Works offline — no audio files, no dependencies.">
+<style>
+  :root {
+    color-scheme: dark;
+    --surface-1:   #1a1a19;   /* chart surface / cards */
+    --page:        #0d0d0d;   /* page plane */
+    --surface-2:   #1f1f1e;   /* raised panel */
+    --ink-1:       #ffffff;   /* primary ink */
+    --ink-2:       #c3c2b7;   /* secondary ink */
+    --ink-3:       #898781;   /* muted */
+    --grid:        #2c2c2a;   /* hairline gridline */
+    --border:      rgba(255,255,255,0.10);
+    --accent:      #3987e5;   /* series-1 blue */
+    --accent-soft: rgba(57,135,229,0.14);
+
+    /* sequential blue ramp for the heatmap (dark surface, validated monotonic) */
+    --hm-1: #16304e;  /* near-zero */
+    --hm-2: #256abf;
+    --hm-3: #3987e5;
+    --hm-4: #6da7ec;
+    --hm-5: #a8cdf6;  /* peak */
+
+    --good: #0ca30c;
+
+    --ring-track: #2c2c2a;
+    --ease: cubic-bezier(.6,0,.2,1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(57,135,229,0.10), transparent 60%),
+      var(--page);
+    color: var(--ink-1);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .app {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 9px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), #1c5cab);
+    box-shadow: 0 4px 18px rgba(57,135,229,0.35);
+  }
+  .brand small { display:block; font-weight:400; color: var(--ink-3); font-size: 12px; letter-spacing: .08em; }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    border: 1px solid var(--border);
+    background: var(--surface-1);
+    color: var(--ink-2);
+    width: 38px; height: 38px; border-radius: 10px;
+    display: grid; place-items: center;
+    cursor: pointer; font-size: 17px;
+    transition: background .15s var(--ease), transform .1s;
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink-1); }
+  .icon-btn:active { transform: scale(.95); }
+  .icon-btn.active { background: var(--accent-soft); color: var(--accent); border-color: rgba(57,135,229,0.4); }
+  .kbd-hint { color: var(--ink-3); font-size: 12px; letter-spacing: .04em; }
+
+  /* ---------- layout ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 380px) 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+  }
+
+  /* ---------- timer ---------- */
+  .timer-panel { text-align: center; }
+  .modes {
+    display: flex; gap: 6px;
+    background: var(--surface-2);
+    padding: 5px; border-radius: 12px;
+    margin-bottom: 18px;
+  }
+  .modes button {
+    flex: 1;
+    border: none; background: transparent;
+    color: var(--ink-3); font-weight: 500; font-size: 13px;
+    padding: 8px 6px; border-radius: 9px; cursor: pointer;
+    transition: all .18s var(--ease);
+    font-family: inherit;
+  }
+  .modes button.active { background: var(--surface-1); color: var(--ink-1); box-shadow: 0 1px 6px rgba(0,0,0,0.35); }
+  .modes button.active[data-mode="focus"]     { color: var(--accent); }
+  .modes button.active[data-mode="short"]     { color: var(--good); }
+  .modes button.active[data-mode="long"]      { color: #6da7ec; }
+
+  .ring-wrap { position: relative; width: 250px; height: 250px; margin: 6px auto 14px; }
+  .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--ring-track); stroke-width: 9; }
+  .ring-fg {
+    fill: none; stroke: var(--accent); stroke-width: 9; stroke-linecap: round;
+    stroke-dasharray: 690.8; /* 2*pi*110 */
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset .25s linear, stroke .4s var(--ease);
+  }
+  .mode-focus .ring-fg { stroke: var(--accent); }
+  .mode-short .ring-fg { stroke: var(--good); }
+  .mode-long  .ring-fg { stroke: #6da7ec; }
+  .ring-center { position: absolute; inset: 0; display: grid; place-items: center; }
+  .time-display {
+    font-size: 56px; font-weight: 300; letter-spacing: .02em;
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .session-label { margin-top: 8px; color: var(--ink-3); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+
+  .timer-controls { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+  .btn {
+    border: none; border-radius: 12px;
+    font-family: inherit; font-weight: 600; font-size: 15px;
+    padding: 13px 26px; cursor: pointer;
+    transition: transform .1s, filter .15s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost {
+    background: var(--surface-2); color: var(--ink-2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--ink-1); }
+
+  .pomodoro-progress { margin-top: 20px; }
+  .pips { display: flex; gap: 6px; justify-content: center; }
+  .pip { width: 9px; height: 9px; border-radius: 50%; background: var(--ring-track); transition: background .3s; }
+  .pip.done { background: var(--good); }
+
+  .settings { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .settings-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 8px 0; }
+  .settings-row label { color: var(--ink-2); font-size: 13px; }
+  .settings-row input[type=number] {
+    width: 62px; background: var(--surface-2); color: var(--ink-1);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 8px; font-family: inherit; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- soundscapes ---------- */
+  .sound-section { margin-top: 16px; }
+  .sound-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); margin: 0 0 10px; }
+  .sound-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 400px) { .sound-grid { grid-template-columns: repeat(2,1fr); } }
+  .sound-card {
+    border: 1px solid var(--border); background: var(--surface-2);
+    border-radius: 12px; padding: 10px 6px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--ink-2); font-size: 11px;
+    transition: all .18s var(--ease);
+  }
+  .sound-card .ico { font-size: 20px; }
+  .sound-card:hover { border-color: var(--ink-3); color: var(--ink-1); }
+  .sound-card.on { background: var(--accent-soft); border-color: rgba(57,135,229,0.5); color: var(--accent); }
+  .sound-card .bar {
+    width: 100%; -webkit-appearance:none; appearance: none;
+    height: 3px; border-radius: 2px; background: var(--border);
+  }
+  .sound-card .bar::-webkit-slider-thumb {
+    -webkit-appearance:none; width: 10px; height: 10px; border-radius: 50%;
+    background: currentColor; cursor: pointer; border: none;
+  }
+  .sound-card.on .bar { background: rgba(57,135,229,0.3); }
+
+  /* ---------- stats ---------- */
+  .stats-panel h2 { font-size: 16px; margin: 0 0 4px; }
+  .stats-sub { color: var(--ink-3); font-size: 13px; margin: 0 0 20px; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
+  .stat-tile { background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+  .stat-tile .val { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+  .stat-tile .lbl { color: var(--ink-3); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+  .stat-tile .val.accent { color: var(--accent); }
+  .stat-tile .val.sub { color: #6da7ec; }
+
+  .viz-section { margin-top: 22px; }
+  .viz-title { display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .viz-title h3 { font-size: 13px; margin:0; color: var(--ink-2); letter-spacing:.02em; }
+  .viz-title .total { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .week-selector { display:flex; gap:6px; margin-bottom: 10px; }
+  .week-selector button {
+    border:1px solid var(--border); background:var(--surface-2); color:var(--ink-2);
+    border-radius: 8px; padding: 4px 12px; font-size:12px; cursor:pointer; font-family:inherit;
+  }
+  .week-selector button.active { border-color: rgba(57,135,229,.5); color: var(--accent); background: var(--accent-soft); }
+
+  /* heatmap */
+  .heat-cell { shape-rendering: auto; }
+  .heat-cell:hover { stroke: var(--ink-1); stroke-width: 2; }
+  .hm-axis { fill: var(--ink-3); font-size: 10px; }
+  .hm-legend { display:flex; align-items:center; justify-content:flex-end; gap:6px; font-size:11px; color:var(--ink-3); margin-top:6px; }
+  .hm-legend .sw { width:12px; height:12px; border-radius:3px; }
+
+  /* bar chart */
+  .bars-wrap { position: relative; height: 150px; }
+  .bars-wrap svg { width:100%; height:100%; display:block; }
+  .bar-rect { transition: fill .2s; }
+  .bar-rect:hover { fill: var(--ink-2); }
+
+  /* tooltip */
+  .tooltip {
+    position: fixed; pointer-events: none; z-index: 50;
+    background: #0d0d0d; border: 1px solid var(--border); color: var(--ink-1);
+    border-radius: 8px; padding: 7px 10px; font-size: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+    opacity: 0; transform: translate(-50%, calc(-100% - 10px));
+    transition: opacity .12s; white-space: nowrap;
+  }
+  .tooltip.show { opacity: 1; }
+
+  footer { margin-top: 34px; color: var(--ink-3); font-size: 12px; text-align: center; }
+  footer .keys { margin-top:6px; }
+  .key {
+    display:inline-block; border:1px solid var(--border); border-bottom-width:2px;
+    background:var(--surface-1); border-radius:6px; padding:1px 7px; font-size:11px; color: var(--ink-2);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="mark">✦</span>
+      <div>
+        Ember
+        <small>focus · rest · repeat</small>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="kbd-hint hidden-mobile">space start · r reset · n stats</span>
+      <button class="icon-btn" id="statsToggleBtn" title="Toggle statistics (n)" aria-label="Toggle statistics">📊</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: timer + sound -->
+    <div>
+      <section class="panel timer-panel" id="timerPanel">
+        <div class="modes" id="modeTabs" role="tablist">
+          <button data-mode="focus" class="active" role="tab">Focus</button>
+          <button data-mode="short" role="tab">Short</button>
+          <button data-mode="long" role="tab">Long</button>
+        </div>
+
+        <div class="ring-wrap">
+          <svg viewBox="0 0 250 250" aria-hidden="true">
+            <circle class="ring-bg" cx="125" cy="125" r="110"/>
+            <circle class="ring-fg" id="ringFg" cx="125" cy="125" r="110"/>
+          </svg>
+          <div class="ring-center">
+            <div>
+              <div class="time-display" id="timeDisplay">25:00</div>
+              <div class="session-label" id="sessionLabel">Focus</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="btn btn-primary" id="startBtn">Start</button>
+          <button class="btn btn-ghost" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="pomodoro-progress" id="pipsWrap" aria-label="Completed focus sessions this cycle"></div>
+
+        <div class="settings">
+          <div class="settings-row">
+            <label for="durFocus">Focus (min)</label>
+            <input type="number" id="durFocus" min="1" max="120" value="25">
+          </div>
+          <div class="settings-row">
+            <label for="durShort">Short break (min)</label>
+            <input type="number" id="durShort" min="1" max="60" value="5">
+          </div>
+          <div class="settings-row">
+            <label for="durLong">Long break (min)</label>
+            <input type="number" id="durLong" min="1" max="60" value="15">
+          </div>
+          <div class="settings-row">
+            <label for="goal">Daily goal (sessions)</label>
+            <input type="number" id="goal" min="1" max="30" value="8">
+          </div>
+        </div>
+      </section>
+
+      <section class="panel sound-section">
+        <h3>Ambience · built from sound, no files</h3>
+        <div class="sound-grid" id="soundGrid"></div>
+      </section>
+    </div>
+
+    <!-- RIGHT: stats -->
+    <section class="panel stats-panel hidden" id="statsPanel">
+      <h2>Session statistics</h2>
+      <p class="stats-sub" id="statsSub">Your last 28 days</p>
+
+      <div class="stat-row">
+        <div class="stat-tile"><div class="val accent" id="statTotal">0</div><div class="lbl">Sessions</div></div>
+        <div class="stat-tile"><div class="val sub" id="statMinutes">0</div><div class="lbl">Focus min</div></div>
+        <div class="stat-tile"><div class="val" id="statStreak">0</div><div class="lbl">Day streak</div></div>
+      </div>
+
+      <div class="viz-section" id="heatmapSection">
+        <div class="viz-title">
+          <h3>Focus sessions by day</h3>
+          <span class="total" id="hmRange"></span>
+        </div>
+        <div id="heatmap"></div>
+        <div class="hm-legend">
+          <span>less</span>
+          <span class="sw" style="background:var(--hm-1)"></span>
+          <span class="sw" style="background:var(--hm-2)"></span>
+          <span class="sw" style="background:var(--hm-3)"></span>
+          <span class="sw" style="background:var(--hm-4)"></span>
+          <span class="sw" style="background:var(--hm-5)"></span>
+          <span>more</span>
+        </div>
+      </div>
+
+      <div class="viz-section">
+        <div class="viz-title">
+          <h3>Last 7 days</h3>
+          <span class="total" id="weekTotal"></span>
+        </div>
+        <div class="week-selector" id="weekSelector"></div>
+        <div class="bars-wrap" id="barChart"></div>
+      </div>
+
+      <div class="viz-section" style="margin-top:14px">
+        <p class="stats-sub" id="goalNote" style="margin-bottom:0"></p>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Ember keeps every session on your device. Nothing is uploaded.
+    <div class="keys">
+      <span class="key">space</span> start / pause
+      <span class="key">r</span> reset
+      <span class="key">n</span> stats
+      <span class="key">m</span> next mode
+      <span class="key">s</span> cycle ambience
+    </div>
+  </footer>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+   *  STATE
+   * =================================================================== */
+  const STORAGE_KEY = 'ember.focus.v1';
+  const clone = typeof structuredClone === 'function' ? structuredClone : (o) => JSON.parse(JSON.stringify(o));
+  const DEFAULTS = {
+    durations: { focus: 25, short: 5, long: 15 },
+    goal: 8,
+    completedInCycle: 0,
+    sessions: [],       // [{date:'YYYY-MM-DD', minutes, mode}]
+    settings: { focus: 25, short: 5, long: 15, goal: 8 }
+  };
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return clone(DEFAULTS);
+      const p = JSON.parse(raw);
+      return Object.assign(clone(DEFAULTS), p);
+    } catch (e) { return clone(DEFAULTS); }
+  }
+  let S = load();
+  let persistTimer;
+  function persist() {
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e){} }, 200);
+  }
+
+  /* =====================================================================
+   *  TIMER
+   * =================================================================== */
+  const CIRC = 2 * Math.PI * 110; // ~690.8
+  const ringFg = document.getElementById('ringFg');
+  const timeDisplay = document.getElementById('timeDisplay');
+  const sessionLabel = document.getElementById('sessionLabel');
+  const timerPanel = document.getElementById('timerPanel');
+
+  let mode = 'focus';           // focus | short | long
+  let running = false;
+  let remaining = S.settings.focus * 60; // seconds
+  let tickId = null;
+  let lastTs = null;
+  let focusCountInCycle = (S.completedInCycle || 0); // pips filled this cycle
+
+  function fmt(sec) {
+    sec = Math.max(0, Math.ceil(sec));
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  }
+  function setDur() { remaining = S.settings[mode] * 60; }
+  function render() {
+    timeDisplay.textContent = fmt(remaining);
+    sessionLabel.textContent = { focus:'Focus', short:'Short break', long:'Long break' }[mode];
+    const frac = 1 - (remaining / (S.settings[mode] * 60));
+    ringFg.style.strokeDashoffset = String(CIRC * (1 - frac));
+    timerPanel.classList.remove('mode-focus','mode-short','mode-long');
+    timerPanel.classList.add('mode-' + mode);
+    document.title = (running ? '▶ ' : '') + fmt(remaining) + ' · ' + (sessionLabel.textContent) + ' — Ember';
+    renderPips();
+  }
+  function renderPips() {
+    const wrap = document.getElementById('pipsWrap');
+    wrap.innerHTML = '';
+    for (let i = 0; i < S.settings.goal; i++) {
+      const d = document.createElement('span');
+      d.className = 'pip' + (i < focusCountInCycle ? ' done' : '');
+      wrap.appendChild(d);
+    }
+  }
+  function setMode(m) {
+    mode = m;
+    // reset cycle when manually switching to a break or focus
+    stopTimer();
+    setDur();
+    render();
+    document.querySelectorAll('#modeTabs button').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === m);
+    });
+  }
+  function startTimer() {
+    if (running) return;
+    running = true;
+    lastTs = null;
+    tickId = requestAnimationFrame(loop);
+    updateStartBtn();
+  }
+  function loop(ts) {
+    if (lastTs === null) { lastTs = ts; }
+    const dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+    remaining -= dt;
+    if (remaining <= 0) { remaining = 0; render(); completeSession(); return; }
+    render();
+    tickId = requestAnimationFrame(loop);
+  }
+  function stopTimer() {
+    running = false;
+    if (tickId) cancelAnimationFrame(tickId);
+    tickId = null;
+    updateStartBtn();
+  }
+  function updateStartBtn() {
+    document.getElementById('startBtn').textContent = running ? 'Pause' : (remaining === S.settings[mode]*60 ? 'Start' : 'Resume');
+  }
+  function completeSession() {
+    const finished = mode;          // capture before switching
+    stopTimer();
+    chime();
+    let syncCycle = false;
+    if (finished === 'focus') {
+      focusCountInCycle = Math.min(focusCountInCycle + 1, S.settings.goal);
+      recordSession();
+      syncCycle = true;
+      setMode(focusCountInCycle >= S.settings.goal ? 'long' : 'short');
+    } else {
+      // a break finished → back to focus; long break finishes the cycle
+      if (finished === 'long') { focusCountInCycle = 0; syncCycle = true; }
+      setMode('focus');
+    }
+    if (syncCycle) { S.completedInCycle = focusCountInCycle; }
+    flashTitle();
+    renderStats();
+    persist();
+  }
+  function flashTitle() {
+    const id = setTimeout(() => { document.title = 'Ember'; clearTimeout(id); }, 4000);
+  }
+  function flashTitle(txt) {
+    const id = setTimeout(() => { document.title = 'Ember'; clearTimeout(id); }, 4000);
+  }
+  function recordSession() {
+    const d = new Date();
+    const date = d.toISOString().slice(0,10);
+    S.sessions.push({ date, minutes: S.settings.focus, mode: 'focus', ts: d.getTime() });
+    const thirty = 30 * 86400000;
+    S.sessions = S.sessions.filter(s => (Date.now() - s.ts) < thirty);
+    // keep memory bounded
+    if (S.sessions.length > 3000) S.sessions = S.sessions.slice(-3000);
+  }
+
+  document.getElementById('startBtn').addEventListener('click', () => running ? stopTimer() : startTimer());
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    stopTimer(); focusCountInCycle = 0; S.completedInCycle = 0; setDur(); render(); persist();
+  });
+
+  document.querySelectorAll('#modeTabs button').forEach(b =>
+    b.addEventListener('click', () => setMode(b.dataset.mode)));
+
+  ['focus','short','long','goal'].forEach(k => {
+    const el = document.getElementById('dur' + k.charAt(0).toUpperCase() + k.slice(1)) || document.getElementById(k);
+    if (!el) return;
+    el.addEventListener('change', () => {
+      const v = Math.max(1, parseInt(el.value, 10) || 1);
+      if (k === 'goal') {
+        S.settings.goal = Math.min(v, 30);
+        focusCountInCycle = Math.min(focusCountInCycle, S.settings.goal);
+      } else {
+        S.settings[k] = v;
+      }
+      S.completedInCycle = focusCountInCycle;
+      if (!running) setDur();
+      render(); persist();
+    });
+  });
+
+  /* =====================================================================
+   *  AMBIENT SOUNDSCAPES  (Web Audio, procedural — no audio files)
+   * =================================================================== */
+  const SOUNDS = [
+    { id:'rain',    ico:'🌧️', label:'Rain',  desc:'filtered noise + droplets' },
+    { id:'brown',   ico:'🌊', label:'Brown', desc:'warm ocean of brown noise' },
+    { id:'crickets',ico:'🦗', label:'Crickets', desc:'summer night chirps' },
+    { id:'fire',    ico:'🔥', label:'Fire',  desc:'crackling hearth' },
+  ];
+  let AC = null, master = null;
+  const graphs = {};      // id -> { nodes, gain }
+  const onMap = {};       // id -> bool
+  let activeSound = null;
+
+  function ensureAudio() {
+    if (!AC) {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      master = AC.createGain();
+      master.gain.value = 0.8;
+      master.connect(AC.destination);
+    }
+    if (AC.state === 'suspended') AC.resume();
+  }
+
+  function buildGraph(id) {
+    const g = {};
+    const gain = AC.createGain(); gain.gain.value = 0;
+    gain.connect(master);
+    g.gain = gain;
+
+    if (id === 'rain') {
+      // filtered noise bed
+      const src = noiseBuffer(2, 'pink');
+      const lp = AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=900;
+      const hp = AC.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=180;
+      src.connect(lp).connect(hp).connect(gain);
+      g.stop = () => src.stop();
+      // sparse droplet ticks scheduled asynchronously
+      g.rain = true;
+      scheduleDroplets(gain);
+    }
+    else if (id === 'brown') {
+      const src = noiseBuffer(4, 'brown');
+      const lp = AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=600;
+      src.connect(lp).connect(gain);
+      g.stop = () => src.stop();
+    }
+    else if (id === 'crickets') {
+      // periodic chirps via oscillators
+      g.chirp = true;
+      scheduleChirps(gain);
+    }
+    else if (id === 'fire') {
+      const src = noiseBuffer(3, 'brown');
+      const bp = AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=320; bp.Q.value=0.7;
+      src.connect(bp).connect(gain);
+      g.stop = () => src.stop();
+      g.fire = true;
+      scheduleCracks(gain);
+    }
+    return g;
+  }
+
+  function noiseBuffer(seconds, type) {
+    const len = AC.sampleRate * seconds;
+    const buf = AC.createBuffer(1, len, AC.sampleRate);
+    const data = buf.getChannelData(0);
+    if (type === 'white') { for (let i=0;i<len;i++) data[i]=Math.random()*2-1; }
+    else if (type === 'pink') {
+      let b0=0,b1=0,b2=0;
+      for (let i=0;i<len;i++) {
+        const w = Math.random()*2-1;
+        b0 = 0.997*b0 + 0.029591*w;
+        b1 = 0.985*b1 + 0.032534*w;
+        b2 = 0.950*b2 + 0.048056*w;
+        data[i] = (b0+b1+b2+w*0.05)*3;
+      }
+    } else { // brown
+      let last=0;
+      for (let i=0;i<len;i++) {
+        const w = Math.random()*2-1;
+        last = (last + 0.02*w) / 1.02;
+        data[i] = last*3.5;
+      }
+    }
+    const src = AC.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    return src;
+  }
+
+  let dropletT = null, chirpT = null, crackT = null;
+  function scheduleDroplets(gain) {
+    clearInterval(dropletT);
+    dropletT = setInterval(() => {
+      if (!activeSound || activeSound.id !== 'rain' || !AC) return;
+      const t = AC.currentTime;
+      const o = AC.createOscillator(); o.frequency.value = 350 + Math.random()*900;
+      const g = AC.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(onMap['rain'] ? 0.05 : 0, t+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+0.05);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t+0.06);
+    }, 90 + Math.random()*40);
+  }
+  function scheduleChirps(gain) {
+    clearInterval(chirpT);
+    chirpT = setInterval(() => {
+      if (!activeSound || activeSound.id !== 'crickets' || !AC) return;
+      const t = AC.currentTime;
+      const base = 4000 + Math.random()*1500;
+      const g = AC.createGain();
+      g.gain.setValueAtTime(onMap['crickets'] ? 0.04 : 0, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+0.09);
+      const o = AC.createOscillator();
+      o.frequency.setValueAtTime(base, t);
+      o.frequency.setValueAtTime(base*1.4, t+0.02);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t+0.09);
+    }, 120 + Math.random()*260);
+  }
+  function scheduleCracks(gain) {
+    clearInterval(crackT);
+    crackT = setInterval(() => {
+      if (!activeSound || activeSound.id !== 'fire' || !AC) return;
+      const t = AC.currentTime;
+      const o = AC.createOscillator();
+      o.type='square'; o.frequency.setValueAtTime(1200+Math.random()*1800, t);
+      const g = AC.createGain();
+      g.gain.setValueAtTime(onMap['fire'] ? 0.02 : 0, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+0.03);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t+0.04);
+    }, 150 + Math.random()*400);
+  }
+
+  function toggleSound(id) {
+    ensureAudio();
+    const idx = SOUNDS.findIndex(s => s.id === id);
+    const card = document.querySelector(`.sound-card[data-id="${id}"]`);
+
+    if (activeSound && activeSound.id === id) {
+      // turning off
+      graphOff(activeSound);
+      activeSound = null;
+      onMap[id] = false;
+      card.classList.remove('on');
+      return card.querySelector('.ico').textContent = SOUNDS[idx].ico;
+    }
+    // turning on: stop any current
+    if (activeSound) {
+      graphOff(activeSound);
+      document.querySelector(`.sound-card[data-id="${activeSound.id}"]`).classList.remove('on');
+      onMap[activeSound.id] = false;
+    }
+    onMap[id] = true;
+    if (!graphs[id]) {
+      graphs[id] = buildGraph(id);
+      graphs[id].soundId = id;
+    }
+    rollTo(graphs[id], onMap[id]);
+    activeSound = graphs[id];
+    card.classList.add('on');
+  }
+  function graphOff(g) {
+    if (!g) return;
+    g.gain.gain.cancelScheduledValues(AC.currentTime);
+    g.gain.gain.setTargetAtTime(0, AC.currentTime, 0.15);
+    if (g.stop) try { g.stop(); } catch(e){}
+    delete graphs[g.soundId];
+  }
+  function rollTo(g, state) {
+    const t = AC.currentTime;
+    g.gain.gain.cancelScheduledValues(t);
+    g.gain.gain.setTargetAtTime(state ? soundLevel(g) : 0, t, 0.2);
+  }
+  function soundLevel(g) { return 0.5; }
+
+  function buildSoundGrid() {
+    const grid = document.getElementById('soundGrid');
+    grid.innerHTML = '';
+    SOUNDS.forEach(s => {
+      const el = document.createElement('button');
+      el.className = 'sound-card'; el.dataset.id = s.id;
+      el.innerHTML = `<span class="ico">${s.ico}</span><span>${s.label}</span>`;
+      el.title = s.desc;
+      // master click toggles; slider not needed since single level
+      el.addEventListener('click', () => toggleSound(s.id));
+      grid.appendChild(el);
+    });
+  }
+
+  /* =====================================================================
+   *  CHIME  (Web Audio, short bell)
+   * =================================================================== */
+  function chime() {
+    ensureAudio();
+    const t = AC.currentTime;
+    [523.25, 659.25, 783.99].forEach((f,i) => {
+      const o = AC.createOscillator(); o.frequency.value = f; o.type='sine';
+      const g = AC.createGain();
+      g.gain.setValueAtTime(0.001, t+i*0.18);
+      g.gain.exponentialRampToValueAtTime(0.2, t+i*0.18+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+i*0.18+1.2);
+      o.connect(g);
+      if (master) g.connect(master); else g.connect(AC.destination);
+      o.start(t+i*0.18); o.stop(t+i*0.18+1.3);
+    });
+  }
+
+  /* =====================================================================
+   *  STATISTICS & CHARTS
+   * =================================================================== */
+  const heatEl = document.getElementById('heatmap');
+  const barEl = document.getElementById('barChart');
+  const tooltip = document.getElementById('tooltip');
+
+  function showTooltip(html, x, y) {
+    tooltip.innerHTML = html;
+    tooltip.classList.add('show');
+    const r = tooltip.getBoundingClientRect();
+    let left = x, top = y;
+    if (left + 140 > innerWidth) left = innerWidth - 140;
+    if (top < 20) top = r.height + 20;
+    tooltip.style.left = left + 'px'; tooltip.style.top = top + 'px';
+  }
+  function hideTooltip(){ tooltip.classList.remove('show'); }
+
+  function dateKey(d){ const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); return x.toISOString().slice(0,10); }
+  function sessionsByDay() {
+    const map = {};
+    S.sessions.forEach(s => { const k = s.date; map[k] = (map[k]||0)+1; });
+    return map;
+  }
+  function todayKey(){ return new Date().toISOString().slice(0,10); }
+
+  function renderStats() {
+    const sessions = S.sessions;
+    const byDay = sessionsByDay();
+    const today = todayKey();
+    const days = (() => { // distinct days in range
+      const set = new Set(); sessions.forEach(s => set.add(s.date));
+      return set.size;
+    })();
+    const minutes = sessions.reduce((a,s)=>a+s.minutes,0);
+    document.getElementById('statTotal').textContent = sessions.length;
+    document.getElementById('statMinutes').textContent = minutes;
+    // streak: consecutive days ending today or yesterday with >=1 session
+    let streak = 0;
+    let d = new Date();
+    // if no session today, allow streak to start from yesterday
+    if (!byDay[dateKey(d)]) d.setDate(d.getDate()-1);
+    while (byDay[dateKey(d)]) { streak++; d.setDate(d.getDate()-1); }
+    document.getElementById('statStreak').textContent = streak;
+    document.getElementById('statsSub').textContent = `Your last ${sessions.length ? '30' : ''} days · ${days} active day${days!==1?'s':''}`;
+    const g = S.settings.goal;
+    const todayCount = byDay[today]||0;
+    document.getElementById('goalNote').textContent = g > 0
+      ? `Daily goal: ${g} sessions — ${todayCount} today ${todayCount>=g ? '· goal met 🎉':''}`
+      : '';
+    renderHeatmap(byDay, today);
+    renderWeekBars(byDay, 0);
+  }
+
+  /* ---------- heatmap (last 12 weeks) ---------- */
+  function renderHeatmap(byDay, today) {
+    const COL_W = 14, COL_G = 4;
+    const WEEKS = 16;
+    const todayD = new Date();
+    // anchor: the Sunday of the current week
+    const anchor = new Date(todayD.getFullYear(), todayD.getMonth(), todayD.getDate());
+    const dow = anchor.getDay(); // 0=Sun
+    anchor.setDate(anchor.getDate() - dow);
+    // build weeks
+    const weeks = [];
+    let cursor = new Date(anchor);
+    // weeks as columns: each column = one week of 7 days (rows Sun..Sat)
+    const start = new Date(anchor); start.setDate(start.getDate() - (WEEKS-1)*7);
+    const maxCount = Math.max(1, ...Object.values(byDay)) ;
+    const pw = new Date(); const labelToday = dateKey(pw).slice(5,10).replace('-','-');
+
+    let html = '<svg viewBox="0 0 ' + (WEEKS*COL_W + (WEEKS-1)*COL_G + 40) + ' 150" width="100%" role="img" aria-label="Heatmap of focus sessions per day over the last ' + WEEKS + ' weeks">';
+    const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    // day labels (left)
+    html += '<text class="hm-axis" x="0" y="12">' + dayNames[0] + '</text>';
+    html += '<text class="hm-axis" x="0" y="35">' + dayNames[2] + '</text>';
+    html += '<text class="hm-axis" x="0" y="58">' + dayNames[4] + '</text>';
+    html += '<text class="hm-axis" x="0" y="81">' + dayNames[6] + '</text>';
+
+    let col = 0;
+    for (let w = 0; w < WEEKS; w++) {
+      const x = 30 + col*(COL_W+COL_G);
+      for (let r = 0; r < 7; r++) {
+        const d = new Date(start); d.setDate(d.getDate() + w*7 + r);
+        const key = dateKey(d);
+        const count = byDay[key]||0;
+        const fill = count===0 ? 'var(--ring-track)' : hmColor(count, maxCount);
+        const isToday = key === todayKey();
+        html += `<rect class="heat-cell" data-k="${key}" data-c="${count}" x="${x}" y="${r*16+3}" width="${COL_W}" height="${COL_W}" rx="4" fill="${fill}"${isToday?' stroke="var(--ink-1)" stroke-width="1.5"':''}/>`;
+      }
+      col++;
+    }
+    html += '</svg>';
+    const d0 = new Date(start);
+    const d1 = new Date(anchor);
+    document.getElementById('hmRange').textContent = fmtDate(d0) + ' – ' + fmtDate(d1);
+    heatEl.innerHTML = html;
+
+    // hover
+    heatEl.querySelectorAll('.heat-cell').forEach(cell => {
+      cell.addEventListener('mousemove', (e) => {
+        const k = cell.dataset.k, c = cell.dataset.c;
+        const [yyyy,mm,dd] = k.split('-');
+        const name = new Date(Date.UTC(+yyyy,+mm-1,+dd)).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+        showTooltip(`<strong>${c}</strong> session${c==1?'':'s'} · ${name}`, e.clientX, e.clientY);
+      });
+      cell.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+  function hmColor(count, max) {
+    const t = count / max;
+    const ramp = ['var(--hm-1)','var(--hm-2)','var(--hm-3)','var(--hm-4)','var(--hm-5)'];
+    if (t <= 0.20) return ramp[0];
+    if (t <= 0.40) return ramp[1];
+    if (t <= 0.60) return ramp[2];
+    if (t <= 0.80) return ramp[3];
+    return ramp[4];
+  }
+  function fmtDate(d) {
+    return d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+  }
+
+  /* ---------- week bar chart (last 7 days) ---------- */
+  // weeks run Monday → Sunday; offsetIdx = how many whole weeks back (0 = current week)
+  function renderWeekBars(byDay, offsetIdx) {
+    const DAYS = 7;
+    const w = 600, h = 150, padL = 30, padB = 22, padT = 12;
+    // Monday of the current week: today shifted back (dow-1) days, dow 0(Sun)→-6
+    const today = new Date();
+    const thisMonday = new Date(today);
+    thisMonday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    thisMonday.setDate(thisMonday.getDate() - offsetIdx * 7);
+
+    // build 7 days Mon..Sun
+    const days = [];
+    for (let i=0;i<7;i++){ const d=new Date(thisMonday); d.setDate(d.getDate()+i); days.push(d); }
+    const maxCount = Math.max(1, ...days.map(d=>byDay[dateKey(d)]||0));
+    const total = days.reduce((a,d)=>a+(byDay[dateKey(d)]||0),0);
+    document.getElementById('weekTotal').textContent = total + ' sessions · ' + (total>=S.settings.goal*7 ? 'on a roll' : '');
+
+    let html = `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Bar chart of focus sessions for the last 7 days" style="overflow:visible">`;
+    // gridlines
+    const n = 4;
+    for (let i=0;i<=n;i++){
+      const y = padT + (h-padT-padB) * i/n;
+      html += `<line x1="${padL}" x2="${w-10}" y1="${y}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+      html += `<text x="${padL-6}" y="${y+4}" text-anchor="end" fill="var(--ink-3)" font-size="10">${Math.round(maxCount*(n-i)/n)}</text>`;
+    }
+    const bw = ((w-10-padL) / DAYS) * 0.6;
+    days.forEach((d,i)=>{
+      const count = byDay[dateKey(d)]||0;
+      const cx = padL + ((w-10-padL)/DAYS)*i + ((w-10-padL)/DAYS)/2;
+      const bh = (count/maxCount)*(h-padT-padB);
+      const y = padT + (h-padT-padB) - bh;
+      const isToday = dateKey(d)===todayKey();
+      const label = d.toLocaleDateString(undefined,{weekday:'narrow'});
+      html += `<rect class="bar-rect" data-k="${dateKey(d)}" data-c="${count}" x="${cx-bw/2}" y="${y}" width="${bw}" height="${Math.max(bh,2)}" rx="5" fill="${isToday?'url(#7dayGrad)':'#3987e5'}" opacity="${isToday?1:0.55}"/>`;
+      html += `<text x="${cx}" y="${h-8}" text-anchor="middle" fill="var(--ink-3)" font-size="10">${label}</text>`;
+    });
+    // today gradient
+    html += `<defs><linearGradient id="7dayGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6da7ec"/><stop offset="100%" stop-color="#3987e5"/>
+      </linearGradient></defs>`;
+    html += '</svg>';
+    barEl.innerHTML = html;
+    barEl.querySelectorAll('.bar-rect').forEach(bar => {
+      bar.addEventListener('mousemove', (e)=>{
+        const c = bar.dataset.c;
+        const name = new Date(bar.dataset.k+'T00:00:00').toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+        showTooltip(`<strong>${c}</strong> session${c==1?'':'s'} · ${name}`, e.clientX, e.clientY);
+      });
+      bar.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+
+  function buildWeekSelector(){
+    const sel = document.getElementById('weekSelector');
+    sel.innerHTML = '';
+    [-1, -2, -3].forEach((off,i)=>{
+      const b=document.createElement('button');
+      b.textContent = i===0 ? 'This week' : (i===1 ? 'Last week' : '2 weeks ago');
+      b.addEventListener('click', ()=>{ sel.querySelectorAll('button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderWeekBars(sessionsByDay(), Math.abs(off)-1); });
+      if(i===0) b.classList.add('active');
+      sel.appendChild(b);
+    });
+  }
+
+  /* =====================================================================
+   *  STATS TOGGLE
+   * =================================================================== */
+  const statsPanel = document.getElementById('statsPanel');
+  function toggleStats(force){
+    const show = force!==undefined ? force : statsPanel.classList.contains('hidden');
+    statsPanel.classList.toggle('hidden', !show);
+    document.getElementById('statsToggleBtn').classList.toggle('active', show);
+    if (show) renderStats();
+  }
+  document.getElementById('statsToggleBtn').addEventListener('click', ()=>toggleStats());
+
+  /* =====================================================================
+   *  KEYBOARD
+   * =================================================================== */
+  document.addEventListener('keydown', (e)=>{
+    if (e.target.matches('input')) return;
+    const k = e.key.toLowerCase();
+    if (k === ' ') { e.preventDefault(); if (e.repeat) return; running?stopTimer():startTimer(); }
+    else if (k === 'r') { stopTimer(); focusCountInCycle=0; setDur(); render(); }
+    else if (k === 'n') { toggleStats(); }
+    else if (k === 'm') {
+      const order=['focus','short','long'];
+      const next = order[(order.indexOf(mode)+1)%order.length];
+      setMode(next);
+    }
+    else if (k === 's') {
+      const ids = SOUNDS.map(s=>s.id);
+      const cur = activeSound? activeSound.id : null;
+      const next = cur ? ids[(ids.indexOf(cur)+1)%ids.length] : ids[0];
+      if (cur) toggleSound(cur);
+      toggleSound(next);
+    }
+  });
+
+  /* =====================================================================
+   *  INIT
+   * =================================================================== */
+  buildSoundGrid();
+  buildWeekSelector();
+  render();       // timer
+  toggleStats(true); // show stats on load
+  document.getElementById('timeDisplay').parentElement.parentElement; // no-op
+})();
+</script>
+</body>
+</html>

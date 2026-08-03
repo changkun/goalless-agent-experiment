@@ -1,0 +1,25 @@
+Done. Since the workspace was empty, I built you something self-contained and genuinely useful: **`focus`**, a zero-dependency task + pomodoro focus tracker.
+
+## What it is
+
+A single-file Python CLI (`/workspace/focus/focus.py`, ~420 lines, stdlib only) that manages tasks and tracks focus time, persisting everything to `~/.focus/data.json`. No network, no DB, no install — just Python 3.
+
+## What it does
+
+| Command | Purpose |
+|---|---|
+| `focus add "write report" --tags work` | add a tagged task |
+| `focus list [--all] [--tag work]` | list tasks with colored status |
+| `focus done / redo / rm <id>` | complete / reopen / delete |
+| `focus focus [--min 25] [--tags work]` | pomodoro countdown with progress bar — **Ctrl+C stops early and still saves elapsed time** |
+| `focus stats [--days 7]` | total time, per-day bars, per-tag breakdown |
+| `focus dashboard [--port 8321]` | serves a light/dark HTML dashboard |
+| `focus sync` | prunes finished tasks older than 7 days |
+
+## What I verified (and fixed along the way)
+
+- All task commands, the live countdown, early-stop logging, stats bars, sync pruning — exercised end-to-end against an isolated data dir.
+- **Fixed a real quirk**: a backgrounded process inherits `SIGINT` as ignored, so I re-arm the handler in `focus` — Ctrl+C to stop a pomodoro now always works.
+- **Caught and fixed a bug** in the dashboard: CSS `{ }` braces collided with Python's `.format()` (raised `KeyError`). Switched to `.replace()` tokens and confirmed it serves `200 OK` with correct stats and a filled 7-day chart.
+
+First-class everything lives in `/workspace/focus/` — there's a `focus` launcher on PATH and a short `README.md`. Run `focus --help` for the full command list. Want me to extend it (e.g. weekly CSV export, an interactive TUI, or a cron reminder)?

@@ -1,0 +1,29 @@
+Done. The broken-pipe traceback is fixed and all tests pass.
+
+Since you gave me a blank slate, I built **pomo** — a friendly, dependency-free Pomodoro focus timer for the terminal (Python stdlib only), fully tested.
+
+**What's in `/workspace`:**
+- `pomo.py` — the timer, executable
+- `test_pomo.py` — 17 passing tests
+- `README.md` — usage + design notes
+
+**What it does:**
+- Full **focus/break TUI** with a live countdown, progress bar, and keyboard controls while it runs: `p` pause, `r` resume, `s` skip, `q` quit
+- A cycle alternates focus sessions with breaks (`Focus → Short → Focus → … → Long`)
+- **Persistent config** (`~/.pomo/config.json`) via `pomo set --work 30 --rounds 4`, overridable with `POMO_CONFIG`
+- **Session logging** (`~/.pomo/log.jsonl`) and `pomo stats` for completed focus sessions/total time/today
+- Terminal bell + best-effort desktop notifications (`notify-send`/`osascript`), all gracefully degrading
+- CNC-level robustness: it degrades to a quiet per-second tick when not a TTY (so piped usage works), and exits cleanly if the pipe closes
+
+**Notable bug I caught while testing:** the original countdown ticked in whole seconds but polled far more often, so `int(elapsed)` was 0 almost every iteration and a timer could run forever — caught by the test suite hanging. I rewrote it to carry fractional seconds, which the tests (and a real 2-second timed run) now confirm completes correctly.
+
+Try it:
+
+```sh
+python3 pomo.py show      # see config
+python3 pomo.py set --work 25 --rounds 3   # tweak
+python3 pomo.py run       # start focusing — [p]/[r]/[s]/[q] to control
+python3 pomo.py stats     # see your stats
+```
+
+Happy to add a live elapsed/end-of-day summary, sound, or a `--demo` fast mode if you want it.

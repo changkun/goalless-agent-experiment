@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game of Life</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #1b1e27;
+    --border: #2a2e3a;
+    --text: #e6e8ee;
+    --muted: #8a90a3;
+    --accent: #4ade80;
+    --alive: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  h1 { font-size: 20px; margin: 0; letter-spacing: 0.5px; }
+  .panel {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.05s;
+  }
+  button:hover { background: var(--border); }
+  button:active { transform: scale(0.96); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #0f1117; font-weight: 600; }
+  button.primary:hover { filter: brightness(1.1); }
+  select {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  .slider { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  input[type=range] { accent-color: var(--accent); }
+  #stats { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; min-width: 120px; text-align: center; }
+  canvas {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: crosshair;
+    user-select: none;
+  }
+  .hint { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+  <h1>🦠 Game of Life</h1>
+  <canvas id="board" width="800" height="800"></canvas>
+  <div class="panel">
+    <button id="play" class="primary">▶ Play</button>
+    <button id="step">Step</button>
+    <button id="clear">Clear</button>
+    <button id="random">Random</button>
+    <select id="preset">
+      <option value="">Presets…</option>
+      <option value="glider">Glider</option>
+      <option value="pulsar">Pulsar</option>
+      <option value="gosper">Gosper glider gun</option>
+      <option value="rpent">R-pentomino</option>
+    </select>
+    <div class="slider">Speed
+      <input type="range" id="speed" min="1" max="40" value="12">
+    </div>
+    <span id="stats"></span>
+  </div>
+  <div class="hint">Click / drag to draw cells · Play runs the simulation</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+  const playBtn = document.getElementById('play');
+  const stepBtn = document.getElementById('step');
+  const clearBtn = document.getElementById('clear');
+  const randomBtn = document.getElementById('random');
+  const presetSel = document.getElementById('preset');
+  const speed = document.getElementById('speed');
+  const stats = document.getElementById('stats');
+
+  const CELL = 10;
+  const COLS = canvas.width / CELL;
+  const ROWS = canvas.height / CELL;
+
+  let grid = createGrid();
+  let running = false;
+  let timer = null;
+  let gen = 0;
+
+  function createGrid() {
+    return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const alive = new Uint8Array(ROWS * COLS);
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (grid[r][c]) {
+          alive[r * COLS + c] = 1;
+          ctx.fillStyle = '#2f9e63';
+          ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+          ctx.fillStyle = 'rgba(255,255,255,0.06)';
+          ctx.fillRect(c * CELL, r * CELL, CELL, 2);
+          ctx.fillRect(c * CELL, r * CELL, 2, CELL);
+        }
+      }
+    }
+    // grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let c = 1; c < COLS; c++) {
+      ctx.beginPath(); ctx.moveTo(c * CELL, 0); ctx.lineTo(c * CELL, canvas.height); ctx.stroke();
+    }
+    for (let r = 1; r < ROWS; r++) {
+      ctx.beginPath(); ctx.moveTo(0, r * CELL); ctx.lineTo(canvas.width, r * CELL); ctx.stroke();
+    }
+    const n = alive.reduce((a, b) => a + b, 0);
+    stats.textContent = `${gen} gen · ${n} alive`;
+  }
+
+  function nextGeneration() {
+    const next = createGrid();
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        let neighbors = 0;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = (r + dr + ROWS) % ROWS;
+            const nc = (c + dc + COLS) % COLS;
+            neighbors += grid[nr][nc];
+          }
+        }
+        const alive = grid[r][c] === 1;
+        next[r][c] = (alive && (neighbors === 2 || neighbors === 3)) || (!alive && neighbors === 3) ? 1 : 0;
+      }
+    }
+    grid = next;
+    gen++;
+    draw();
+  }
+
+  function toggle(r, c) {
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+    grid[r][c] = grid[r][c] ? 0 : 1;
+    draw();
+  }
+
+  function setRunning(value) {
+    running = value;
+    playBtn.textContent = running ? '⏸ Pause' : '▶ Play';
+    if (running) {
+      timer = setInterval(nextGeneration, 300);
+      stepBtn.disabled = clearBtn.disabled = randomBtn.disabled = true;
+    } else {
+      clearInterval(timer);
+      timer = null;
+      stepBtn.disabled = clearBtn.disabled = randomBtn.disabled = false;
+    }
+  }
+
+  function intervalForSpeed() {
+    // speed slider 1..40 maps to ~600ms .. ~60ms per tick
+    return Math.max(60, 660 - speed.value * 15);
+  }
+
+  function onSpeedChange() {
+    if (running) {
+      clearInterval(timer);
+      timer = setInterval(nextGeneration, intervalForSpeed());
+    }
+  }
+
+  function randomFill(prob = 0.22) {
+    grid = createGrid();
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        grid[r][c] = Math.random() < prob ? 1 : 0;
+    gen = 0;
+    draw();
+  }
+
+  function placePattern(pattern, startRow, startCol) {
+    for (let r = 0; r < pattern.length; r++)
+      for (let c = 0; c < pattern[r].length; c++)
+        if (pattern[r][c]) toggle(startRow + r, startCol + c);
+    gen = 0;
+  }
+
+  const PRESETS = {
+    glider: [
+      [0, 1, 0],
+      [0, 0, 1],
+      [1, 1, 1],
+    ],
+    pulsar: [
+      '..OOO...OOO..',
+      '.............',
+      'O....O.O....O',
+      'O....O.O....O',
+      'O....O.O....O',
+      '..OOO...OOO..',
+      '.............',
+      '..OOO...OOO..',
+      'O....O.O....O',
+      'O....O.O....O',
+      'O....O.O....O',
+      '.............',
+      '..OOO...OOO..',
+    ].map(s => [...s].map(ch => ch === 'O' ? 1 : 0)),
+    gosper: [
+      '........................O...........',
+      '......................O.O...........',
+      '............OO......OO............OO',
+      '...........O...O....OO............OO',
+      'OO........O.....O...OO..............',
+      'OO........O...O.OO....O.O...........',
+      '..........O.....O.......O...........',
+      '...........O...O....................',
+      '............OO......................',
+    ].map(s => [...s].map(ch => ch === 'O' ? 1 : 0)),
+    rpent: [
+      '.OO',
+      'OO.',
+      '.O.',
+    ].map(s => [...s].map(ch => ch === 'O' ? 1 : 0)),
+  };
+
+  function loadPreset(name) {
+    const p = PRESETS[name];
+    if (!p) return;
+    clear();
+    const startRow = Math.floor((ROWS - p.length) / 2);
+    const startCol = Math.floor((COLS - p[0].length) / 2);
+    placePattern(p, startRow, startCol);
+  }
+
+  function clear() {
+    grid = createGrid();
+    gen = 0;
+    draw();
+  }
+
+  // --- Events ---
+  playBtn.addEventListener('click', () => setRunning(!running));
+  stepBtn.addEventListener('click', () => { if (!running) nextGeneration(); });
+  clearBtn.addEventListener('click', () => { if (!running) clear(); });
+  randomBtn.addEventListener('click', () => { if (!running) randomFill(); });
+  speed.addEventListener('input', onSpeedChange);
+  presetSel.addEventListener('change', () => {
+    loadPreset(presetSel.value);
+    presetSel.value = '';
+  });
+
+  let drawing = false;
+  function cellFromEvent(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const scale = canvas.width / rect.width;
+    return [Math.floor(y * scale / CELL), Math.floor(x * scale / CELL)];
+  }
+  canvas.addEventListener('mousedown', (e) => {
+    if (running) return;
+    drawing = true;
+    const [r, c] = cellFromEvent(e);
+    toggle(r, c);
+  });
+  canvas.addEventListener('mousemove', (e) => {
+    if (!drawing || running) return;
+    const [r, c] = cellFromEvent(e);
+    toggle(r, c);
+  });
+  window.addEventListener('mouseup', () => drawing = false);
+
+  clear();
+})();
+</script>
+</body>
+</html>

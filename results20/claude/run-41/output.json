@@ -1,0 +1,31 @@
+I built something in the empty workspace: a **Game of Life for the terminal**. Since you gave me free rein, I made it genuinely polished and verified rather than a throwaway.
+
+## What's in `/workspace`
+
+| File | Purpose |
+|------|---------|
+| `life.py` | Interactive curses app: the Life engine + UI |
+| `patterns.py` | Pattern library (RLE format) + parser |
+| `test_life.py` | 16 tests (engine, parser, patterns) — pass under both plain `python3` and pytest |
+| `README.md` | Run instructions and key bindings |
+
+## Run it
+
+```sh
+python3 life.py                # starts with a glider gun
+python3 life.py --pattern pulsar --height 40 --width 90
+```
+
+Keys: `space` play/pause, `.`/`,` step, `[`/`]` speed, `g` gun, `p` pulsar, `r` random, `c` clear, `q` quit. The world is a **torus** (edges wrap), and the engine only tracks live cells, so a glider gun on a 60×80 board runs thousands of generations per second.
+
+## The interesting part — how I verified it
+
+I didn't just write the rules and hope: I cross-validated the engine against two independent implementations:
+- A hand-rolled dict-based reference, and the standard **numpy convolution** Life (in a venv, since pip was sandboxed).
+- Verified classic results: block (still), blinker (period 2), glider (moves), glider gun, and pulsar (period 3).
+
+That verification **caught a real bug in my pattern data, not in the engine**: my hand-typed pulsar RLE wasn't the genuine 48-cell pulsar, and neither was my second guess. I fetched the authoritative RLE from `copy.sh/life` and confirmed it's a true period-3 oscillator in *both* my engine and numpy. The fix is now in `patterns.py`, with a test that pins it.
+
+One deliberate simplification worth knowing: the pulsar is only exactly period-3 on an *infinite* plane where it's fully isolated. On the finite torus it can't truly isolate, so I verify purity on a large board where edge effects don't interfere — and the game itself is a torus.
+
+Everything is verified: **16/16 tests pass**, the app launches/renders cleanly and exits on `q` (confirmed via a pty test). It runs on any Python 3 with no dependencies.
