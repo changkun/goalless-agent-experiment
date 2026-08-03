@@ -96,6 +96,9 @@ Environment (read from ./.env when present; a non-empty shell value wins):
   LLM_GW_API_KEY             API gateway key
   LLM_ENV_FILE               Dotenv file to read the two above from
                              (default: <run.sh dir>/.env)
+  IMAGE_TAG                  sandbox-harness tag to run (default: v0.0.14)
+  IMAGE                      Full image reference, overriding IMAGE_TAG; use a
+                             locally built pin (see harness.Dockerfile)
   CODEX_REASONING_EFFORT     Pin codex reasoning effort (low|medium|high|xhigh);
                              implies --no-fast
   CODEX_MAX_OUTPUT_TOKENS    Pin codex model_max_output_tokens. Required for
@@ -147,8 +150,12 @@ fi
 # Both backends run in the shared sandbox-harness image (claude + codex
 # CLIs preinstalled); the backend picks the entrypoint script mounted
 # below. IMAGE_TAG can be overridden via env (default: v0.0.14).
+#
+# IMAGE overrides the whole reference, for experiments that need CLI versions
+# no published tag ships — see harness.Dockerfile, which builds a local image
+# pinning claude-code and codex-cli on top of a published base.
 IMAGE_TAG="${IMAGE_TAG:-v0.0.14}"
-IMAGE="ghcr.io/latere-ai/sandbox-harness:${IMAGE_TAG}"
+IMAGE="${IMAGE:-ghcr.io/latere-ai/sandbox-harness:${IMAGE_TAG}}"
 case "$BACKEND" in
     claude|codex) ENTRYPOINT_SH="$SCRIPT_DIR/entrypoint-$BACKEND.sh" ;;
     *)      echo "Error: unknown backend '$BACKEND' (use claude or codex)" >&2; exit 1 ;;

@@ -80,6 +80,31 @@ check "reasoning effort survives alongside the metadata keys" \
     "$(grep '^model_reasoning_effort' <<< "$CONFIG")"
 
 echo ""
+echo "=== image selection ==="
+
+# The argv the stub runtime saw, so the tests can assert which image ran.
+generated_argv() {
+    LLM_ENV_FILE="${LLM_ENV_FILE:-$STUB_DIR/absent.env}" \
+    PATH="$STUB_DIR:$PATH" "$SCRIPT_DIR/run.sh" \
+        --backend codex --model claude-opus-5 --runtime podman \
+        --workspace "$STUB_DIR" -p "noop" 2>/dev/null
+}
+
+check "IMAGE_TAG selects a published tag by default" \
+    "ghcr.io/latere-ai/sandbox-harness:v0.0.14" \
+    "$(generated_argv | grep '^ghcr.io/latere-ai/sandbox-harness:')"
+check "IMAGE_TAG is honoured" \
+    "ghcr.io/latere-ai/sandbox-harness:v0.0.15" \
+    "$(IMAGE_TAG=v0.0.15 generated_argv | grep '^ghcr.io/latere-ai/sandbox-harness:')"
+
+# Experiments that need CLI versions no published tag ships run a locally built
+# image (harness.Dockerfile). Without this override the registry path is
+# hardcoded and such a pin is unreachable.
+check "IMAGE overrides the whole reference" \
+    "sandbox-harness:pinned-local" \
+    "$(IMAGE=sandbox-harness:pinned-local IMAGE_TAG=v0.0.15 generated_argv | grep '^sandbox-harness:')"
+
+echo ""
 echo "=== dotenv loading ==="
 
 # A fixture dotenv standing in for the repo's real .env. The comment and blank
