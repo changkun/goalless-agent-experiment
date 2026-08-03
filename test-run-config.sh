@@ -80,6 +80,49 @@ check "reasoning effort survives alongside the metadata keys" \
     "$(grep '^model_reasoning_effort' <<< "$CONFIG")"
 
 echo ""
+echo "=== transcript collection ==="
+
+# A stub that behaves like the CLI does: write a session transcript into the
+# per-run config dir that run.sh bind-mounts, then exit. The real agent writes
+# to that dir inside the container; on the host it is the same directory.
+cat > "$STUB_DIR/podman-transcript" <<'STUB'
+#!/usr/bin/env bash
+for a in "$@"; do
+  case "$a" in
+    */:/home/agent/.claude) : ;;
+  esac
+done
+cfg=$(printf '%s\n' "$@" | grep -o '^[^ ]*:/home/agent/.claude$' | cut -d: -f1)
+if [[ -n "$cfg" ]]; then
+  mkdir -p "$cfg/projects/-workspace"
+  printf '{"type":"assistant","message":{"content":[{"type":"text","text":"hi"}]}}\n' \
+      > "$cfg/projects/-workspace/session.jsonl"
+fi
+echo "stub ran"
+STUB
+chmod 755 "$STUB_DIR/podman-transcript"
+cp "$STUB_DIR/podman-transcript" "$STUB_DIR/podman2"
+
+TDIR="$(mktemp -d)"
+PATH="$STUB_DIR:$PATH" LLM_ENV_FILE="$STUB_DIR/absent.env" \
+    "$SCRIPT_DIR/run.sh" --backend claude --model m --runtime podman2 \
+    --workspace "$STUB_DIR" --transcript "$TDIR/transcript.jsonl" \
+    -p noop >/dev/null 2>&1
+check "the session transcript is collected into --transcript" \
+    "yes" "$([[ -s "$TDIR/transcript.jsonl" ]] && echo yes || echo no)"
+check "...with the agent's own content" \
+    "hi" "$(grep -o '"text":"hi"' "$TDIR/transcript.jsonl" 2>/dev/null | head -1 | sed 's/.*:"//; s/"//')"
+
+# Without the flag nothing is written and the old exec path is preserved.
+rm -f "$TDIR/transcript.jsonl"
+PATH="$STUB_DIR:$PATH" LLM_ENV_FILE="$STUB_DIR/absent.env" \
+    "$SCRIPT_DIR/run.sh" --backend claude --model m --runtime podman2 \
+    --workspace "$STUB_DIR" -p noop >/dev/null 2>&1
+check "no transcript file is created without the flag" \
+    "no" "$([[ -e "$TDIR/transcript.jsonl" ]] && echo yes || echo no)"
+rm -rf "$TDIR"
+
+echo ""
 echo "=== image selection ==="
 
 # The argv the stub runtime saw, so the tests can assert which image ran.

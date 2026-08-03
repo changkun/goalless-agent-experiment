@@ -49,7 +49,9 @@ FAST="true"
 RUNTIME="docker"
 BATCH="false"
 OUTPUT_FILE=""
+TRANSCRIPT_FILE=""
 EXTRA_ARGS=()
+AGENT_HOME_DIR=""
 
 # Read from environment if set
 LLM_GW_BASE_URL="${LLM_GW_BASE_URL:-}"
@@ -88,6 +90,11 @@ Options:
   --runtime   docker|podman  Container runtime (default: docker)
   --batch                    Non-interactive mode (no TTY, for scripted runs)
   --output    FILE           Write container stdout to FILE (implies --batch)
+  --transcript FILE          Save the agent's session transcript to FILE. The
+                             CLI writes it inside the per-run config dir, which
+                             is a throwaway temp dir -- without this it is lost.
+                             Needed for the claude backend in particular, whose
+                             stdout is only the final message.
   -p          PROMPT         Prompt to send to the model
   --          ARGS...        Extra arguments passed to the entrypoint
 
@@ -134,6 +141,7 @@ while [[ $# -gt 0 ]]; do
         --runtime)   RUNTIME="$2";   shift 2 ;;
         --batch)     BATCH="true";   shift   ;;
         --output)    OUTPUT_FILE="$2"; BATCH="true"; shift 2 ;;
+        --transcript) TRANSCRIPT_FILE="$2"; shift 2 ;;
         -p)          PROMPT="$2";    shift 2 ;;
         --)          shift; EXTRA_ARGS+=("$@"); break ;;
         -h|--help)   usage ;;
@@ -225,6 +233,7 @@ case "$BACKEND" in
         RUN_ARGS+=(-e "DISABLE_PROMPT_CACHING=1")
         # Use a fresh config dir per run to avoid RTK/environment bias
         CLAUDE_HOME_DIR=$(mktemp -d)
+        AGENT_HOME_DIR="$CLAUDE_HOME_DIR"
         chmod 777 "$CLAUDE_HOME_DIR"
         RUN_ARGS+=(-v "$CLAUDE_HOME_DIR:/home/agent/.claude")
         # Disable RTK to prevent environment bias in experiments
@@ -243,6 +252,7 @@ case "$BACKEND" in
         fi
         # Write config.toml with gateway URL and API key
         CODEX_HOME_DIR=$(mktemp -d)
+        AGENT_HOME_DIR="$CODEX_HOME_DIR"
         chmod 777 "$CODEX_HOME_DIR"
         CODEX_TOML=""
         if [[ -n "$LLM_GW_BASE_URL" ]]; then
@@ -313,8 +323,34 @@ echo ">>> Image:     $IMAGE" >&2
 echo ">>> Workspace: $WORKSPACE" >&2
 echo "" >&2
 
+# Copy the agent's own session transcript out of the throwaway config dir.
+# Claude Code writes projects/<slug>/<session>.jsonl; codex writes
+# sessions/YYYY/MM/DD/rollout-*.jsonl. Newest wins if a run produced several.
+collect_transcript() {
+    [[ -n "$TRANSCRIPT_FILE" && -n "$AGENT_HOME_DIR" ]] || return 0
+    # -exec ... + rather than xargs: BSD xargs has no -r, so an empty result
+    # would run `ls` with no arguments. The `|| true` matters too -- under
+    # `set -e` with pipefail, a find that touches a missing directory would
+    # abort the whole script mid-assignment, silently skipping collection.
+    local newest
+    newest=$(find "$AGENT_HOME_DIR/projects" "$AGENT_HOME_DIR/sessions" \
+                  -type f -name '*.jsonl' -exec ls -t {} + 2>/dev/null \
+             | head -1 || true)
+    if [[ -n "$newest" ]]; then
+        cp "$newest" "$TRANSCRIPT_FILE" 2>/dev/null \
+            && echo ">>> Transcript: $TRANSCRIPT_FILE" >&2
+    else
+        echo ">>> Transcript: none found under $AGENT_HOME_DIR" >&2
+    fi
+}
+
 if [[ -n "$OUTPUT_FILE" ]]; then
     "${RUN_ARGS[@]}" | tee "$OUTPUT_FILE"
+    collect_transcript
+elif [[ -n "$TRANSCRIPT_FILE" ]]; then
+    # Cannot exec: the transcript has to be copied after the container exits.
+    "${RUN_ARGS[@]}"
+    collect_transcript
 else
     exec "${RUN_ARGS[@]}"
 fi

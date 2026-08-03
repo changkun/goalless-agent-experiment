@@ -210,6 +210,7 @@ run_one() {
         --workspace "$run_dir/workspace" \
         --runtime "$RUNTIME" \
         --batch \
+        --transcript "$run_dir/transcript.jsonl" \
         -p "$PROMPT" \
         > "$run_dir/output.json" \
         2> "$run_dir/log.txt"
