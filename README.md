@@ -197,7 +197,9 @@ rejected as `unknown role`; fixed in `pkg` v0.28.1 and deployed.)
   (3/27) versus GPT's 4–5/5 (Exp10/11) — so within codex the browser tendency
   is strongly *model*-dependent. **deepseek** shows a harness × reliability
   interaction (5/5 implementing on Claude Code → 3/5 on codex, twice stopping
-  after a planning preamble).
+  after a planning preamble) — though this is **tier-specific, not a family
+  trait**: the flash tier implements 5/5 on both harnesses (Exp19), at raised
+  reasoning effort.
 - **Open cell:** GPT × Claude Code is untested (blocked — OpenAI reasoning
   models need the Responses API for tools, which the anthropic→chat compat path
   doesn't route to), so "the harness sets the medium" is demonstrated only
@@ -314,6 +316,42 @@ the 2 clean ones, and the arm is **not** verifiably effort-matched (codex sends
 
 See **[results18/RESULTS.md](results18/RESULTS.md)** for the full breakdown.
 
+### Experiment 19 — `prompt5.txt` (deepseek-v4-flash-0731, both harnesses)
+
+> Just do something you want.
+
+`deepseek/deepseek-v4-flash-0731` run 5× on **each** harness, both arms in one
+experiment, reached through the *same* compat surfaces Exp12/13 used
+(`/compat/anthropic` for Claude Code, `/compat/openai` for codex). Because
+Exp12/13 ran the sibling `deepseek-v4-pro` across that identical pairing, Exp19
+is simultaneously a harness test and a **tier comparison inside one model
+family**. Locally built image pinning **Claude Code 2.1.220** and **codex-cli
+0.146.0** — no published tag ships either — RTK off, codex at `high` effort.
+With one model in the matrix the runs execute serially, so **durations are a
+measurement here**, unlike Exp18.
+
+**Result — the attractor survives the tier drop but halves, and stays on one
+side.** Cellular automata / Game of Life appear **2/5 on Claude Code** against
+4/5 for `deepseek-v4-pro` in Exp12, and **0/5 on codex**. Exp12/13 saw the same
+asymmetry one tier up (4/5 vs 1/5), so the direction **replicates**: for
+deepseek the Life attractor is a Claude-Code-side phenomenon — the opposite of
+`claude-opus-5`, whose WFC attractor crossed to both arms. **Medium does not
+move with the scaffold**: browser-primary output is 1/5 on each side, the other
+8 runs terminal. Codex *deflates* elaboration for this model (254 vs 329 avg
+LOC) — the reverse of the codex-inflates pattern Claude models show — and runs
+~2.6× faster (86s vs 224s per run) at no cost in completion.
+
+**10/10 clean, and Exp13's reliability failure does not replicate.**
+`deepseek-v4-pro` implemented only 3/5 on codex in Exp13 (two preamble-stops);
+the flash tier implements **5/5 on both arms**. Recorded as **confounded, not
+resolved**: all five codex runs show nonzero `reasoning_output_tokens`, so
+`high` effort was genuinely achieved, where Exp13 ran `low` — tier, effort, and
+codex version all changed together. The Exp18 truncation ceiling never fires
+here; it lives in the compat layer's *Anthropic* backend codec, and this model
+is served by a different one.
+
+See **[results19/RESULTS.md](results19/RESULTS.md)** for the full breakdown.
+
 Each experiment includes:
 - Topic proposed and implementation status
 - Tech stack (language, frameworks)
@@ -342,6 +380,7 @@ flowchart LR
     E16["<b>Exp 16</b><br/>prompt5 · RTK out · kimi-k3<br/>compat/anthropic · Claude Code · harness v0.0.14"]
     E17["<b>Exp 17</b><br/>prompt5 · RTK out · kimi-k3<br/>compat/openai · codex · harness v0.0.14"]
     E18["<b>Exp 18</b><br/>prompt5 · RTK out · claude-opus-5 · effort=high<br/>anthropic + compat/openai · Claude Code + codex · harness v0.0.14"]
+    E19["<b>Exp 19</b><br/>prompt5 · RTK out · deepseek-v4-flash-0731 · effort=high<br/>compat/anthropic + compat/openai · Claude Code + codex · harness cc2.1.220/cx0.146.0"]
 
     E1 -->|"remove RTK<br/>dev tools → games"| E2
     E2 -->|"change prompt<br/>haiku 1/5 → 5/5"| E3
@@ -360,12 +399,14 @@ flowchart LR
     E15 -->|"new model kimi-k3, Claude Code harness<br/>terminal-leaning 4/5 (fire, GoL, pendulum, flow-field)"| E16
     E16 -->|"same model, codex harness (image held fixed)<br/>medium flips → browser 4/5; topics (Particle Life, GoL) hold"| E17
     E17 -->|"new frontier model claude-opus-5, both harnesses at once<br/>Game of Life attractor gone → WFC 3/5; terminal holds on both"| E18
+    E18 -->|"drop a tier inside one family (deepseek pro → flash), both harnesses<br/>GoL halves 4/5 → 2/5 and stays Claude-Code-side; 5/5 impl on both"| E19
+    E12 -.->|"same family one tier down, same two surfaces"| E19
 ```
 
 ### Overview Matrix — model × harness (volitional prompt "Just do something you want.")
 
 The controlled comparison lives under the single volitional prompt (`prompt5`,
-Exp7–18). Each cell is **medium · topic · (Exp)**; `—` = not run. Read down a
+Exp7–19). Each cell is **medium · topic · (Exp)**; `—` = not run. Read down a
 row: for most models the **medium is fixed by the model, not the harness** —
 Claude stays terminal in both columns, GPT goes browser in both, and the Exp12/13
 open-weights are mostly terminal on both. **`kimi-k3` (Exp16/17) is the
@@ -394,6 +435,7 @@ model-generation claim.)
 | qwen3.7-max | open-wt | 🖥️ terminal · **GoL-leaning** (E12) | 🖥️ terminal · +1 HTML (E13) |
 | minimax-m3 | open-wt | 🖥️ terminal · diverse (+SVG) (E12) | 🖥️ terminal · +1 HTML (E13) |
 | deepseek-v4-pro | open-wt | 🖥️ terminal · **GoL 4/5** (E12) | 🖥️ terminal · 3/5 impl (E13) |
+| deepseek-v4-flash-0731 | open-wt | 🖥️ terminal 4/5 (+1 🌐) · **GoL 2/5**, 329 LOC (E19) | 🖥️ terminal 4/5 (+1 🌐 Snake) · GoL 0/5, 5/5 impl, 254 LOC (E19) |
 | kimi-k2.7-code | open-wt | 🖥️ terminal · **packaged+pytest** (E12) | 🖥️ terminal · packaged (E13) |
 | kimi-k3 ⚠️ | open-wt | 🖥️ terminal 4/5 · fire/GoL/pendulum/flow (E16) | 🌐 **browser 4/5** · same topics, +pytest pkg (E17) |
 
@@ -432,6 +474,9 @@ from dev tools → games → single canonical attractors.
 | Exp8/9 ↔ Exp15 | **Harness** (Claude Code vs codex), opus-4.6 + sonnet-5 | Prompt, models, **effort matched** (both `high`; reasoning_tokens=0) | Fills the Claude cell, cleanly. Claude stays **terminal + Game of Life on codex** (opus-4.6 GoL 5/5, sonnet-5 GoL ~4/5, zero browser) → medium + topic are model traits for **both** families. Codex inflates sonnet-5's build maturity (single-file → packaged+pytest) — a form effect only. |
 | Exp18 within | **Harness** (Claude Code vs codex), claude-opus-5 held fixed | Prompt, model, image (`v0.0.14`); effort **not** matched — codex sends `reasoning: null` for this model | **The attractor moved with the model generation.** Game of Life — 5/5 for opus-4.6 on *both* harnesses (Exp8/15) and for sonnet-5 (Exp9) — is absent from all 10 opus-5 runs; **Wave Function Collapse** replaces it (3/5 Claude Code, plus an independent pick on codex). Medium holds terminal in every artifact-producing run (5/5 Claude Code, 3/3 codex) with zero browser output or intent in all 10, so topic *and* medium are model traits here. opus-5 is also the most elaborated Claude model measured (511 avg LOC, tests 4/5, vs opus-4.6's ~37). ⚠️ Codex arm is N=2 clean of 5 — a gateway-injected 4096-token cap truncates turns, and the prefill retry then fails the turn while exiting 0 — so its LOC/maturity figures are partial and upward-biased. |
 | Exp16 ↔ Exp17 | **Harness** (Claude Code vs codex), kimi-k3 held fixed | Prompt, model, **image matched** (`sandbox-harness:v0.0.14` both sides) | **The invariant's counterexample.** kimi-k3's *topic* is a model trait (Particle Life + Game of Life appear on both harnesses), but its *medium* tracks the harness: terminal 4/5 on Claude Code ↔ **browser 4/5 on codex** — the only model whose medium the scaffold moves. Codex also inflates maturity (only pytest-tested `gol/` package on that side). Not comparable to kimi-k2.7-code (Exp12/13): that pair ran on the older `sandbox-claude:v0.0.9` image, so the k2.7→k3 difference is image-confounded, not a generation claim. |
+
+| Exp19 within | **Harness** (Claude Code vs codex), deepseek-v4-flash-0731 held fixed | Prompt, model, image (pinned cc2.1.220/cx0.146.0), **both arms on compat surfaces**; effort `high` and **verifiably achieved** (nonzero `reasoning_output_tokens` on all 5 codex runs) | **Medium holds, topic does not.** Browser-primary output is 1/5 on *each* side (a dashboard on Claude Code, a canvas Snake on codex), so deepseek carries its medium across the scaffold like opus-4.6/sonnet-5/opus-5 and unlike kimi-k3 — though this is mostly-terminal-with-occasional-browser, a weaker invariant than the zero-`.html` Claude models show. Its **attractor is one-sided**: cellular automata 2/5 on Claude Code, **0/5 on codex**. Codex *deflates* elaboration here (254 vs 329 avg LOC) — the reverse of the codex-inflates form effect seen for Claude models — and runs 2.6× faster (86s vs 224s, serialized) with 5/5 completion on both sides. |
+| Exp12/13 ↔ Exp19 | **Model tier inside one family** (deepseek-v4-pro → v4-flash-0731), both harnesses | Prompt, both compat surfaces (`/compat/anthropic` + `/compat/openai`) | ⚠️ **Confounded** (image, codex version, and codex effort `low`→`high` all moved with the tier), so read direction, not magnitude. **Fixation costs more than competence.** The Game of Life attractor halves on the harness where it lives (4/5 → 2/5 on Claude Code) and stays absent on codex (1/5 → 0/5) — the Claude-Code-side asymmetry **replicates**. Meanwhile reliability *improves*: Exp13's 3/5-implementing failure (preamble-stops that never called the write tool) becomes **5/5 on both arms**, the cleanest deepseek codex arm in the study. Raised reasoning effort is a plausible cause on its own; re-running the codex arm at `low` would separate it from the tier. |
 
 **Per-experiment output profile:**
 
