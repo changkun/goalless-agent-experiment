@@ -9,8 +9,35 @@
 # Environment variables:
 #   LLM_GW_BASE_URL  - API gateway base URL (used for both backends)
 #   LLM_GW_API_KEY   - API gateway key (used for both backends)
+#
+# Both are read from ./.env when present, so no shell export is needed.
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# --- Dotenv ---
+# Gateway credentials live in a dotenv file (KEY=value per line) so a plain
+# ./run.sh works with no exported environment.
+#
+# The real environment wins: a variable that is already non-empty is left
+# alone, so `LLM_GW_API_KEY=... ./run.sh` and `make MODEL=... LLM_GW_API_KEY=...`
+# still override the file. The guard tests for non-empty rather than for being
+# set because the Makefile exports these vars *set but empty* (`?=`), which
+# an is-set guard would mistake for a deliberate override.
+#
+# Point LLM_ENV_FILE at another file to use it instead, or at a nonexistent
+# path to skip the load entirely (test-run-config.sh does this to stay
+# hermetic — otherwise it would bake the real key into its fixtures).
+LLM_ENV_FILE="${LLM_ENV_FILE:-$SCRIPT_DIR/.env}"
+if [[ -f "$LLM_ENV_FILE" ]]; then
+    while IFS='=' read -r key value; do
+        # Skips blank lines and comments; anything else must be a shell name.
+        [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
+        value="${value%$'\r'}"   # tolerate a CRLF-saved file
+        [[ -n "${!key:-}" ]] || export "$key=$value"
+    done < "$LLM_ENV_FILE"
+fi
 
 # --- Defaults ---
 BACKEND=""
@@ -54,7 +81,9 @@ Options:
   --backend   claude|codex   Which sandbox image to run (required)
   --model     NAME           Model name to use
   --workspace DIR            Directory to mount as /workspace (default: cwd)
-  --env-file  FILE           File with environment variables (KEY=VALUE)
+  --env-file  FILE           Extra environment passed *into the container*
+                             (docker --env-file). This does NOT configure the
+                             gateway — use .env / LLM_ENV_FILE for that.
   --no-fast                  Disable fast/low-effort mode
   --runtime   docker|podman  Container runtime (default: docker)
   --batch                    Non-interactive mode (no TTY, for scripted runs)
@@ -62,9 +91,11 @@ Options:
   -p          PROMPT         Prompt to send to the model
   --          ARGS...        Extra arguments passed to the entrypoint
 
-Environment:
+Environment (read from ./.env when present; a non-empty shell value wins):
   LLM_GW_BASE_URL            API gateway base URL
   LLM_GW_API_KEY             API gateway key
+  LLM_ENV_FILE               Dotenv file to read the two above from
+                             (default: <run.sh dir>/.env)
   CODEX_REASONING_EFFORT     Pin codex reasoning effort (low|medium|high|xhigh);
                              implies --no-fast
   CODEX_MAX_OUTPUT_TOKENS    Pin codex model_max_output_tokens. Required for
@@ -75,8 +106,10 @@ Environment:
   CODEX_CONTEXT_WINDOW       Pin codex model_context_window (same rationale)
 
 Examples:
-  export LLM_GW_BASE_URL=https://llm-gw.example.com
-  export LLM_GW_API_KEY=sk-...
+  # Credentials: copy .env.example to .env and fill it in (or export them).
+  # Note: the workspace is bind-mounted at /workspace, and defaults to the
+  # cwd — running at the repo root exposes .env to the agent under test.
+  # experiment.sh mounts a per-run directory instead and is unaffected.
 
   # Claude
   ./run.sh --backend claude --model claude-sonnet-4-20250514 -p "list all files"
@@ -116,7 +149,6 @@ fi
 # below. IMAGE_TAG can be overridden via env (default: v0.0.14).
 IMAGE_TAG="${IMAGE_TAG:-v0.0.14}"
 IMAGE="ghcr.io/latere-ai/sandbox-harness:${IMAGE_TAG}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 case "$BACKEND" in
     claude|codex) ENTRYPOINT_SH="$SCRIPT_DIR/entrypoint-$BACKEND.sh" ;;
     *)      echo "Error: unknown backend '$BACKEND' (use claude or codex)" >&2; exit 1 ;;

@@ -699,9 +699,9 @@ collapse, corpus density, persona tuning, scaffold match), see
 ## Usage
 
 ```bash
-# Prerequisites
-export LLM_GW_BASE_URL=https://your-gateway.example.com
-export LLM_GW_API_KEY=sk-...
+# Prerequisites: gateway credentials. run.sh reads ./.env automatically,
+# so no shell export is needed.
+cp .env.example .env    # then fill in LLM_GW_BASE_URL and LLM_GW_API_KEY
 
 # Single run
 ./run.sh --backend claude --model claude-sonnet-4.6 --runtime podman -p "build something"
@@ -734,8 +734,31 @@ run.sh:
   --model       NAME
   --workspace   DIR
   --batch                   non-interactive mode
+  --env-file    FILE        extra env passed *into the container*; this does
+                            not configure the gateway (see .env below)
   -p            PROMPT
 ```
+
+### Credentials
+
+`run.sh` loads `LLM_GW_BASE_URL` and `LLM_GW_API_KEY` from `.env` in the repo
+root (plain `KEY=value`, no quoting or `export`). `experiment.sh` and the
+Makefile both go through `run.sh`, so they pick it up too. A non-empty value
+already in the environment wins over the file, which keeps one-off overrides
+working:
+
+```bash
+LLM_GW_API_KEY=other-key ./run.sh --backend claude --model claude-opus-5 -p "..."
+```
+
+Set `LLM_ENV_FILE` to read a different file, or point it at a path that does
+not exist to skip the load.
+
+Note that `run.sh` bind-mounts the workspace at `/workspace`, and the workspace
+defaults to the current directory — so running it from the repo root puts
+`.env`, key included, somewhere the agent under test can read it. Pass
+`--workspace` to avoid that. `experiment.sh` already mounts a per-run directory
+and is unaffected.
 
 ## Files
 

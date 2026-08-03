@@ -24,9 +24,14 @@ PASS=0
 FAIL=0
 
 # Run run.sh against the stub and print the generated config.toml.
+#
+# LLM_ENV_FILE points at a path that does not exist unless a caller overrides
+# it, so the repo's real .env is never loaded here: without this the developer's
+# actual gateway key would be written into every fixture config.toml below.
 generated_config() {
     local argv config_dir
-    argv="$(PATH="$STUB_DIR:$PATH" "$SCRIPT_DIR/run.sh" \
+    argv="$(LLM_ENV_FILE="${LLM_ENV_FILE:-$STUB_DIR/absent.env}" \
+        PATH="$STUB_DIR:$PATH" "$SCRIPT_DIR/run.sh" \
         --backend codex --model claude-opus-5 --runtime podman \
         --workspace "$STUB_DIR" -p "noop" 2>/dev/null)"
     config_dir="$(grep -o '^[^ ]*:/home/agent/.codex$' <<< "$argv" | cut -d: -f1)"
@@ -73,6 +78,54 @@ CONFIG="$(CODEX_REASONING_EFFORT=high CODEX_MAX_OUTPUT_TOKENS=32000 generated_co
 check "reasoning effort survives alongside the metadata keys" \
     "model_reasoning_effort = \"high\"" \
     "$(grep '^model_reasoning_effort' <<< "$CONFIG")"
+
+echo ""
+echo "=== dotenv loading ==="
+
+# A fixture dotenv standing in for the repo's real .env. The comment and blank
+# line are here because the loader must skip them rather than try to export
+# them as variables.
+cat > "$STUB_DIR/fixture.env" <<'DOTENV'
+# gateway credentials
+
+LLM_GW_BASE_URL=https://gw.fixture.test
+LLM_GW_API_KEY=key-from-dotenv
+DOTENV
+
+dotenv_config() { LLM_ENV_FILE="$STUB_DIR/fixture.env" generated_config; }
+
+CONFIG="$(env -u LLM_GW_BASE_URL -u LLM_GW_API_KEY bash -c \
+    "$(declare -f generated_config dotenv_config); \
+     SCRIPT_DIR='$SCRIPT_DIR' STUB_DIR='$STUB_DIR' dotenv_config")"
+check "base URL is read from the dotenv file" \
+    "openai_base_url = \"https://gw.fixture.test/v1\"" \
+    "$(grep '^openai_base_url' <<< "$CONFIG")"
+check "API key is read from the dotenv file" \
+    "openai_api_key = \"key-from-dotenv\"" \
+    "$(grep '^openai_api_key' <<< "$CONFIG")"
+
+# A real shell value outranks the file, so one-off overrides keep working.
+CONFIG="$(LLM_GW_API_KEY=key-from-env dotenv_config)"
+check "a non-empty environment value overrides the dotenv file" \
+    "openai_api_key = \"key-from-env\"" \
+    "$(grep '^openai_api_key' <<< "$CONFIG")"
+
+# Regression: the Makefile does `export LLM_GW_API_KEY ?=`, which exports the
+# variable *set but empty*. An is-set guard would read that as a deliberate
+# override and drop the dotenv value, leaving `make claude` with no credentials.
+CONFIG="$(LLM_GW_API_KEY= dotenv_config)"
+check "an empty exported value does not mask the dotenv file" \
+    "openai_api_key = \"key-from-dotenv\"" \
+    "$(grep '^openai_api_key' <<< "$CONFIG")"
+
+# The loader must not be reachable by accident: an absent file is a no-op, not
+# an error, so a fresh clone with no .env still runs.
+CONFIG="$(env -u LLM_GW_BASE_URL -u LLM_GW_API_KEY bash -c \
+    "$(declare -f generated_config); \
+     SCRIPT_DIR='$SCRIPT_DIR' STUB_DIR='$STUB_DIR' \
+     LLM_ENV_FILE='$STUB_DIR/absent.env' generated_config")"
+check "a missing dotenv file leaves the gateway keys unset" \
+    "" "$(grep -E '^openai_(base_url|api_key)' <<< "$CONFIG")"
 
 echo ""
 echo "Passed: $PASS  Failed: $FAIL"

@@ -8,6 +8,9 @@ vendor/
 .venv/
 venv/
 
+# Gateway credentials (see .env.example)
+.env
+
 # OS
 .DS_Store
 

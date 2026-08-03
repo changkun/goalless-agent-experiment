@@ -7,7 +7,8 @@ ENV_FILE  ?=
 FAST      ?= true
 RUNS      ?= 1
 
-# LLM gateway (export these or pass on command line)
+# LLM gateway. Leave these empty and run.sh reads ./.env (see .env.example);
+# setting them here or on the command line overrides the file.
 export LLM_GW_BASE_URL ?=
 export LLM_GW_API_KEY  ?=
 
@@ -36,15 +37,15 @@ endif
 
 RUN_FLAGS += --workspace $(WORKSPACE)
 
-.PHONY: help claude codex experiment experiment-dry pull models paper paper-clean
+.PHONY: help claude codex experiment experiment-dry pull models test paper paper-clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Variables:"
-	@echo "  LLM_GW_BASE_URL  API gateway base URL"
-	@echo "  LLM_GW_API_KEY   API gateway key"
+	@echo "  LLM_GW_BASE_URL  API gateway base URL   (default: from ./.env)"
+	@echo "  LLM_GW_API_KEY   API gateway key        (default: from ./.env)"
 	@echo "  MODEL             Model name (see: make models)"
 	@echo "  PROMPT            Prompt text (default: explain this project)"
 	@echo "  WORKSPACE         Mount directory (default: current dir)"
@@ -93,6 +94,9 @@ models: ## List available models
 	@echo "  azure/gpt-5-nano"
 	@echo "  azure/gpt-4o"
 	@echo "  azure/gpt-4o-mini"
+
+test: ## Run run.sh config/dotenv regression tests (no image or network needed)
+	./test-run-config.sh
 
 IMAGE_TAG ?= v0.0.14
 
