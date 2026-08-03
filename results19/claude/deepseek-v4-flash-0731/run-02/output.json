@@ -1,0 +1,24 @@
+Done. With no constraints, I built something small and self-contained that actually works: **a terminal Game of Life** at `/workspace/life/`.
+
+**What it is**
+- `game.py` — Conway's Game of Life in ~180 lines of dependency-free Python. A board is just a `set` of `(col, row)` live-cell coordinates, so each generation is two scalar passes in a single `evolve()` function.
+- `README.md` — how to run and the key controls.
+
+**Run it**
+```bash
+cd life
+python3 game.py            # random soup, auto-sizes to your terminal
+python3 game.py --glider   # start from a glider
+python3 game.py 100 40     # exact grid size
+```
+Interactive keys: `space` pause, `r` reseed, `c` clear, `q` quit. When stdout isn't a terminal it just animates headlessly.
+
+**Verified** (not just "looks like it should work"):
+- Blinker oscillates correctly (horizontal ↔ vertical).
+- 2×2 block is a stable still-life.
+- Glider keeps its exact shape and travels diagonally (1,1) per 4 generations — I watched its cells scroll across the grid in the bounded run above.
+- Clean exit on Ctrl-C and on a closed pipe (`| head`), and it compiles clean under `py_compile`.
+
+All tests for the core logic passed; the only hiccups during development were the infinite non-tty loop in my own test harness (by design — no keyboard to quit when piped), which I worked around with bounded runs. The rule logic itself was always correct.
+
+Run `python3 game.py --glider` in a real terminal and watch it swim — that's the satisfying part.

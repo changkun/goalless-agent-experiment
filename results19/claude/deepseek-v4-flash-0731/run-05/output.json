@@ -1,0 +1,19 @@
+All working. The terminal animation and the HTML are both live in `/workspace`.
+
+I built a small, self-contained thing: a **cellular-automata playground** in a single pure-Python file (`life.py`), no dependencies.
+
+**What you can do with it:**
+- `python3 life.py glider life` — watch a glider glide across the terminal
+- `python3 life.py r-pentomino life -g 200` — the famous chaotic seed explode and settle
+- `python3 life.py soup maze` — random soup under any of the 7 rule sets (Life, HighLife, Seeds, DayNight, Maze, Pulsar, Fredkin)
+- `python3 life.py --html gosper -o life.html` — exports a self-contained animated page you can open in a browser (click to pause/resume)
+
+**What I verified before wrapping up:**
+- The stable block stays stable; the blinker oscillates at exactly period 2 — the Life invariants hold
+- The Gosper gun sustains life over 60 generations and doesn't decay
+- All 7 rule sets run cleanly, terminal and HTML both work, and `life.html` is well-formed with a valid embedded JSON frame payload
+- `py_compile` passes
+
+I also fixed a real bug along the way: the step function was coupled to module-wide grid constants, so it crashed on any grid of a different size — it now derives its bounds from the grid itself. If you open `life.html`, you'll see the Gosper gun spraying gliders in a dark, GitHub-style theme, and you can click the canvas to toggle the animation.
+
+Want me to point the terminal animation at terminfo-clean live updates (e.g. a proper `clear` without the escape sequences showing), or add more patterns like the cross, LWSS spaceships, or a life-cycle counter? The engine's there, so it's a quick add.

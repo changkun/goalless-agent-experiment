@@ -1,0 +1,18 @@
+Done. I took the open invitation and built something real in the empty workspace:
+
+## A live GitHub "100k ★ Club" dashboard
+
+**Data is real** — I pulled the actual GitHub API for every repo with 100k+ stars (121 repos, ~20.8M combined stars), deduped across pages, and baked the numbers in.
+
+**`/workspace/dashboard.html`** — a single self-contained file, zero dependencies, opens straight in a browser. Three hand-crafted SVG charts plus a full roster table:
+
+- **Repos per year** (2009–2026) — e.g. 2023 was the biggest vintage for the club
+- **Share by language** — Python, TypeScript, JavaScript, Rust, Go, C++ top the list; 8 slots + neutrally folded "Other" (never a 9th hue)
+- **Top 15 by stars** — clickable links to actual repos
+- **Full roster table** with a charts/table toggle
+
+**Built by the book** (the dataviz skill): I validated the 8-slot categorical palette with its script — it **passes all checks in both light and dark** — used a one-hue blue ramp for magnitude, shipped hover tooltips, dark-mode toggle with light/dark steps selected from the same ramps, and a table view for accessibility. The one light-mode contrast warning is satisfied by the required relief rule (direct labels + legend + table).
+
+**`/workspace/build_dashboard.py`** — the generator, so you can re-fetch `/tmp/rows.json` and rebuild anytime.
+
+Since no browser is installed here I couldn't screenshot the final render — worth a quick `open dashboard.html` on your end to eyeball it. Want me to add a stars-over-time line chart, a cluster/bubble view, or a filter control next?

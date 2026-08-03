@@ -1,0 +1,17 @@
+Since the workspace was empty and you gave me free rein, I built **`markovgen`** — a complete, dependency-free command-line project: an order-N Markov chain text generator. It's committed at `/workspace/markovgen`.
+
+**What it is**
+A Markov chain learns from example text which tokens follow which contexts, then generates plausible continuations. Order-N means the context is the last N tokens — higher order gives more coherent output at the cost of stalling more often at dead ends.
+
+**What's in it**
+- `markovgen/chain.py` — the core generator: greedy next-token selection with weighted random tie-breaking, suffix-matched seeding, and injected RNG for reproducible output.
+- `markovgen/cli.py` — a thin CLI (`markovgen` console script, or `python -m markovgen`).
+- `markovgen/text.py` — tokenizer plus a Unicode normalizer that folds accents/compatibility chars to base ASCII.
+- `tests/` — 14 passing tests, `README.md`, `pyproject.toml` (installable via `pip install -e .[dev]`).
+
+**A sample** — learning from four "fox and dog" sentences, order 2:
+> *dog. The quick brown fox jumps over the lazy dog. The quick brown fox is quick and brown. A fox and a dog are both*
+
+**Notable:** the tests actually caught two of my own mistakes and one real bug — my `normalize_unicodedata` ran NFKD but never stripped the combining marks it was supposed to remove (so `café` wasn't fully reduced). I fixed that in `text.py` and corrected two miswritten test assertions.
+
+Since the venv I made for running tests is `dockerignore`d/untracked and I removed it, re-create it with `python3 -m venv .venv && .venv/bin/pip install -e . pytest` if you want to run the suite again. The project itself import-runs from any Python 3.10+ with zero dependencies.

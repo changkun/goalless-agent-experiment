@@ -1,0 +1,15 @@
+Done — since the workspace was empty, I built you a small, polished side project: **`td`**, a friendly terminal task manager in pure Python (stdlib only, no dependencies, one file).
+
+## What it does
+- **`td add "text" -p high -d fri @work +reporting`** — natural-ish flags for priority (`critical/high/medium/low`), due dates (`today`, `tomorrow`, weekday names like `fri`, or `2026-08-10`), labels (`@work`), and projects (`+reporting`).
+- **`td ls`** — lists tasks sorted by urgency, including overdue highlighting.
+- **`td ls @dev` / `td ls --project dev`** — filter by label or project.
+- **`td next`** — just open tasks, most urgent first.
+- **`td done 1 3`** / **`td rm 2`** / **`td clear`** — complete, delete, and sweep finished tasks.
+- Data persists as JSON in `~/.td/tasks.json` (atomic writes so a crash can't corrupt it). Color-coded output that degrades gracefully.
+
+I tested the whole flow end-to-end: adding with every flag, listing, filtering, completing, clearing, and the error paths (bad priority / bad due date) — plus caught and fixed two real bugs along the way (argparse's greedy positional swallowing the flags, and `@label` not matching on filter).
+
+It's 301 lines, self-contained, and runnable right now: `python3 td.py --help` or `./td.py` (though it's not set executable yet — `chmod +x td.py` if you want that).
+
+Want me to add anything — a `td workon`/timer, recurring tasks, an `edit` command, or a README? Or if you had something else in mind entirely, I'm happy to pivot.
