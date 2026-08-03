@@ -2,6 +2,9 @@
 
 This document offers a training-centric reading of the observations across
 Exp1–11 (11 experiments, 22 models, multiple harness versions, five prompts).
+The study has since reached Exp20 (725 runs); **§10 records what the later
+experiments change**, including one recalibration that weakens a magnitude
+claim in §2 and one counterexample to a conclusion in §9's prediction 8.
 It is **post-hoc interpretation of observational data**, not a controlled
 study of training interventions: we observe deployed models whose training
 pipelines are proprietary, so every mechanism below is a hypothesis ranked by
@@ -365,3 +368,52 @@ Each mechanism above implies an experiment this harness can run:
    with effort). The remaining follow-up is a *matched-effort* GPT × Claude Code
    run (`high`, not default) to isolate the decline-rate shift from effort — the
    analogue of the "gpt-5.5 at high" cell Exp10 wanted.
+
+## 10. Update — what Exp12–20 change
+
+The sections above were written against Exp1–11 (plus prediction 8, resolved by
+Exp14). Experiments 12–20 varied the *harness* rather than the prompt or model,
+and one of them varied *sample size*. Three things in the account above need
+adjusting; the rest stands.
+
+**§2's magnitude was inflated by sample size — the mechanism survives, the
+number does not.** The mode-collapse argument leans on "the *same* artifact in
+5/5 independent sessions." Exp20 measured one model at **50 runs per cell** and
+found its attractor in **~22%** of them, not 80–100%. Two corrections follow.
+First, the sharp 5/5 figures throughout this document are upper-end draws from
+5-run cells and should be read as "this model has a dominant mode," not "this
+model almost always emits X." Second, the mechanism is *not* refuted and arguably
+survives well: 22% of runs landing on one specific program, when the instruction
+permits any program at all, is still an extraordinarily peaked distribution over
+an effectively unbounded space. Mode collapse is the right shape; its measured
+depth is lower than the small cells implied.
+
+**Prediction 1 is now partly answered, and partly still open.** It asked for
+N=50 sampling to test whether the attractor's mass dominates alternatives. Exp20
+is that N, but *through the harness* rather than against the raw API — so it
+measures the deployed stack, not the bare distribution. The raw-API and
+paraphrase arms remain the discriminating tests, and they are the ones that
+would separate corpus density (H1) from post-training selection (H2/H4).
+
+**§9's prediction 8 concluded that medium is a model trait; Exp16/17 found the
+counterexample.** `kimi-k3` builds terminal programs 4/5 on Claude Code and
+browser pages 4/5 on codex, with the image held fixed — topic constant, medium
+flipped. The corrected statement is that medium is *usually* a model trait
+(robustly so for the Claude and GPT families, and confirmed at N=50 for
+deepseek-v4-flash in Exp20) but is scaffold-movable for at least one model. Any
+mechanism in §7 that treats medium as fixed in the weights has to accommodate
+that.
+
+**What the later experiments support without amendment.** The no-initiative
+invariant of §6 now rests on 725 runs with no exception. §5's reading of
+elaboration as reward-model taste is strengthened by the generational climb
+(~37 → ~145 → ~511 LOC across Claude releases). And §3's "menu from the corpus"
+framing predicts what Exp18 shows: `claude-opus-5` abandons Game of Life for
+Wave Function Collapse — a different item from the same shelf, which is what a
+shifting selection over a stable menu should look like.
+
+**One caution the earlier text could not give.** Most cells in this study are 5
+runs, and Exp20 demonstrated that such cells support the *existence* of an
+effect but not a *comparison* between two of them: Exp19's harness contrast
+dissolved at N=50. Where this document reasons from a difference between two
+5-run cells, treat the direction as a hypothesis rather than an observation.

@@ -3,9 +3,9 @@
 What do AI coding agents build when nobody tells them what to build?
 
 This repository runs the same open-ended prompt at a model inside a sandboxed
-coding harness, over and over, and records what it chose to make. Twenty
-experiments, nineteen model families, two harnesses. The interesting result is
-that the choices are not random: most models have a **stable, model-specific
+coding harness, over and over, and records what it chose to make. **20
+experiments, 34 models, 725 runs, two harnesses.** The interesting result is that
+the choices are not random: most models have a **stable, model-specific
 attractor** they return to run after run, and that attractor usually survives
 being moved to a different scaffold.
 

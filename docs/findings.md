@@ -1,11 +1,106 @@
 # Findings
 
-Cross-experiment synthesis. Each claim traces to a numbered experiment; the
-per-experiment detail lives in that experiment's `resultsN/RESULTS.md`.
+Cross-experiment synthesis over **20 experiments, 34 models, 725 runs, two
+harnesses**. Each claim traces to a numbered experiment; the per-experiment
+detail lives in that experiment's `resultsN/RESULTS.md`.
 
 See also [the model x harness matrix](matrix.md) and [method](method.md).
 
-## Key Findings
+## What the study concludes
+
+Ordered by how well supported each claim is.
+
+**Well supported**
+
+1. **Under a volitional prompt, models return to a model-specific attractor.**
+   Conway's Game of Life is the most durable one: 5/5 for opus-4.6 (E7/E8/E15),
+   5/5 for sonnet-5 (E9), 4/5 for deepseek-v4-pro (E12), and 22% of 50 runs for
+   deepseek-v4-flash (E20) — across three labs. It is a *frequency*, not a law:
+   the N=50 measurement puts it near one run in five, where the N=5 cells that
+   found it 4/5 or 5/5 were sampling the high end.
+2. **Everything is greenfield.** In 725 runs no model has extended or modified
+   existing code. Given a non-empty workspace it still starts something new.
+3. **Prompt framing sets the target space.** A bare imperative ("Build
+   something") moves output to the browser and halves the code (E6); volitional
+   framing restores terminal-only and produces the sharpest fixation (E7).
+4. **Elaboration climbs steeply with model generation**, on an identical prompt
+   and harness family: ~37 LOC for opus-4.6, ~145 for opus-4.8, ~511 for opus-5
+   (E7/E8/E18).
+
+**Supported, with a known counterexample**
+
+5. **Medium is mostly a model trait, not a scaffold artifact.** Claude models
+   stay terminal on both harnesses (E12/13, E15, E18); GPT models go to the
+   browser on both (E10/11, E14); deepseek-v4-flash holds a stable
+   ~12% browser rate on both at N=50 (E20). **`kimi-k3` is the counterexample** —
+   terminal 4/5 on Claude Code, browser 4/5 on codex (E16/17) — so the scaffold
+   *can* move medium for some models.
+
+**Provisional — measured once, or at N=5**
+
+6. **The harness does not move attractor frequency.** Demonstrated properly only
+   for deepseek-v4-flash (E20: 22% / 14% / 24% across three cells, no pair
+   significant). Every other cross-harness contrast in the study rests on 5 runs
+   per cell and should be read as provisional — see the sample-size caveat below.
+7. **Reasoning effort is close to inert** for deepseek-v4-flash: `high` vs `low`
+   at N=50 each differ by 3% on mean LOC and not significantly on anything else
+   (E20). Elsewhere effort is a *confound* rather than a measured variable
+   (E10, E11), so do not generalise this.
+8. **The scaffold changes elaboration, in a model-dependent direction.** Codex
+   inflates it for Claude models (E13/15/17/18) and deflates it for deepseek
+   (E19: 254 vs 329; E20: ~320 vs 446).
+9. **Models occasionally decline outright.** 2/50 Claude Code runs for
+   deepseek-v4-flash refused to pick a goal, and 0/100 codex runs did (E20);
+   gpt-5.6-terra declined 4/5 on Claude Code (E14). A refusal register appears to
+   need the conversational scaffold.
+
+### The sample-size caveat
+
+**Most cells in this study are 5 runs.** That is enough to detect an attractor
+and not enough to compare two cells. Exp20 re-ran one model at N=50 x 3 cells and
+found that its N=5 predecessor's *directions* held while its one cross-cell
+*contrast* dissolved: Exp19 reported the Game of Life attractor as
+Claude-Code-side from 2/5 versus 0/5, but at N=50 the codex rate is 14–24% and no
+pair differs significantly. The `0/5` was never wrong — a 95% interval of 0–43%
+simply could not exclude the truth.
+
+Read single-cell frequencies as real and cross-cell differences as provisional
+unless an experiment says otherwise. The **Exp12/13** harness asymmetry in
+particular rests on the same 5-runs-per-cell footing and has not been re-tested.
+
+## Findings by experiment
+
+Detail for Exp12 onward lives in each `resultsN/RESULTS.md`; the summaries below
+are the cross-experiment takeaways only.
+
+### Exp12–20 — the harness-variable era
+
+- **Exp12/13** — six open-weights models across both harnesses. Model signatures
+  (the GoL attractor, kimi packaging, minimax diversity) replicate on both. The
+  harness shifts graphical *form* (SVG on Claude Code, interactive HTML on codex)
+  but not its frequency. deepseek implemented 5/5 on Claude Code and 3/5 on
+  codex — an asymmetry now in doubt on sample-size grounds (see above).
+- **Exp14** — closes the GPT x Claude Code cell. GPT goes browser under *both*
+  harnesses, so its medium is a model trait, not a codex artifact.
+- **Exp15** — Claude on codex at matched effort. Claude stays terminal and keeps
+  Game of Life on the harness where GPT ships browser pages: medium and topic are
+  model traits for both families. Codex inflates sonnet-5's build maturity
+  (single file becomes a packaged, pytest-tested project) — a form effect only.
+- **Exp16/17** — `kimi-k3`, image held fixed. The study's one clean counterexample
+  to the medium invariant: topics hold across harnesses, medium flips.
+- **Exp18** — `claude-opus-5` on both harnesses. The Game of Life attractor is
+  **gone**, replaced by Wave Function Collapse (3/5 on Claude Code, chosen
+  independently on codex): attractors move with model generation. Also the most
+  elaborated Claude model measured (511 avg LOC, tests 4/5). Its codex arm is a
+  partial cell — a gateway-injected 4096-token cap truncated 3/5 runs.
+- **Exp19** — `deepseek-v4-flash-0731`, a tier drop from the Exp12/13 `pro`. The
+  attractor survives but weakens; 5/5 implementing on both harnesses. Its
+  cross-harness contrast is superseded by Exp20.
+- **Exp20** — the same model at **N=50 x 3 cells (150 runs)**, adding a codex
+  reasoning-effort arm. Establishes claims 6, 7 and 9 above, and corrects Exp19.
+
+### Exp1–11 — the prompt-and-model era
+
 
 *N = runs without technical errors (exit 0). Avg LOC computed over these runs only. Runs with exit errors often still contain partial output revealing the model's topic choice — these are included in fixation/topic analysis but excluded from complexity metrics. Runs where the model succeeded but chose not to implement (proposed only) are behavioral data and retained.*
 
@@ -230,9 +325,36 @@ collapse, corpus density, persona tuning, scaffold match), see
   also climbs with model version (avg LOC 37 → 66 → 145 for 4.6 → 4.7 → 4.8), and only
   4.8 spontaneously adds READMEs and a self-test.
 
+- **The scaffold can move medium, for some models:** `kimi-k3` builds terminal
+  programs 4/5 on Claude Code and browser pages 4/5 on codex with the image held
+  fixed (Exp16/17) — the one clean counterexample to the otherwise reliable rule
+  that medium travels with the model.
+- **Reasoning effort mostly is not the lever it looks like:** for
+  deepseek-v4-flash, `high` and `low` at 50 runs each are indistinguishable on
+  implementation rate, attractor frequency, and LOC (Exp20). Where effort *does*
+  appear to matter in this study (Exp10, Exp11) it is confounded with model tier,
+  so those remain untested rather than positive results.
+
+> **Read the 5/5 fixation figures above as upper-end draws.** They come from
+> 5-run cells. When one model was measured at 50 runs per cell (Exp20), the same
+> attractor showed up in ~22% of runs, not 80–100%. The *existence* of a
+> per-model attractor replicates everywhere; the sharp 5/5 rates are partly a
+> small-sample effect. See the sample-size caveat above.
+
 **Cross-model patterns:**
 - **Backend determines GPT ranking:** On codex (native), gpt-5.4 is best (~230 LOC,
   diverse). On claude backend, gpt-5-mini is paradoxically the only productive GPT
   model (5/5, 121 avg LOC with tests+CI). Larger GPT models produce almost nothing.
 - **Gemini models near-non-functional** on both backends — 1 file produced across
   20 total Gemini runs on claude backend.
+- **Attractors move with model generation, not just across models:** Game of Life
+  is absent from all 10 `claude-opus-5` runs and replaced by Wave Function
+  Collapse (Exp18), after being the single most durable attractor for the
+  preceding Claude generation.
+- **Engineering maturity rises sharply with generation:** dedicated test files in
+  4/5 and READMEs in 3/5 for `claude-opus-5` (Exp18), against none at all for the
+  Sonnet family two generations earlier (Exp9).
+- **Some runs install dependencies and reach the network:** four Exp20 runs
+  pip-installed into their workspace (one vendored Playwright), and an Exp19 run
+  fetched live GitHub API data. The sandbox has general egress, so the
+  near-universal zero-dependency, offline style is a *choice*, not a constraint.

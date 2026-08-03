@@ -100,6 +100,8 @@ from dev tools → games → single canonical attractors.
 
 **Invariants across Exp1–Exp5:** every model defaulted to terminal output (no web apps, no GUIs, no databases). **Exp6 breaks this:** with the bare prompt "Build something. Just do it.", 3/10 runs produced HTML/Canvas/JS in a browser (particle sandbox, flowfield, boids). **Exp7 restores terminal-only** under volitional framing. **Exp8 stays terminal-leaning** (one opus-4.8 run emits an SVG/PNG file via a generated renderer, but no browser output). Single-file projects still dominate (opus-4.8 occasionally reaches 2–3 files). **Exp9 (Sonnet family) is terminal-only and strictly single-file across all 10 runs**, with no tests, READMEs, or config. **Exp10 (GPT family on codex) breaks the terminal-only invariant the hardest:** gpt-5.5 emits browser HTML dashboards in 4/5 runs and gpt-5.5-pro in 2/5, none in the terminal-only style; gpt-5.5-pro also reaches 3–4 files. **Exp11 (gpt-5.6 variants) keeps it broken:** 14/15 runs are browser HTML pages, all effectively single-file. The **greenfield invariant still holds everywhere** — no model across Exp1–Exp11 ever extends or modifies existing code; they always greenfield.
 
+**Beyond Exp11** this profile table stops, because from Exp12 onward the varied axis is the *harness* rather than the prompt or model; those experiments are covered by the pairwise table above and by each `resultsN/RESULTS.md`. The greenfield invariant continues to hold through Exp20 — 725 runs, no exceptions. The terminal-versus-browser picture also holds, with one counterexample (`kimi-k3`, Exp16/17) and one measured-at-scale confirmation (deepseek-v4-flash, ~12% browser on both harnesses over 150 runs, Exp20).
+
 **What changes behavior:**
 
 | Factor | Evidence | Effect size |
