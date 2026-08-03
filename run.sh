@@ -324,18 +324,23 @@ echo ">>> Workspace: $WORKSPACE" >&2
 echo "" >&2
 
 # Copy the agent's own session transcript out of the throwaway config dir.
-# Claude Code writes projects/<slug>/<session>.jsonl; codex writes
-# sessions/YYYY/MM/DD/rollout-*.jsonl. Newest wins if a run produced several.
+# The two CLIs use different layouts, and the search is scoped per backend on
+# purpose: a Claude Code config dir also holds sessions/, session-env/ and
+# backups/, and a session index written on exit would otherwise be "newest"
+# and get collected in place of the real transcript.
 collect_transcript() {
     [[ -n "$TRANSCRIPT_FILE" && -n "$AGENT_HOME_DIR" ]] || return 0
+    local newest
+    case "$BACKEND" in
+        claude) newest=$(find "$AGENT_HOME_DIR/projects" -type f -name '*.jsonl' \
+                              -exec ls -t {} + 2>/dev/null | head -1 || true) ;;
+        codex)  newest=$(find "$AGENT_HOME_DIR/sessions" -type f -name 'rollout-*.jsonl' \
+                              -exec ls -t {} + 2>/dev/null | head -1 || true) ;;
+    esac
     # -exec ... + rather than xargs: BSD xargs has no -r, so an empty result
     # would run `ls` with no arguments. The `|| true` matters too -- under
     # `set -e` with pipefail, a find that touches a missing directory would
     # abort the whole script mid-assignment, silently skipping collection.
-    local newest
-    newest=$(find "$AGENT_HOME_DIR/projects" "$AGENT_HOME_DIR/sessions" \
-                  -type f -name '*.jsonl' -exec ls -t {} + 2>/dev/null \
-             | head -1 || true)
     if [[ -n "$newest" ]]; then
         cp "$newest" "$TRANSCRIPT_FILE" 2>/dev/null \
             && echo ">>> Transcript: $TRANSCRIPT_FILE" >&2

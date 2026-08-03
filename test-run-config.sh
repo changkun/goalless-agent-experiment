@@ -94,9 +94,13 @@ for a in "$@"; do
 done
 cfg=$(printf '%s\n' "$@" | grep -o '^[^ ]*:/home/agent/.claude$' | cut -d: -f1)
 if [[ -n "$cfg" ]]; then
-  mkdir -p "$cfg/projects/-workspace"
+  mkdir -p "$cfg/projects/-workspace" "$cfg/sessions"
   printf '{"type":"assistant","message":{"content":[{"type":"text","text":"hi"}]}}\n' \
       > "$cfg/projects/-workspace/session.jsonl"
+  # A Claude Code config dir also carries a session index, and it is written
+  # LAST. A newest-file-wins collector picks this up instead of the transcript.
+  sleep 1
+  printf '{"index":true}\n' > "$cfg/sessions/1.jsonl"
 fi
 echo "stub ran"
 STUB
@@ -112,6 +116,11 @@ check "the session transcript is collected into --transcript" \
     "yes" "$([[ -s "$TDIR/transcript.jsonl" ]] && echo yes || echo no)"
 check "...with the agent's own content" \
     "hi" "$(grep -o '"text":"hi"' "$TDIR/transcript.jsonl" 2>/dev/null | head -1 | sed 's/.*:"//; s/"//')"
+# Regression: the session index is newer than the transcript, so a collector
+# that just takes the newest .jsonl in the config dir silently ships a 1-line
+# index and every claude run loses its transcript while still exiting 0.
+check "the newer session index is not mistaken for the transcript" \
+    "no" "$(grep -q '"index":true' "$TDIR/transcript.jsonl" 2>/dev/null && echo yes || echo no)"
 
 # Without the flag nothing is written and the old exec path is preserved.
 rm -f "$TDIR/transcript.jsonl"

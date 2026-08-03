@@ -39,9 +39,13 @@ corrections rather than choices:
   appear here, including a complete Game of Life (`codex-low/run-13`). Excluding
   them would have scored those runs as producing nothing.
 - **`.venv/` had to be excluded explicitly.** Four runs pip-installed into the
-  workspace; one vendored Playwright. Uncorrected, that single run measured
-  **1,146,626 LOC**. It also produced false attractor matches from vendored
-  source, which is why the exclusion matters beyond the averages.
+  workspace. `claude/run-12` vendored Playwright, whose bundled JavaScript alone
+  is ~190k lines; uncorrected, that one run measured **1,146,626 LOC**. The
+  virtualenvs are not committed (`.gitignore` drops `.venv/`), so that figure is
+  not re-derivable from this repository — it is recorded to show why the
+  exclusion is load-bearing rather than cosmetic. It also mattered beyond the
+  averages: vendored source produced false attractor matches, and dropping it
+  moved the claude cell's Game of Life count from 12 to 11.
 
 Four runs wrote **extensionless executable scripts** with a shebang — `tt` and
 `focus` (bash), `tnote` and `wordle` (Python). Three of those runs ship other
@@ -49,9 +53,11 @@ counted source as well; only `codex-high/run-16` is `tnote` alone, which is why
 it is the single implementing run with a LOC of 0. All four are counted as
 implementing; their lines are not in the LOC aggregate.
 
-Three runs compiled **Go binaries** (`snake` ×2, `gol`). Those are build output,
-excluded from the repository on the same grounds as `__pycache__` and `.venv`;
-the Go sources that produced them are committed.
+Three runs compiled **Go binaries** — `codex-high/run-06` and `codex-low/run-18`
+(`snake`), and `codex-low/run-13` (`gol`). These three files are excluded from
+the repository by name as build output; the Go sources that produced them are
+committed. This is a targeted exclusion, not a general binary policy — the study
+has no rule for compiled artifacts because no earlier experiment produced any.
 
 ---
 
