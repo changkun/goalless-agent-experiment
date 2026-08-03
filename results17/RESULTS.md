@@ -72,3 +72,28 @@ The pair separates cleanly:
 - **PNG rendering shows on both** (codex 1/5, Claude Code 2/5): `kimi-k3` likes
   to leave a viewable image artifact behind — the `claude-fable-5` habit,
   now in an open-weights model.
+
+---
+
+## Where this sits in the series
+
+*kimi-k3 cross-harness pair*
+
+A single new open-weights model, `moonshotai/kimi-k3` (successor to
+`kimi-k2.7-code` from Exp12/13), run 5× on **each** harness with the model held
+fixed and the scaffold the only variable — **Exp16** on Claude Code
+(`/compat/anthropic`), **Exp17** on codex (`/compat/openai`). Both on
+`sandbox-harness:v0.0.14`, RTK off, `--jobs 1`, N=5 clean per side.
+
+**Result — topic is the model's, medium is the harness's.** Both harnesses
+independently land on the same attractors (**Particle Life** and **Conway's Game
+of Life** each appear on both sides): the generative-art / cellular-automata
+*topic* taste is `kimi-k3`'s own. But the *medium* flips with the scaffold —
+Claude Code pulls it **terminal/Python** (4/5), codex pulls it **browser** (4/5)
+— unlike the Claude families, whose terminal-ness held on both harnesses
+(Exp15). Codex also inflates build maturity (avg 544 vs 348 LOC; the only
+pytest-tested, packaged build of the pair is on codex). PNG image output shows on
+both sides — the `claude-fable-5` habit, now in an open-weights model.
+
+**[results17/RESULTS.md](results17/RESULTS.md)** (codex) for the full breakdowns.
+This experiment is one half of a pair; the same note appears in both halves.

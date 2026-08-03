@@ -170,3 +170,49 @@ Per run: `output.json` (codex stream), `log.txt` (stderr), `meta.md`,
 run-02): the model ended its turn without writing a file. These are behavioral
 non-implementations (exit 0), excluded from LOC/topic complexity but retained
 in the implementing-rate counts.
+
+---
+
+## Where this sits in the series
+
+*six open-weights models × two harnesses*
+
+The first **controlled harness comparison**: six open-weights models —
+`glm-5.2`, `glm-5.1`, `qwen3.7-max`, `minimax-m3`, `deepseek-v4-pro`,
+`kimi-k2.7-code` (Zhipu / Alibaba / MiniMax / DeepSeek / Moonshot) — run on
+**both** harnesses via Lux's compat surfaces, 5× each. **Exp12** drives them
+through **Claude Code** (`/compat/anthropic`); **Exp13** through **codex**
+0.144.0 (`/compat/openai`). Same models, same prompt; only the harness differs.
+(Required a compat fix — Claude Code's `{"role":"system"}` message turns were
+rejected as `unknown role`; fixed in `pkg` v0.28.1 and deployed.)
+
+**Robust (replicate across both harnesses):**
+- **Game of Life is a cross-lab, cross-harness attractor** — it appears in both
+  arms for most models (deepseek, qwen, glm-5.1/5.2, kimi, minimax all land on
+  it at least once), the same attractor opus-4.6 and sonnet-5 fixate on.
+- **Model engineering signatures hold** regardless of harness: kimi-k2.7-code
+  builds installable packages with pytest suites (the haiku archetype),
+  minimax spreads widest at the highest LOC, the GLMs make terse terminal
+  generative art. All six sit in the Claude **rule-based-visual / dev-tool**
+  space — none is a browser-productivity builder like GPT.
+
+**The harness effect (properly scoped):**
+- Graphical output is **rare and ~equal** under both harnesses (Claude Code
+  2/30, both **SVG**; codex 3/27, all **interactive HTML**). The harness shifts
+  the *form* (static SVG ↔ interactive HTML), not *whether* a model goes
+  graphical. The two models graphical on both sides (qwen, minimax) flipped
+  **SVG→HTML** on codex — a clean but n=2 signal.
+- **Interactive HTML appears only under codex**, but weakly for open-weights
+  (3/27) versus GPT's 4–5/5 (Exp10/11) — so within codex the browser tendency
+  is strongly *model*-dependent. **deepseek** shows a harness × reliability
+  interaction (5/5 implementing on Claude Code → 3/5 on codex, twice stopping
+  after a planning preamble) — though this is **tier-specific, not a family
+  trait**: the flash tier implements 5/5 on both harnesses (Exp19), at raised
+  reasoning effort.
+- **Open cell:** GPT × Claude Code is untested (blocked — OpenAI reasoning
+  models need the Responses API for tools, which the anthropic→chat compat path
+  doesn't route to), so "the harness sets the medium" is demonstrated only
+  *within* codex, not across the Claude Code boundary.
+
+**[results13/RESULTS.md](results13/RESULTS.md)** for full per-run breakdowns.
+This experiment is one half of a pair; the same note appears in both halves.

@@ -155,3 +155,13 @@ These 4 models were run on the **Exp3/Exp5 prompt** ("Look at this project and p
 4. **Haiku-4.5 is the only model producing npm-scaffolded TypeScript.** 2/5 haiku runs produced real TypeScript projects with `package.json`, `tsconfig.json`, and installed dependencies (`package-lock.json`). No other claude-family model did this in any experiment.
 
 5. **The Exp7 supplementary runs are not directly comparable to Exp7 primary.** The primary runs use prompt5 ("Just do something you want.") and produce ~36 LOC artifacts with perfect within-model fixation (GoL for 4.6, Mandelbrot for 4.7). The supplementary runs use prompt3 and produce 160–311 LOC artifacts with diverse topics. The comparison of value is **Exp3 (2.1.109) vs Exp7-supplementary (2.1.112)** for these four models — a harness-effect replication.
+
+---
+
+## Where this sits in the series
+
+*volitional framing*
+
+Same models and harness as Exp5/Exp6 — the prompt shifts from imperative-build ("Build
+something. Just do it.") to self-referential volition ("something *you want*"). Tests what
+happens when the prompt asks the model to reveal its preferences.

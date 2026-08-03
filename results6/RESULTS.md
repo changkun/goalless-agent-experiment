@@ -115,3 +115,13 @@ Same models, same harness (2.1.112), same environment. Only the prompt differs:
 5. **Opus-4.7 leans into the browser more than opus-4.6.** Both non-GoL runs from opus-4.7
    are HTML/Canvas; opus-4.6 mixes one HTML with one curses piece. Given the sample size
    this is suggestive rather than conclusive.
+
+---
+
+## Where this sits in the series
+
+*bare imperative prompt*
+
+Same models and harness (2.1.112) as Exp5 — only the prompt changes. No "look at this
+project," no instruction against asking, no goal framing. Tests whether the terse imperative
+widens the target space.

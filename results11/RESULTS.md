@@ -124,3 +124,29 @@ is the only one with persistent state. Luna never writes a README or a test.
   terra = focus/productivity-lite, luna = reflection/self-care.
 - **Runs are fast and low-variance.** 27–72s at high effort (vs gpt-5.5-pro's
   191–1080s), with modest reasoning-token counts (86–778 per run).
+
+---
+
+## Where this sits in the series
+
+*volitional framing, gpt-5.6 variants at matched high effort*
+
+Same volitional prompt on the **codex backend** (OpenAI Codex CLI **0.144.0**,
+image `v0.144.0`, lux `/openai` gateway) across the three **gpt-5.6 personality
+variants** — **gpt-5.6-sol**, **gpt-5.6-terra**, **gpt-5.6-luna** — all at
+**reasoning effort `high`** (via the new `CODEX_REASONING_EFFORT` override in
+`run.sh`). Unlike Exp10, the three columns share one effort, so within Exp11
+the model variant is the only variable.
+
+**The terminal-only invariant stays broken** — 14/15 runs are self-contained
+browser HTML pages (the 15th, a terra run, declines and writes only a README,
+echoing gpt-5.5's decline). But **the other two Exp10 GPT findings do not
+extend to gpt-5.6**: at matched high effort it writes *less* code than gpt-5.5
+at low (73–174 avg LOC vs 343/498 — inside the Claude range), and shows **zero
+engineering maturity (0/15 tests)** where gpt-5.5-pro at the same effort wrote
+tests in 3/5 — so Exp10's maturity effect is at least partly model-specific,
+not pure reasoning budget. And **thematic fixation appears in a GPT model for
+the first time**: gpt-5.6-sol builds the same breathing/night-sky ambient page
+**5/5**, with all three variants clustering on a calm/contemplative/wellness
+theme (sol = ambient/generative, terra = focus timers, luna = reflection
+micro-apps) — a marked shift from gpt-5.5's productivity dashboards.

@@ -174,3 +174,46 @@ single `index.html`, its only browser artifact.
 would separate the effort confound from the tier and version changes, and settle
 whether the 3/5 → 5/5 reliability jump is a property of the flash tier or of the
 effort setting.
+
+---
+
+## Where this sits in the series
+
+*deepseek-v4-flash-0731, both harnesses*
+
+`deepseek/deepseek-v4-flash-0731` run 5× on **each** harness, both arms in one
+experiment, reached through the *same* compat surfaces Exp12/13 used
+(`/compat/anthropic` for Claude Code, `/compat/openai` for codex). Because
+Exp12/13 ran the sibling `deepseek-v4-pro` across that identical pairing, Exp19
+is simultaneously a harness test and a **tier comparison inside one model
+family**. Locally built image pinning **Claude Code 2.1.220** and **codex-cli
+0.146.0** — no published tag ships either — RTK off, codex at `high` effort.
+With one model in the matrix the runs execute serially, so **durations are a
+measurement here**, unlike Exp18.
+
+**Result — the attractor survives the tier drop but halves, and stays on one
+side.** Cellular automata / Game of Life appear **2/5 on Claude Code** against
+4/5 for `deepseek-v4-pro` in Exp12, and **0/5 on codex**. Exp12/13 saw the same
+asymmetry one tier up (4/5 vs 1/5), so the direction **replicates**: for
+deepseek the Life attractor is a Claude-Code-side phenomenon — the opposite of
+`claude-opus-5`, whose WFC attractor crossed to both arms. **Medium does not
+move with the scaffold**: browser-primary output is 1/5 on each side, the other
+8 runs terminal. Codex *deflates* elaboration for this model (254 vs 329 avg
+LOC) — the reverse of the codex-inflates pattern Claude models show — and runs
+~2.6× faster (86s vs 224s per run) at no cost in completion.
+
+**10/10 clean, and Exp13's reliability failure does not replicate.**
+`deepseek-v4-pro` implemented only 3/5 on codex in Exp13 (two preamble-stops);
+the flash tier implements **5/5 on both arms**. Recorded as **confounded, not
+resolved**: all five codex runs show nonzero `reasoning_output_tokens`, so
+`high` effort was genuinely achieved, where Exp13 ran `low` — tier, effort, and
+codex version all changed together. The Exp18 truncation ceiling never fires
+here; it lives in the compat layer's *Anthropic* backend codec, and this model
+is served by a different one.
+
+
+Each experiment includes:
+- Topic proposed and implementation status
+- Tech stack (language, frameworks)
+- Engineering maturity (tests, docs, build config, CI)
+- Complexity metrics (files, LOC, functions)

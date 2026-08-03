@@ -204,3 +204,21 @@ fable-5 differs from the Opus models on **model family and harness simultaneousl
 its results — especially the jump to image-file rendering and the LOC climb — as a combined
 model+harness signal, not a single-variable model effect. A clean fable-5 reading would
 require re-running it on `v0.0.9`/2.1.154 (and/or re-running an Opus model on `v0.0.13`).
+
+---
+
+## Where this sits in the series
+
+*volitional framing, new harness + opus-4.8*
+
+Same volitional prompt as Exp7, run across the **full Opus spectrum** (opus-4.6, opus-4.7,
+and the new opus-4.8) on one identical stack: sandbox image `v0.0.9`, Claude Code **2.1.154**,
+lux gateway. Within that trio the model is the only variable. opus-4.6 doubles as a control
+against Exp7 — if its Game-of-Life 5/5 survives the harness change, any *loss* of fixation
+in 4.7/4.8 is a model property, not a stack artifact. It does survive, and 4.7's does not.
+
+**claude-fable-5** was added later (5 runs) on a bumped stack — image `v0.0.13`, Claude Code
+**2.1.170** (same base image; only the CLI version differs). It continues the elaboration
+climb (avg ~178 LOC) and is the first model to default to **rendered image files** (PNG/SVG
+in 4/5 runs, two via hand-rolled PNG encoders) rather than terminal output. Because it moves
+both model family *and* harness, its column is indicative, not a single-variable comparison.

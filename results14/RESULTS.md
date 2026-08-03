@@ -118,3 +118,28 @@ Per run: `output.json`, `log.txt`, `meta.md`, `workspace/`. A `workspace/` with
 no code file is a decline (the model's exit-0 refusal text is in `output.json`);
 these are behavioral non-implementations, counted in the decline rate, excluded
 from LOC.
+
+---
+
+## Where this sits in the series
+
+*the closing cell: GPT reasoning model on Claude Code*
+
+The cell every earlier experiment left empty: an OpenAI **reasoning** model
+family (gpt-5.6-sol / -terra / -luna) driven through the **Claude Code** harness
+(`/compat/anthropic`), 5× each. This was *impossible* until this session —
+Claude Code sends function tools with `reasoning_effort`, which OpenAI reasoning
+models reject on Chat Completions — so we built the `openairesp` **backend
+codec** in Lux (routes reasoning models to the Responses API) to unblock it.
+
+**Result — the medium is a model trait, not the harness:** gpt-5.6-**sol** ships
+an **interactive browser page 5/5** through Claude Code (all verified canvas/JS),
+and **luna** 3/4 — on the exact harness where every Claude run (Exp7–9) and all
+30 open-weights runs (Exp12) stayed terminal. GPT produces browser output under
+*both* codex (Exp11) and Claude Code (Exp14); open-weights stay terminal under
+*both*. So "terminal vs browser" is a **model/family** property; the harness
+only shifts the *form* of the rare open-weights graphical output (SVG↔HTML) and
+the build-vs-decline rate. **terra** declines 4/5 (articulate, exit-0 refusals),
+a behavioral flip from its codex build-4/5 — but **Exp11↔Exp14 is effort-
+confounded** (codex ran at forced `high`, Claude Code at default; 18–26s vs
+40–72s), so the medium finding is clean but the decline comparison is not.

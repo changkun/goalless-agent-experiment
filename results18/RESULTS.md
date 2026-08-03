@@ -169,3 +169,36 @@ not established**; the truncation may itself correlate with build size.
   `reasoning_output_tokens = 0` is consistent with the same
   no-metadata/no-thinking path seen here. Re-running this cell after the gateway
   fix is the way to get a clean comparison.
+
+---
+
+## Where this sits in the series
+
+*claude-opus-5, both harnesses*
+
+The newest frontier Claude model, `claude-opus-5`, run 5× on **each** harness
+with both arms in one experiment: Claude Code on the native `/anthropic` surface
+and codex on `/compat/openai` at matched `high` effort. Image
+`sandbox-harness:v0.0.14` (Claude Code 2.1.207, codex-cli 0.144.1), RTK off.
+
+**Result — the Game of Life attractor is gone, replaced by Wave Function
+Collapse.** GoL, the study's most durable volitional attractor (opus-4.6 5/5 on
+*both* harnesses, sonnet-5 5/5, deepseek 4/5, cross-lab presence in Exp12/13),
+appears in **zero of 10 opus-5 runs**. **WFC takes its place: 3/5 on Claude
+Code** — three independent implementations, one simple-tiled and two overlapping
+model — **and again on codex**, which chose it independently in run-05. Topic
+and medium both cross the harness (terminal in every run that produced an
+artifact — 5/5 Claude Code, 3/3 codex — with zero browser output or intent in
+all 10), so this is a *model-generation* shift, not a scaffold artifact. `claude-opus-5`
+is also the most elaborated Claude model in the study by a wide margin (avg 511
+LOC on Claude Code with tests in 4/5, vs ~37 for opus-4.6 and ~61 for sonnet-5
+on the same prompt).
+
+**Caveat — the codex arm is a partial cell (N=2 clean of 5).** `claude-opus-5`
+on the codex compat surface trips a truncate → assistant-prefill → reject chain
+that fails the turn while still exiting 0. The cause is a **4096-token default**
+the gateway's Anthropic codec injects when the caller omits `max_output_tokens`,
+which codex never sends: every turn is capped at 4096, and any turn that
+outgrows it dies. Topics are reported for all 5 runs; LOC and maturity only for
+the 2 clean ones, and the arm is **not** verifiably effort-matched (codex sends
+`reasoning: null` for this model). See the RESULTS execution note.

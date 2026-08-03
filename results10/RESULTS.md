@@ -108,3 +108,29 @@ Exp2.
 **To get a clean tier comparison:** run **gpt-5.5 at high effort** (matched to
 gpt-5.5-pro). That isolates model tier from reasoning effort; the current data
 cannot.
+
+---
+
+## Where this sits in the series
+
+*volitional framing, GPT family on codex*
+
+Same volitional prompt on the **codex backend** (OpenAI Codex CLI **0.142.4**,
+image `v0.142.4`, lux `/openai` gateway) across **gpt-5.5** and **gpt-5.5-pro**.
+
+**Reasoning-effort confound (read first).** gpt-5.5 ran in fast mode
+(`reasoning_effort = low`); gpt-5.5-pro **rejects `low`** (supports only
+`medium`/`high`/`xhigh`) and was run at **`high`**. The two columns differ in
+*both* tier and effort, so this is **not** a single-variable comparison — gpt-5.5
+(low) is the controlled GPT point and gpt-5.5-pro (high) is *indicative*, the same
+way Exp8 treats fable-5.
+
+**What's robust to effort:** GPT **breaks the Claude terminal-only invariant** —
+gpt-5.5 builds single-page **browser productivity dashboards** (4/5; Focus Board,
+Focus Desk, Signal Board, Scratch Timer) where every Claude run under this prompt
+stayed in the terminal; gpt-5.5-pro still emits browser apps in 2/5. Neither GPT
+model fixates, and both write far more code than any Claude model (343 / 498 avg
+LOC vs Claude's 36–145). **Effort-confounded (not a tier claim):** gpt-5.5-pro's
+test files (3/5), READMEs (4/5), and higher LOC scale with reasoning budget.
+gpt-5.5 also has one non-implementation run (declined, wrote a "Workspace Notes"
+README).

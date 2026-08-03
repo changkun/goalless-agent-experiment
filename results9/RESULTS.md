@@ -89,3 +89,23 @@ jump runs the **opposite** direction: sonnet-4-6 is diverse and elaborate, sonne
 fixated and terse. Because Opus spans point releases while Sonnet is a major-version
 jump (4-6 → 5), and because this compares across model families, treat the "inversion"
 as suggestive, not as a controlled finding.
+
+---
+
+## Where this sits in the series
+
+*volitional framing, Sonnet family*
+
+Same volitional prompt and **identical stack as Exp8's Opus trio** — image `v0.0.9`,
+Claude Code **2.1.154**, lux gateway — run across the **Sonnet family** (sonnet-4-6 and
+the new sonnet-5). Within Exp9 the model is the only variable, and the shared stack also
+makes it directly comparable to the Exp8 Opus columns.
+
+**Result is a mirror image of the Opus spectrum.** sonnet-5 shows **total fixation —
+Game of Life 5/5** (the same attractor opus-4.6 locks onto), terse at ~61 median LOC.
+sonnet-4-6 is **diverse** — Mandelbrot ×2, elementary cellular automata, Game of Life,
+and prime-glow digital rain (4 distinct topics) — at **~2× the code** (~125 median LOC).
+So where Exp8's Opus *point* releases loosen fixation as they advance (4.6 → 4.7 → 4.8),
+Exp9's Sonnet *major-version* jump tightens it (4-6 diverse → 5 fixated). Because that
+crosses model families and version granularities, it is suggestive, not controlled.
+All 10 runs stay terminal-only, single-file, no tests/READMEs.

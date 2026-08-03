@@ -93,3 +93,30 @@ cell):**
 
 `results15/codex/<model>/run-NN/` — each with `output.json`, `log.txt`,
 `meta.md`, `workspace/`.
+
+---
+
+## Where this sits in the series
+
+*Claude on codex, effort-matched*
+
+The symmetric closing cell: **Claude** models on the **codex** harness — the one
+provider × harness combination with no data anywhere in the study (every Claude
+run in Exp7–9 was on Claude Code, so their terminal-ness was harness-confounded).
+opus-4.6 and sonnet-5 (both Game-of-Life 5/5 on Claude Code) driven through codex
+via `/compat/openai`, 5× each. Unblocked by the adaptive-thinking codec (pkg
+v0.28.4) — newer Claude models reject the deprecated `thinking:{enabled}` shape.
+
+**Effort is matched this time** (fixing the Exp11↔Exp14 confound): codex pinned
+to `high`, which equals the `output_config:{effort:high}` the sandbox's Claude
+Code sends (captured off the wire); `reasoning_output_tokens = 0` on all 10 runs
+confirms `adaptive` self-regulated identically.
+
+**Result — medium and topic are model traits, for both families:** Claude stays
+**terminal, Game of Life** on codex (opus-4.6 GoL 5/5, sonnet-5 GoL ~4/5, **zero
+browser**), the same signature as on Claude Code — on the exact harness where GPT
+ships browser apps. So the medium is the *model's*, not the scaffold's:
+**GPT → browser on both harnesses, Claude → terminal on both.** The codex scaffold
+does inflate *build maturity* for sonnet-5 (terse single-file on Claude Code →
+packaged, pytest-tested multi-file on codex; opus-4.6 stays terse) — a
+form/elaboration effect, not a medium or topic one.
