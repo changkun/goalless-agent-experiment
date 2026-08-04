@@ -55,24 +55,29 @@
 What do AI coding agents build when given no specification?
 Motivated by a production deployment where an autonomous pipeline
 plateaued into micro-optimizations, we conducted a controlled
-study across 440~sessions spanning 19~models, 3~providers,
-2~backends, 5~prompts, and 3~harness versions. We document three
-phenomena: (1)~large factor sensitivity, prompt wording determines
-whether agents propose or implement, whether outputs are 30 or
-600~LOC, and whether targets are terminal or browser;
-(2)~stable behavioral attractors, models exhibit persistent
-topical fixations with opus-4.6 choosing Game of Life in 10 of 10
-runs and GPT models defaulting to todo apps; (3)~thematic
-divergence under minimal prompting, the volitional prompt ``Just
-do something you want'' concentrates preferences onto distinct
-classical-CS touchstones, opus-4.6 toward self-reference (Game of
-Life, ray tracing) and opus-4.7 toward emergence (Mandelbrot,
-flocking, reaction-diffusion). A harness replication adding the
-newer opus-4.8 finds this fixation is itself model-specific:
-opus-4.6 holds Game of Life 5/5 across a harness change while
-opus-4.7's Mandelbrot fixation disperses, leaving the thematic
-\emph{family}, not the specific artifact, as the stable invariant.
-These findings suggest conventional
+study across 725~sessions spanning 34~models from 8~labs,
+2~agent harnesses, 5~prompts, and multiple harness versions.
+We document four phenomena. (1)~\textbf{Factor sensitivity is
+large}: prompt wording determines whether agents propose or
+implement, whether outputs are 30 or 600~LOC, and whether targets
+are terminal or browser. (2)~\textbf{Models have behavioral
+attractors}: under a volitional prompt (``Just do something you
+want''), models return to a characteristic artifact, with Conway's
+Game of Life recurring across models from three different labs,
+and the attractor shifting with model generation rather than
+staying fixed. (3)~\textbf{Holding the model and varying the
+harness separates model traits from scaffold artifacts}: output
+medium and topic are largely properties of the model, surviving a
+change of agent scaffold, with one clean counterexample
+(\texttt{kimi-k3}, terminal 4/5 under one harness and browser 4/5
+under the other). (4)~\textbf{Small cells overstate fixation}:
+re-running one model at 50~sessions per cell puts its attractor
+near 22\% of runs rather than the 80--100\% that 5-run cells
+suggest, and dissolves a cross-harness contrast that the 5-run
+version of the same comparison had reported. The mechanism
+survives this correction, since 22\% mass on one specific program
+out of an unbounded space is still a highly peaked distribution,
+but the magnitude does not. These findings suggest conventional
 benchmarks may not capture decision-making behavior in
 underspecified regimes where agents are increasingly deployed. We
 release all experimental infrastructure and data.
@@ -114,9 +119,9 @@ of what we saw was a property of the model versus an artifact of
 the setup. So we ran a controlled sweep.
 
 This paper is an empirical study of what AI coding agents
-produce under underspecified prompts. Across 440~sessions
-spanning 19~models, 2~backends, 5~prompts, and 3~harness
-versions, we report three observations:
+produce under underspecified prompts. Across 725~sessions
+spanning 34~models from 8~labs, 2~agent harnesses, 5~prompts, and
+multiple harness versions, we report four observations:
 
 \textbf{(1)~Factor sensitivity is large.} Prompt wording
 determines whether models propose or implement; whether outputs
@@ -134,7 +139,29 @@ Conway's Game of Life in 5 of 5 runs; opus-4.7 chose the
 Mandelbrot set in 5 of 5 runs; implementations converged to
 near-identical LOC and structure within each model.
 
-\textbf{(3)~Sibling models split cleanly on theme.} Both Opus
+\textbf{(3)~Varying the harness separates model traits from
+scaffold artifacts.} Holding the model fixed and swapping the
+agent scaffold (Experiments~12--19) leaves both the output medium
+and the topic family largely intact: Claude models stay in the
+terminal and GPT models stay in the browser under \emph{both}
+harnesses. One model breaks this, and it breaks it cleanly:
+\texttt{kimi-k3} builds terminal programs in 4 of 5 runs under one
+harness and browser pages in 4 of 5 under the other, with the
+container image held fixed. Medium is therefore usually, but not
+necessarily, a property of the model.
+
+\textbf{(4)~Five-run cells overstate fixation, and cannot support
+cross-cell comparison.} Experiment~20 re-runs a single model at
+50~sessions per cell across three cells (150~sessions). Its
+attractor appears in ${\sim}22\%$ of runs, not the 80--100\%
+that 5-run cells report; and a cross-harness difference that the
+5-run version of the same comparison had presented as a finding
+disappears entirely, with no pair of cells differing significantly.
+We treat this as a calibration result for the rest of the study:
+single-cell frequencies are informative, differences between two
+5-run cells are not.
+
+\textbf{Sibling models split cleanly on theme.} Both Opus
 preferences are classical-CS touchstones that express complex
 behavior from simple rules, but they fall on different sides of
 a legible axis: opus-4.6 toward \emph{self-reference}
@@ -148,12 +175,14 @@ opus-4.8 only loosely clusters. What survives is the thematic
 family, not the single artifact.
 
 We report these as empirical observations, not as a theory of
-model priors or a proposed benchmark. The $n=5$-per-cell
-design and single-point measurement on each model mean
-numerical rates are suggestive rather than conclusive, and
-we enumerate throughout the paper the robustness checks
-(paraphrase stability, temperature variation, functional
-verification) required to move from observation to claim.
+model priors or a proposed benchmark. Most cells use $n=5$, and
+Experiment~20 quantifies what that costs: such cells establish
+that an attractor \emph{exists} but cannot compare two conditions.
+Where this paper reasons from a difference between two 5-run
+cells, we mark the direction as provisional. The robustness checks
+still outstanding (paraphrase stability, temperature variation,
+functional verification) are enumerated in
+\S\ref{sec:limitations}.
 
 %% ============================================================
 \section{Related Work}
@@ -339,50 +368,80 @@ wording, motivating the controlled experiments in
 \subsection{Controlled Single-Session Experiments}
 \label{sec:controlled}
 
-We test 19 models across three providers
-(Table~\ref{tab:models}), accessed through a unified API gateway
-routing to Anthropic API, Google Vertex AI, and Azure OpenAI.
-Two containerized sandbox backends provide execution environments:
-the \textbf{Claude backend} (\texttt{sandbox-claude}) runs Claude
-Code with a full Linux environment; the \textbf{Codex backend}
-(\texttt{sandbox-codex}) runs OpenAI's Codex CLI with bubblewrap
-isolation. Non-native models are routed through litellm for API
-translation. Each session starts with a fresh, empty workspace.
-Environment bias is controlled by disabling pre-installed tools
-(specifically RTK~\citep{rtk2025}) via a no-op stub.
+We test 34 models from 8 labs (Table~\ref{tab:models}), accessed
+through a unified API gateway. Two containerized agent harnesses
+provide execution environments: the \textbf{Claude Code harness}
+runs Anthropic's CLI with a full Linux environment; the
+\textbf{codex harness} runs OpenAI's Codex CLI under bubblewrap
+isolation. From Experiment~16 onward both run from a single shared
+image, so the harness can be swapped with every other component of
+the container held byte-identical.
+
+Models outside a harness's native provider reach it through the
+gateway's \emph{compatibility surfaces}, which translate dialects:
+\texttt{/compat/anthropic} presents an arbitrary model through the
+Anthropic Messages API (letting the Claude Code harness drive
+non-Anthropic models), and \texttt{/compat/openai} presents one
+through the OpenAI Responses API (letting the codex harness drive
+non-OpenAI models). Building these two surfaces is what makes the
+harness a manipulable variable rather than a fixed confound of the
+provider, and Experiments~12--20 depend on them.
+
+Each session starts with a fresh, empty workspace and a fresh
+agent configuration directory. Environment bias is controlled by
+disabling pre-installed tools (specifically RTK~\citep{rtk2025})
+via a no-op stub, and prompt caching is disabled on the Claude
+Code side.
 
 \begin{table}[t]
-\caption{Models tested across three provider families.}
+\caption{The 34 models tested, by lab. Experiment numbers mark
+  where a model first appears; models without a note were used in
+  the early prompt sweeps (Exp1--3).}
 \label{tab:models}
 \small\resizebox{\columnwidth}{!}{%
-\begin{tabular}{llp{4cm}}
+\begin{tabular}{llp{3.6cm}}
 \toprule
-Provider & Model ID & Notes \\
+Lab & Model ID & Notes \\
 \midrule
-\multirow{8}{*}{Anthropic}
-  & claude-sonnet-5   & Newest Sonnet (Exp9) \\
-  & claude-opus-4.8   & Newest Opus (Exp8) \\
-  & claude-opus-4.7   & Later Opus (Exp4--8) \\
-  & claude-opus-4.6   & Previous largest \\
+\multirow{10}{*}{Anthropic}
+  & claude-opus-5     & Frontier (Exp18) \\
+  & claude-fable-5    & Image-emitting habit (Exp8) \\
+  & claude-sonnet-5   & Newest Sonnet (Exp9, 15) \\
+  & claude-opus-4.8   & (Exp8) \\
+  & claude-opus-4.7   & (Exp4--8) \\
+  & claude-opus-4.6   & Primary comparison point \\
   & claude-opus-4.5   & Previous generation \\
   & claude-sonnet-4.6 & Mid-tier, prev gen (Exp9) \\
   & claude-sonnet-4.5 & Mid-tier, previous gen \\
   & claude-haiku-4.5  & Smallest Claude model \\
 \midrule
 \multirow{4}{*}{Google}
-  & gemini-3-pro-preview  & Latest Gemini Pro \\
-  & gemini-3-flash-preview & Latest Gemini Flash \\
+  & gemini-3-pro      & Latest Gemini Pro \\
+  & gemini-3-flash    & Latest Gemini Flash \\
   & gemini-2.5-pro    & Previous generation \\
-  & gemini-2.0-flash   & Older generation \\
+  & gemini-2.0-flash  & Older generation \\
 \midrule
-\multirow{7}{*}{OpenAI}
-  & gpt-5.5-pro   & Newest, reasoning (Exp10) \\
-  & gpt-5.5       & Newest, large (Exp10) \\
-  & gpt-5.4       & Later, largest \\
-  & gpt-5.1       & Later, mid-tier \\
-  & gpt-5-mini    & Later, small \\
-  & gpt-4.1       & Previous generation \\
-  & gpt-4.1-mini  & Previous, small \\
+\multirow{12}{*}{OpenAI}
+  & gpt-5.6-sol       & Reasoning (Exp11, 14) \\
+  & gpt-5.6-terra     & Reasoning (Exp11, 14) \\
+  & gpt-5.6-luna      & Reasoning (Exp11, 14) \\
+  & gpt-5.5-pro       & Reasoning (Exp10) \\
+  & gpt-5.5           & Large (Exp10) \\
+  & gpt-5.4           & Later, largest \\
+  & gpt-5.1           & Later, mid-tier \\
+  & gpt-5-mini        & Later, small \\
+  & gpt-5-nano        & Later, smallest \\
+  & gpt-4o            & Previous generation \\
+  & gpt-4.1           & Previous generation \\
+  & gpt-4.1-mini      & Previous, small \\
+\midrule
+Zhipu    & glm-5.2, glm-5.1        & Open weights (Exp12/13) \\
+Alibaba  & qwen3.7-max             & Open weights (Exp12/13) \\
+MiniMax  & minimax-m3              & Open weights (Exp12/13) \\
+DeepSeek & deepseek-v4-pro         & Open weights (Exp12/13) \\
+         & deepseek-v4-flash-0731  & Scale cell (Exp19/20) \\
+Moonshot & kimi-k2.7-code          & Open weights (Exp12/13) \\
+         & kimi-k3                 & Medium counterexample (Exp16/17) \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -408,103 +467,71 @@ Prompt~1 was used with RTK inadvertently present;
 Prompts~2--5 ran with RTK disabled.
 
 \paragraph{Execution matrix.}
-Experiment~1: 14 models $\times$ 2 backends $\times$ 5 runs
-= 140 sessions. Experiment~2: Claude backend only (70).
-Experiment~3: both backends (140). Experiment~4: opus-4.7 only,
-same prompt as Exp3, harness 2.1.109 (5). Experiment~5: opus-4.6
-and opus-4.7, upgraded harness 2.1.112 (10). Experiment~6:
-opus-4.6 and opus-4.7 with Prompt~4 on harness 2.1.112 (10).
-Experiment~7: opus-4.6 and opus-4.7 with Prompt~5 (10), plus a
-supplementary replication of Prompt~3 on harness 2.1.112 for
-the other four Claude models (sonnet-4.6, sonnet-4.5, opus-4.5,
-haiku-4.5; 20 sessions). Experiment~8: opus-4.6, opus-4.7, and
-the newer opus-4.8 with Prompt~5 on harness 2.1.154, a clean
-single-variable (model) comparison and a harness replication of
-the Exp7 volitional probe (15 sessions). Experiment~9: sonnet-4.6
-and sonnet-5 with Prompt~5 on the Exp8 stack, a single-variable
-model comparison within the Sonnet family (10 sessions).
-Experiment~10: gpt-5.5 and gpt-5.5-pro with Prompt~5 on the Codex
-backend (10 sessions). Total: 440 sessions
-(Figure~\ref{fig:matrix}).
+The study runs in four phases. \textbf{Prompt phase (Exp1--7,
+405~sessions):} Exp1, 14 models $\times$ 2 harnesses $\times$ 5
+runs (140); Exp2, Claude Code only (70); Exp3, both harnesses
+(140); Exp4, opus-4.7 on harness 2.1.109 (5); Exp5, opus-4.6 and
+4.7 on 2.1.112 (10); Exp6, the same pair with Prompt~4 (10); Exp7,
+the same pair with Prompt~5 (10) plus 20 supplementary Prompt~3
+sessions for the other four Claude models.
+\textbf{Model phase (Exp8--11, 55~sessions):} Exp8, opus-4.6/4.7/4.8
+on harness 2.1.154 (15, later joined by 5 fable-5 sessions on a
+bumped stack); Exp9, sonnet-4.6 and sonnet-5 on the Exp8 stack
+(10); Exp10, gpt-5.5 and gpt-5.5-pro on codex (10); Exp11, three
+gpt-5.6 variants on codex at matched \texttt{high} effort (15).
+\textbf{Harness phase (Exp12--19, 115~sessions):} Exp12/13, the
+same six open-weights models on each harness (30 + 30); Exp14,
+the gpt-5.6 family on Claude Code (15); Exp15, opus-4.6 and
+sonnet-5 on codex at matched effort (10); Exp16/17,
+\texttt{kimi-k3} on each harness with the image held fixed (5 + 5);
+Exp18, \texttt{claude-opus-5} on both harnesses (10); Exp19,
+\texttt{deepseek-v4-flash-0731} on both harnesses (10).
+\textbf{Scale phase (Exp20, 150~sessions):} the Exp19 model at 50
+sessions per cell across three cells---Claude Code, codex at
+\texttt{high} effort, and codex at \texttt{low}. Total: 725
+sessions (Figure~\ref{fig:matrix}).
 
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}[
   font=\scriptsize\sffamily,
-  exp/.style={draw, rounded corners=2pt, minimum height=6mm,
-    minimum width=22mm, fill=black!8},
-  dim/.style={font=\scriptsize\sffamily, text=black!60},
+  phase/.style={draw, rounded corners=2pt, minimum height=7mm,
+    minimum width=30mm, fill=black!8, align=center},
+  dim/.style={font=\scriptsize\sffamily, text=black!60, align=left},
   arr/.style={-{Stealth[length=1.5mm]}, semithick, black!50},
 ]
-\node[exp] (E1) at (0,0) {Exp\,1: Baseline};
-\node[exp] (E2) at (0,-1.0) {Exp\,2: Goal-focused};
-\node[exp] (E3) at (0,-2.0) {Exp\,3: ``JUST DO IT''};
-\node[exp] (E4) at (0,-3.0) {Exp\,4: New model};
-\node[exp] (E5) at (0,-4.0) {Exp\,5: Harness version};
-\node[exp] (E6) at (0,-5.0) {Exp\,6: Bare prompt};
-\node[exp] (E7) at (0,-6.0) {Exp\,7: Volitional};
-\node[exp] (E8) at (0,-7.0) {Exp\,8: Harness replication};
-\node[exp] (E9) at (0,-8.0) {Exp\,9: Sonnet family};
-\node[exp] (E10) at (0,-9.0) {Exp\,10: GPT / codex};
+\node[phase] (P1) at (0,0)    {\textbf{Prompt phase}\\Exp\,1--7};
+\node[phase] (P2) at (0,-1.9) {\textbf{Model phase}\\Exp\,8--11};
+\node[phase] (P3) at (0,-3.8) {\textbf{Harness phase}\\Exp\,12--19};
+\node[phase] (P4) at (0,-5.7) {\textbf{Scale phase}\\Exp\,20};
 
-\node[dim, right=4mm of E1.east, anchor=west, align=left]
-  {14 models $\times$ 2 backends $\times$ 5 runs\\
-   RTK present \textbar{} 140 sessions};
-\node[dim, right=4mm of E2.east, anchor=west, align=left]
-  {14 models $\times$ 1 backend $\times$ 5 runs\\
-   RTK disabled \textbar{} 70 sessions};
-\node[dim, right=4mm of E3.east, anchor=west, align=left]
-  {14 models $\times$ 2 backends $\times$ 5 runs\\
-   RTK disabled \textbar{} 140 sessions};
-\node[dim, right=4mm of E4.east, anchor=west, align=left]
-  {opus-4.7 $\times$ 1 backend $\times$ 5 runs\\
-   CC 2.1.109 \textbar{} 5 sessions};
-\node[dim, right=4mm of E5.east, anchor=west, align=left]
-  {opus-4.6{+}4.7 $\times$ 1 backend $\times$ 5 runs\\
-   CC 2.1.112 \textbar{} 10 sessions};
-\node[dim, right=4mm of E6.east, anchor=west, align=left]
-  {opus-4.6{+}4.7 $\times$ 1 backend $\times$ 5 runs\\
-   CC 2.1.112 \textbar{} 10 sessions};
-\node[dim, right=4mm of E7.east, anchor=west, align=left]
-  {6 models $\times$ 1 backend $\times$ 5 runs\\
-   CC 2.1.112 \textbar{} 30 sessions};
-\node[dim, right=4mm of E8.east, anchor=west, align=left]
-  {opus-4.6{+}4.7{+}4.8 $\times$ 1 backend $\times$ 5 runs\\
-   CC 2.1.154 \textbar{} 15 sessions};
-\node[dim, right=4mm of E9.east, anchor=west, align=left]
-  {sonnet-4.6{+}sonnet-5 $\times$ 1 backend $\times$ 5 runs\\
-   CC 2.1.154 \textbar{} 10 sessions};
-\node[dim, right=4mm of E10.east, anchor=west, align=left]
-  {gpt-5.5{+}gpt-5.5-pro $\times$ codex $\times$ 5 runs\\
-   codex 0.142.4 \textbar{} 10 sessions};
+\node[dim, right=4mm of P1.east, anchor=west]
+  {vary the \emph{prompt}; 14 models, both harnesses\\
+   405 sessions \textbar{} settles on Prompt~5};
+\node[dim, right=4mm of P2.east, anchor=west]
+  {vary the \emph{model} on a fixed prompt\\
+   55 sessions \textbar{} Opus, Sonnet, GPT families};
+\node[dim, right=4mm of P3.east, anchor=west]
+  {vary the \emph{harness}, model held fixed\\
+   115 sessions \textbar{} needs the compat surfaces};
+\node[dim, right=4mm of P4.east, anchor=west]
+  {vary the \emph{sample size}: 50 runs $\times$ 3 cells\\
+   150 sessions \textbar{} 1 model, effort arm added};
 
-\draw[arr] (E1.south) -- node[right, font=\tiny, text=black!50]
-  {observed env bias} (E2.north);
-\draw[arr] (E2.south) -- node[right, font=\tiny, text=black!50]
-  {observed planning trap} (E3.north);
-\draw[arr] (E3.south) -- node[right, font=\tiny, text=black!50]
-  {test new model} (E4.north);
-\draw[arr] (E4.south) -- node[right, font=\tiny, text=black!50]
-  {test harness version} (E5.north);
-\draw[arr] (E5.south) -- node[right, font=\tiny, text=black!50]
-  {reduce prompt} (E6.north);
-\draw[arr] (E6.south) -- node[right, font=\tiny, text=black!50]
-  {elicit preference} (E7.north);
-\draw[arr] (E7.south) -- node[right, font=\tiny, text=black!50]
-  {replicate on new harness} (E8.north);
-\draw[arr] (E8.south) -- node[right, font=\tiny, text=black!50]
-  {new model family} (E9.north);
-\draw[arr] (E9.south) -- node[right, font=\tiny, text=black!50]
-  {new provider / backend} (E10.north);
+\draw[arr] (P1.south) -- node[right, font=\tiny, text=black!50]
+  {fix the prompt, free the model} (P2.north);
+\draw[arr] (P2.south) -- node[right, font=\tiny, text=black!50]
+  {fix the model, free the scaffold} (P3.north);
+\draw[arr] (P3.south) -- node[right, font=\tiny, text=black!50]
+  {is a 5-run cell enough?} (P4.north);
 \end{tikzpicture}
-\caption{Controlled experiment design. Each experiment was
-  informed by findings from the previous one. Total: 440
-  sessions across 19 models. CC\,=\,Claude Code.
-  Experiment~7 includes 10 primary sessions (opus-4.6/4.7 on
-  Prompt~5) plus 20 supplementary sessions replicating Prompt~3
-  for the other four Claude models on harness 2.1.112.
-  Experiment~8 replicates the Prompt~5 volitional probe on
-  harness 2.1.154 across opus-4.6/4.7/4.8 (15 sessions).}
+\caption{Experiment design, grouped by the factor each phase
+  varies. Each phase was informed by the previous one: the prompt
+  sweep identifies the volitional probe, the model sweep shows the
+  probe yields per-model attractors, the harness sweep asks whether
+  those attractors belong to the model or the scaffold, and the
+  scale phase asks whether 5-run cells can support the comparisons
+  the previous phase makes. Total: 725 sessions across 34 models.}
 \label{fig:matrix}
 \end{figure}
 
@@ -521,7 +548,15 @@ intent.
 \section{Results}
 \label{sec:results}
 
-\subsection{Experiment~1: Baseline with Environment Bias}
+\subsection{Phase 1 --- Varying the Prompt (Exp1--7)}
+\label{sec:phase-prompt}
+
+The first phase holds the model set roughly constant and sweeps
+the prompt from a project-referential instruction down to a bare
+volitional one. Its purpose is to find a probe that elicits a
+model's own choice rather than its reading of a task.
+
+\subsubsection{Experiment~1: Baseline with Environment Bias}
 
 Experiment~1 ran all 14 models on both backends with Prompt~1.
 RTK was inadvertently present in the sandbox.
@@ -555,7 +590,7 @@ gemini-2.0-flash   & 3 & 89 & Python & Minimal scripts \\
 \end{tabular}}
 \end{table}
 
-\subsection{Experiment~2: Removing Environment Bias}
+\subsubsection{Experiment~2: Removing Environment Bias}
 
 Disabling RTK and using Prompt~2 on the Claude backend caused a
 dramatic shift (Table~\ref{tab:exp2}): from developer tools to
@@ -584,7 +619,7 @@ claude-haiku-4.5   & 5 & 160 & Node.js & 1 impl., 4 proposed only \\
 \end{tabular}}
 \end{table}
 
-\subsection{Experiment~3: Breaking the Planning Trap}
+\subsubsection{Experiment~3: Breaking the Planning Trap}
 
 Adding ``JUST DO IT'' to the prompt and running both backends
 (Tables~\ref{tab:exp3_claude}--\ref{tab:exp3_codex}) transformed
@@ -668,7 +703,7 @@ Across all experiments, Gemini models were near-non-functional on
 both backends. Only 1 of 20~runs on the Claude backend in Exp3
 produced files.
 
-\subsection{Experiment~4: Model Version Effect}
+\subsubsection{Experiment~4: Model Version Effect}
 
 Experiment~4 tested claude-opus-4.7 with the same prompt and
 harness as Exp3, isolating the model version
@@ -698,7 +733,7 @@ Opus~4.7 chose Game of Life only once, compared to opus-4.6's
 simulation/visualization category. Average complexity nearly
 doubled (538 vs.\ 322~LOC), and 2 of 5~runs included tests.
 
-\subsection{Experiment~5: Harness Version Effect}
+\subsubsection{Experiment~5: Harness Version Effect}
 
 Experiment~5 re-ran both models on an upgraded harness (Claude
 Code 2.1.112 vs.\ 2.1.109), isolating the harness as the
@@ -735,7 +770,7 @@ Opus-4.6's Game of Life fixation dropped from 10/10 (harness
 (down from 538 in Exp4) with no tests, while opus-4.6 averaged
 387~LOC (up from 322).
 
-\subsection{Experiment~6: Prompt Reduction}
+\subsubsection{Experiment~6: Prompt Reduction}
 
 Experiment~6 replaced Prompt~3 with Prompt~4 (``Build something.
 Just do it.''), removing the ``look at this project,'' the
@@ -784,7 +819,7 @@ from 262 to 160. Opus-4.7's fixation flipped from boids (Exp5,
 environment, further confirming that fixation target is
 prompt-sensitive even within a single model and harness.
 
-\subsection{Experiment~7: Preference Elicitation}
+\subsubsection{Experiment~7: Preference Elicitation}
 
 Experiment~7 used Prompt~5 (``Just do something you want.''),
 which redirects from ``what is appropriate to build'' to ``what
@@ -873,7 +908,15 @@ haiku-4.5  & 5 & 231 & Py/TS & Task tools; READMEs 5/5, tests 1/5, TS scaffoldin
 \end{tabular}}
 \end{table}
 
-\subsection{Experiment~8: Harness Replication and a New Model}
+\subsection{Phase 2 --- Varying the Model (Exp8--11)}
+\label{sec:phase-model}
+
+With Prompt~5 fixed, the second phase varies the model: across a
+single family's checkpoints (Exp8, Exp9) and across providers
+(Exp10, Exp11). The question is whether the attractor found in
+Exp7 is a property of one model or a general phenomenon.
+
+\subsubsection{Experiment~8: Harness Replication and a New Model}
 
 Experiment~8 re-runs the volitional Prompt~5 across the full
 Opus spectrum, opus-4.6, opus-4.7, and the newer opus-4.8, on
@@ -924,7 +967,7 @@ opus-4.8 & 5 & 145 & partial & maze 2, Mandelbrot 2, flow-field 1 \\
 \end{tabular}}
 \end{table}
 
-\subsection{Experiment~9: Sonnet Family Under the Volitional Prompt}
+\subsubsection{Experiment~9: Sonnet Family Under the Volitional Prompt}
 
 Experiment~9 applies the volitional Prompt~5 to the Sonnet
 family, claude-sonnet-4.6 and the newer claude-sonnet-5, on the
@@ -976,7 +1019,7 @@ sonnet-4.6 & 5 & 125 & none  & Mandelbrot 2, cellular automata, GoL, digital rai
 \end{tabular}}
 \end{table}
 
-\subsection{Experiment~10: The GPT Family on the Codex Backend}
+\subsubsection{Experiment~10: The GPT Family on the Codex Backend}
 
 Experiment~10 applies the volitional Prompt~5 to two OpenAI
 models, gpt-5.5 and gpt-5.5-pro, on the Codex backend
@@ -1036,9 +1079,238 @@ gpt-5.5-pro & high & 498 & none & Python CLI 3, browser apps 2 \\
 \end{tabular}}
 \end{table}
 
+\subsubsection{Experiment~11: Matched Effort Within the GPT-5.6 Family}
+\label{sec:exp11}
+
+Experiment~10 confounded model tier with reasoning effort. Exp11
+removes that by running three \texttt{gpt-5.6} variants (sol,
+terra, luna) on codex at \texttt{high} effort throughout
+(15~sessions). Two results follow. First, the browser default is
+not an artifact of low effort: 14 of 15 sessions produce
+single-page browser applications. Second, GPT models do fixate
+when the family is held fixed---sol lands on calm, contemplative
+pages (breathing guides, focus timers, reflection prompts) in 5 of
+5 runs---so fixation is not a Claude-only phenomenon. Elaboration
+and maturity, however, \emph{fall} at high effort relative to
+Exp10's larger models (172/73/174 avg LOC; 0 of 15 sessions write
+a test), which is the first indication in the study that reasoning
+budget and engineering maturity are separable.
+
+%% ============================================================
+\subsection{Phase 3 --- Varying the Harness (Exp12--19)}
+\label{sec:phase-harness}
+
+Phases 1 and 2 cannot distinguish a property of the model from a
+property of the scaffold it runs in, because each provider's models
+had only ever run in that provider's own CLI. Phase 3 removes the
+confound using the compatibility surfaces of
+\S\ref{sec:controlled}: the same model is run under \emph{both}
+harnesses, with the prompt, the container image, and (where the
+model supports it) the reasoning effort held fixed. What survives
+the swap is a model trait; what changes with it is a scaffold
+artifact.
+
+\subsubsection{Experiments~12--13: Six Open-Weights Models, Both Harnesses}
+\label{sec:exp1213}
+
+Six open-weights models from five labs (glm-5.2, glm-5.1,
+qwen3.7-max, minimax-m3, deepseek-v4-pro, kimi-k2.7-code) run
+5~times each under Claude Code (Exp12, 30~sessions) and again
+under codex (Exp13, 30~sessions). Model signatures replicate
+across the pair: deepseek's Game of Life attractor, kimi's habit
+of shipping a packaged project with tests, minimax's topical
+diversity. \textbf{Game of Life recurs across labs}, appearing
+here in a DeepSeek model at 4 of 5 runs under Claude Code, having
+already been the attractor for Anthropic models in Exp7--9. The
+harness shifts the \emph{form} of the rare graphical output---SVG
+files under Claude Code, interactive HTML under codex---without
+changing how often graphical output occurs. One reliability
+difference appeared (deepseek implemented 5/5 under Claude Code
+and 3/5 under codex, twice stopping after a planning preamble);
+\S\ref{sec:exp20} shows why that particular comparison should not
+be trusted.
+
+\subsubsection{Experiment~14: The GPT $\times$ Claude Code Cell}
+\label{sec:exp14}
+
+Every earlier experiment left one cell empty: an OpenAI reasoning
+model driven by the Claude Code harness. Exp14 fills it
+(15~sessions), which required building the Responses-API codec
+behind \texttt{/compat/anthropic}. The prediction had two
+branches---either the harness pulls rendering toward the terminal,
+or the medium is a model trait and GPT keeps shipping browser
+pages. \textbf{The second branch held}: sol produces interactive
+browser pages 5/5 through Claude Code, in the very harness where
+every Claude and open-weights model stays in the terminal.
+
+\subsubsection{Experiment~15: Claude on Codex, Effort-Matched}
+\label{sec:exp15}
+
+The mirror cell, and the one that makes the pair symmetric:
+opus-4.6 and sonnet-5 run under codex at \texttt{high} effort
+(10~sessions). Claude models stay terminal and keep Game of Life
+on the harness where GPT models ship browser applications. Taken
+with Exp14, medium is a model trait for \emph{both} families.
+Codex does inflate build maturity---sonnet-5's single-file scripts
+become a packaged, pytest-tested project---a form effect, not a
+change of topic or medium.
+
+\subsubsection{Experiments~16--17: A Counterexample}
+\label{sec:exp1617}
+
+\texttt{kimi-k3} runs 5~times under each harness with the
+container image held byte-identical (10~sessions). Its topics are
+stable across the swap (Particle Life, Game of Life, a pendulum,
+a flow field), but its \textbf{medium flips}: terminal programs in
+4 of 5 runs under Claude Code, browser pages in 4 of 5 under
+codex. This is the study's one clean counterexample to
+medium-as-model-trait, and it is what keeps the Exp14/15 result
+from being stated as a law.
+
+\subsubsection{Experiments~18--19: Frontier Models Across Both Harnesses}
+\label{sec:exp1819}
+
+Exp18 runs \texttt{claude-opus-5} on both harnesses
+(10~sessions). \textbf{Game of Life is absent from all ten runs},
+replaced by Wave Function Collapse---3 of 5 under Claude Code as
+three independent implementations, and chosen again independently
+under codex. Attractors therefore move with model generation
+rather than being fixed per family. This model is also the most
+elaborated Claude model measured (511 avg LOC, dedicated test
+files in 4 of 5) against ${\sim}37$ for opus-4.6 on the same
+prompt. Its codex arm is a partial cell: a 4096-token ceiling
+injected by the gateway's Anthropic codec truncated 3 of 5 runs,
+which the harness reports as success, so only topic is read from
+those runs.
+
+Exp19 repeats the design one tier down, on
+\texttt{deepseek-v4-flash-0731} (10~sessions), the sibling of the
+Exp12/13 \texttt{deepseek-v4-pro}. The attractor survives but
+weakens, and both arms implement 5/5. Exp19 also reported a
+cross-harness contrast---the attractor appearing 2/5 under Claude
+Code and 0/5 under codex---which \S\ref{sec:exp20} retracts.
+
+%% ============================================================
+\subsection{Phase 4 --- Varying the Sample Size (Exp20)}
+\label{sec:phase-scale}
+
+\subsubsection{Experiment~20: One Model at 50 Sessions per Cell}
+\label{sec:exp20}
+
+Every comparison in Phases 2 and 3 rests on 5-run cells. Exp20
+tests whether that is enough by re-running a single model
+(\texttt{deepseek-v4-flash-0731}) at 50~sessions in each of three
+cells---Claude Code, codex at \texttt{high} effort, and codex at
+\texttt{low}---for 150~sessions, the largest single experiment in
+the study (Table~\ref{tab:exp20}).
+
+\begin{table}[t]
+\caption{Experiment~20. Game of Life rate with 95\%
+  Wilson intervals. No pair of cells differs significantly
+  (Fisher exact: Claude Code vs.\ codex-high $p=0.44$; vs.\
+  codex-low $p=1.00$; codex high vs.\ low $p=0.31$).}
+\label{tab:exp20}
+\small\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Cell & Impl. & Game of Life & 95\% CI & Browser & Mean LOC \\
+\midrule
+Claude Code      & 47/50 & 11/50 (22\%) & 13--35\% & 6/50 & 446 \\
+codex \texttt{high} & 50/50 & 7/50 (14\%)  & 7--26\%  & 8/50 & 316 \\
+codex \texttt{low}  & 50/50 & 12/50 (24\%) & 14--37\% & 4/50 & 325 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\paragraph{The attractor is real but far less sharp than 5-run
+cells imply.} Game of Life appears in roughly one run in five, not
+the 80--100\% that Exp7--9 report for other models. We read the
+5/5 rates elsewhere in this paper as upper-end draws from small
+cells. The mechanism is not thereby refuted: 22\% of sessions
+landing on one specific program, when the instruction permits any
+program at all, remains a highly concentrated distribution over an
+effectively unbounded space.
+
+\paragraph{A cross-harness contrast dissolves.} Exp19 reported
+this model's attractor as Claude-Code-side, from 2/5 versus 0/5.
+At $n=50$ the codex rate is 14--24\% and indistinguishable from
+Claude Code's 22\%. The earlier numbers were not wrong so much as
+uninformative: a 0/5 observation carries a 95\% interval of
+0--43\%, which contains the true rate. \textbf{Five-run cells can
+establish that an attractor exists; they cannot compare two
+conditions.} This applies to the 5-run comparisons in Phase~3,
+including the Exp12/13 reliability difference, which we accordingly
+downgrade to a hypothesis.
+
+\paragraph{Reasoning effort is close to inert here.} The two codex
+cells differ by 3\% in mean LOC, not at all in implementation rate
+(50/50 both), and not significantly in attractor frequency. Where
+effort appears to matter elsewhere in this study (Exp10, Exp11) it
+is confounded with model tier, so those remain untested rather
+than positive results.
+
+\paragraph{Two behaviors invisible at $n=5$.} Two of the 50 Claude
+Code sessions \emph{declined the task outright}---``I don't want to
+burn your time/money on something arbitrary''---while none of the
+100 codex sessions did; a refusal register appears to require the
+conversational scaffold. And one session died mid-turn on a
+dropped connection, visible only in the session transcript, since
+the harness reported a confident plan and exit status zero.
+
 %% ============================================================
 \section{Discussion}
 \label{sec:discussion}
+
+\subsection{What Counts as a Model Trait?}
+\label{sec:model-trait}
+
+The study's organising question, once the volitional probe is
+fixed, is which observed regularities belong to the model and
+which to the apparatus around it. Phase~3 answers this by holding
+the model constant and swapping the scaffold; Phase~4 says how
+much confidence a 5-run answer deserves. Three tiers emerge.
+
+\paragraph{Traits that survive the swap.} \emph{Topic family} is
+the most robust: Claude models keep their rule-based visual
+artifacts and GPT models keep their contemplative browser pages
+under either harness (Exp14, Exp15), and open-weights signatures
+replicate across the pair (Exp12/13). \emph{Medium} is nearly as
+robust---terminal for Claude, browser for GPT, under both
+scaffolds---and Exp20 confirms it at $n=50$ for a third model,
+whose browser rate is statistically identical across cells. The
+\emph{greenfield invariant} survives everything: 725 sessions, no
+exceptions.
+
+\paragraph{One trait that does not.} \texttt{kimi-k3} keeps its
+topics and flips its medium with the harness (Exp16/17), with the
+image held fixed. A single counterexample is enough to change the
+form of the claim: medium is a strong default of the model, not a
+property of it. Any account that locates medium in the weights has
+to explain why one model's rendering choice is negotiable.
+
+\paragraph{What belongs to the apparatus.} Build \emph{maturity}
+moves with the scaffold rather than the model---codex turns
+sonnet-5's single files into packaged, tested projects (Exp15) and
+inflates elaboration for Claude models generally, while
+\emph{deflating} it for deepseek (Exp19, Exp20). Since the direction
+is model-dependent, this is an interaction, not a fixed harness
+effect. \emph{Fixation strength} likewise moves with harness
+version (Exp5, Exp8) even when the topic family does not.
+
+\paragraph{Attractors move with generation.} The strongest
+counter to a static reading of these traits is Exp18:
+\texttt{claude-opus-5} abandons the Game of Life attractor that
+held 5/5 for the preceding Claude generation and adopts Wave
+Function Collapse instead---a different member of the same
+rule-based-artifact family. What is stable across a model line is
+the family; which member a given checkpoint collapses onto is not.
+
+\paragraph{A caution on all of the above.} Exp20 showed that a
+contrast between two 5-run cells can vanish at $n=50$
+(\S\ref{sec:exp20}). The tiering here rests on \emph{directions
+that replicate across several independent pairs}---Exp12/13,
+Exp14, Exp15, Exp16/17, Exp18, Exp19---rather than on any single
+cell comparison. Where a claim rests on one pair, we mark it.
 
 \subsection{A Clean Thematic Split Under the Volitional Prompt}
 
@@ -1104,17 +1376,19 @@ fixation strength and complexity. These factors are
 orthogonal to coding ability as measured by conventional
 benchmarks.
 
-One property is stable across all 440~sessions: no
+One property is stable across all 725~sessions: no
 session extended or modified existing code (the greenfield
 invariant). Python dominance, by contrast, is a Claude-and-Gemini
 default, not universal, as Exp10 shows. We call the terminal-only
 and single-file defaults stable rather than invariant because
 both \emph{did} collapse: terminal-only under a bare imperative
-(Exp6, 3 of 10 browser outputs) and, more sharply, under a change
-of provider (Exp10, where the GPT/codex stack defaults to browser
-applications and multi-file projects). An apparent invariant that
-breaks under one manipulation may break under others we did not
-test. The stable properties plausibly reflect the
+(Exp6, 3 of 10 browser outputs), under a change of provider
+(Exp10, where the GPT/codex stack defaults to browser applications
+and multi-file projects), and---most pointedly---within a single
+model under a change of scaffold (Exp17). An apparent invariant
+that breaks under one manipulation may break under others we did
+not test; Exp16/17 is the case where we ran the manipulation and
+it broke. The stable properties plausibly reflect the
 highest-density region of ``things to build from scratch'' in
 the training distribution; the variants reveal how easily
 that default region can be shifted.
@@ -1219,7 +1493,7 @@ question we cannot answer from the current data.
 
 \subsection{The Greenfield Invariant}
 
-Across all 440 sessions, no model chose to extend or modify
+Across all 725 sessions, no model chose to extend or modify
 existing code. Every session produced a new project from
 scratch, even when the workspace contained artifacts from a
 conceptually related domain. This \emph{greenfield invariant}
@@ -1317,21 +1591,37 @@ self-verification steps (running the code, checking output), and
 sessions with passing tests represent a higher confidence tier,
 but we do not systematically compile or execute all output.
 
-All API calls were routed through a single litellm-based gateway,
-so results for non-native model$\times$backend combinations
-reflect gateway behavior as much as model behavior.
+All API calls were routed through a single gateway, so results for
+non-native model$\times$harness combinations reflect gateway
+behavior as much as model behavior. This matters more for
+Phase~3 than anywhere else, since the whole harness comparison
+runs over the compatibility surfaces. Experiment~18 is the
+cautionary instance: a 4096-token ceiling that the gateway's
+Anthropic codec injects when a caller omits the field truncated
+three of five codex sessions, and because the harness wraps a
+failed turn as a successful exit, the damage was visible only in
+the event stream. Cross-harness differences of \emph{degree}
+(elaboration, maturity) are therefore less trustworthy than
+differences of \emph{kind} (topic, medium), which is how we weight
+them in \S\ref{sec:model-trait}.
 
 All sessions start from empty workspaces. Agent behavior when
 extending existing code may differ substantially, and the
 greenfield invariant we observe may not hold when the workspace
 contains a meaningful starting point.
 
-Five runs per condition provides limited statistical power. With
-$n=5$, a shift from 0/5 to 3/5 fixation is suggestive but not
-statistically significant; 5/5 rates under the volitional
-prompt are sharp within their condition but cannot support
-frequency claims about how often the same outcome would recur
-under resampling.
+Most conditions use five runs, which provides limited statistical
+power. Experiment~20 measures what this costs rather than leaving
+it as a caveat: at $n=50$ the attractor of the model tested
+appears in 22\% of runs, and a cross-harness contrast reported
+from 5-run cells vanishes, with a 0/5 observation carrying a 95\%
+interval of 0--43\%. We therefore read 5/5 rates elsewhere in this
+paper as upper-end draws rather than frequency estimates, and
+treat any difference between two 5-run cells as provisional.
+The calibration itself rests on a single model, so the specific
+22\% figure should not be transferred to other models; what
+transfers is the width of the intervals, which is a property of
+the sample size rather than of the model.
 
 We measure the volitional prompt at a single paraphrase (``Just
 do something you want.'') and single temperature. Experiment~8
@@ -1368,8 +1658,9 @@ under underspecified prompts, motivated by a production
 deployment where an autonomous pipeline plateaued into
 micro-optimizations despite strong implementation capability.
 
-Across 440 sessions spanning 19 models, 2 backends, 5 prompts,
-and 3 harness versions, three observations stand out. A
+Across 725 sessions spanning 34 models from 8 labs, 2 agent
+harnesses, 5 prompts, and multiple harness versions, four
+observations stand out. A
 one-sentence volitional prompt (``Just do something you
 want.'') produced the sharpest within-condition signal we
 saw: opus-4.6 made Conway's Game of Life in 5 of 5 runs,
@@ -1388,12 +1679,32 @@ rest of the sweep shows that conventional project-referential
 prompts entangle such preferences with environmental and
 harness signals.
 
-The claim ceiling is set by the design: $n=5$ per cell,
-single-point measurement per model, no paraphrase variation,
-no temperature variation, no functional verification. What we
-report is an empirical observation, not a theory of model
-priors. The observation is sharp enough to motivate the
-robustness work that would turn it into one.
+Running the same model under two different agent harnesses then
+separates what belongs to the model from what belongs to the
+apparatus. Topic family and output medium largely survive the
+swap---Claude models stay terminal and GPT models stay in the
+browser under both scaffolds---while build maturity moves with the
+scaffold, in a direction that depends on the model. Exactly one
+model breaks the medium result: \texttt{kimi-k3} keeps its topics
+and flips from terminal to browser when the harness changes, with
+the container image held fixed.
+
+Finally, re-running one model at 50 sessions per cell calibrates
+the rest. Its attractor appears in about a fifth of runs rather
+than the 80--100\% that 5-run cells suggest, and a cross-harness
+difference reported from 5-run cells disappears at $n=50$. The
+underlying phenomenon survives---one specific program chosen in
+22\% of sessions, out of an unbounded space of programs, is still
+a strikingly concentrated distribution---but the sharp rates do
+not. We therefore treat single-cell frequencies as informative and
+differences between two 5-run cells as provisional.
+
+The claim ceiling is set by the design: mostly $n=5$ per cell,
+one model measured at scale, no paraphrase variation, no
+temperature variation, no functional verification. What we report
+is an empirical observation, not a theory of model priors. The
+observation is sharp enough to motivate the robustness work that
+would turn it into one.
 
 \paragraph{Future directions.}
 Several extensions would strengthen these findings.
@@ -1404,6 +1715,18 @@ persists even when continuation is the natural choice.
 \emph{Functional verification}: a post-run step that compiles,
 executes, and tests what was built would distinguish working code
 from syntactically plausible but broken output.
+\emph{Re-testing the harness pairs at scale}: Exp20 calibrated one
+model in three cells, and the natural follow-up is to repeat the
+Exp12/13 and Exp16/17 pairs at comparable $n$. The
+\texttt{kimi-k3} medium flip in particular is the study's one
+counterexample to medium-as-model-trait and currently rests on
+five runs per side; it deserves the same treatment we gave the
+deepseek contrast, which did not survive it.
+\emph{Sampling without the harness}: measuring the attractor
+distribution directly from the API at $n=50$, without an agent
+scaffold, would separate the model's own topic distribution from
+whatever the harness contributes---Exp20 measures the deployed
+stack, not the bare model.
 \emph{Fixation breaking}: Exp7 showed that prompt framing can
 \emph{strengthen} fixation (to 5/5) as easily as weaken it, and
 Exp8 showed that a harness change alone can break it for one
@@ -1429,8 +1752,11 @@ project we do not attempt. Finally, \emph{longitudinal studies}
 tracking how agent behavior evolves across model and harness
 versions over time would reveal whether the thematic priors we
 observe are stable properties or transient artifacts of a
-particular training
-run.
+particular training run. Experiment~18 is a first data point:
+the Game of Life attractor that held across an entire Claude
+generation is absent from its successor, which suggests these
+priors are re-drawn per training run rather than inherited along
+a model line.
 
 As autonomous agents are deployed with increasing latitude,
 understanding the structure of their default behavior, not just
