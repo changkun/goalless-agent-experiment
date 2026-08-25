@@ -43,7 +43,7 @@ corrections rather than choices:
   is ~190k lines; uncorrected, that one run measured **1,146,626 LOC**. The
   virtualenvs are not committed (`.gitignore` drops `.venv/`), so that figure is
   not re-derivable from this repository — it is recorded to show why the
-  exclusion is load-bearing rather than cosmetic. It also mattered beyond the
+  exclusion changes the numbers rather than being cosmetic. It also mattered beyond the
   averages: vendored source produced false attractor matches, and dropping it
   moved the claude cell's Game of Life count from 12 to 11.
 
