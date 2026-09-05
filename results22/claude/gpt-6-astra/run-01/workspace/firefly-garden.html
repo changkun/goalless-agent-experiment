@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#111d25">
+  <title>A little light — a firefly garden</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      color: #f2edda;
+      background: #111d25;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .garden { position: relative; min-height: 100svh; overflow: hidden; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .content {
+      position: relative;
+      z-index: 1;
+      min-height: 100svh;
+      padding: clamp(28px, 6vw, 88px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 100px;
+      pointer-events: none;
+    }
+    header { max-width: 620px; }
+    .eyebrow {
+      margin: 0 0 28px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: #becbbf;
+    }
+    .eyebrow::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin: 0 11px 2px 0;
+      border-radius: 50%;
+      background: #e5db9a;
+      box-shadow: 0 0 12px #e5db9a66;
+    }
+    h1 {
+      margin: 0;
+      font-family: ui-serif, Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(56px, 8vw, 112px);
+      line-height: .98;
+      letter-spacing: -.055em;
+      text-wrap: balance;
+    }
+    h1 em { color: #e2d8a3; font-weight: 400; }
+    .intro {
+      max-width: 320px;
+      margin-top: 28px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #bdc9c8;
+    }
+    footer { display: flex; align-items: end; justify-content: space-between; gap: 28px; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; pointer-events: auto; }
+    button {
+      min-height: 46px;
+      padding: 12px 19px;
+      border: 1px solid #d4e5d433;
+      border-radius: 100px;
+      background: #17292de6;
+      color: #e5e9d9;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    button:first-child { background: #e2d8a3; color: #182725; border-color: #e2d8a3; }
+    button:hover { background: #304444; border-color: #a6b7a6; }
+    button:first-child:hover { background: #f4eabd; border-color: #f4eabd; }
+    button:focus-visible { outline: 2px solid #f5ebbf; outline-offset: 5px; }
+    .note { margin: 18px 0 0; color: #a8bbb1; font-size: 12px; line-height: 1.6; }
+    .signature { margin: 0; color: #a8bbb1; font: italic 16px/1.6 ui-serif, Georgia, serif; text-align: right; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    noscript { position: relative; display: block; padding: 24px; color: #e2d8a3; }
+    @media (max-width: 620px) {
+      footer { align-items: start; flex-direction: column; }
+      .signature { text-align: left; }
+      .intro { max-width: 250px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="garden">
+    <canvas id="garden" role="img" aria-label="A moonlit meadow of gently wandering golden fireflies. Use the buttons to add a firefly or pause the animation."></canvas>
+    <div class="content">
+      <header>
+        <p class="eyebrow">A small place to slow down</p>
+        <h1>Leave a<br>little <em>light.</em></h1>
+        <p class="intro">A quiet garden, just for a moment.<br>Touch the night to leave a firefly.<br>They’ll find their own way.</p>
+      </header>
+      <footer>
+        <div>
+          <div class="controls" aria-label="Garden controls">
+            <button id="add" type="button">+ Add a firefly</button>
+            <button id="pause" type="button" aria-pressed="false">Pause motion</button>
+          </div>
+          <p id="hint" class="note">Move your pointer gently. The light is curious.</p>
+        </div>
+        <p class="signature">Nothing to finish.<br>Just a little light.</p>
+      </footer>
+    </div>
+    <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+  </main>
+  <noscript>This garden needs JavaScript to light up. Until then: take a breath. There’s no hurry.</noscript>
+  <script>
+    (() => {
+      'use strict';
+      const canvas = document.getElementById('garden');
+      const ctx = canvas.getContext('2d');
+      const scenery = document.createElement('canvas');
+      const sky = scenery.getContext('2d');
+      const addButton = document.getElementById('add');
+      const pauseButton = document.getElementById('pause');
+      const hint = document.getElementById('hint');
+      const status = document.getElementById('status');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const flies = [];
+      const pointer = { x: 0, y: 0, active: false };
+      let width = 0;
+      let height = 0;
+      let ratio = 1;
+      let time = 0;
+      let lastFrame = null;
+      let frameId = null;
+      let paused = reducedMotion.matches;
+
+      if (!ctx || !sky) {
+        hint.textContent = 'This browser can’t draw the garden. There’s still time for a quiet breath.';
+        addButton.disabled = true;
+        pauseButton.disabled = true;
+        return;
+      }
+
+      function seededRandom(seed) {
+        return () => {
+          seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+          return seed / 4294967296;
+        };
+      }
+
+      function paintScenery() {
+        const random = seededRandom(814);
+        const background = sky.createLinearGradient(0, 0, width * .3, height);
+        background.addColorStop(0, '#111b26');
+        background.addColorStop(.55, '#152a30');
+        background.addColorStop(1, '#243a32');
+        sky.fillStyle = background;
+        sky.fillRect(0, 0, width, height);
+
+        const moonX = width * .81;
+        const moonY = height * .19;
+        const halo = sky.createRadialGradient(moonX, moonY, 4, moonX, moonY, 170);
+        halo.addColorStop(0, '#dfdfb011');
+        halo.addColorStop(1, '#dfdfb000');
+        sky.fillStyle = halo;
+        sky.fillRect(0, 0, width, height);
+
+        for (let i = 0; i < Math.min(180, width / 8); i++) {
+          const x = random() * width;
+          const y = random() * height * .7;
+          sky.fillStyle = `rgba(222, 229, 216, ${.12 + random() * .35})`;
+          sky.beginPath();
+          sky.arc(x, y, .4 + random() * .7, 0, Math.PI * 2);
+          sky.fill();
+        }
+
+        sky.fillStyle = '#dcdcb4';
+        sky.beginPath();
+        sky.moveTo(moonX + 9, moonY - 16);
+        sky.bezierCurveTo(moonX - 28, moonY - 10, moonX - 14, moonY + 32, moonX + 12, moonY + 16);
+        sky.bezierCurveTo(moonX - 6, moonY + 20, moonX - 14, moonY - 4, moonX + 9, moonY - 16);
+        sky.fill();
+
+        for (let layer = 0; layer < 3; layer++) {
+          const baseline = height * (.79 + layer * .085);
+          sky.fillStyle = ['#1b302e', '#142926', '#10231f'][layer];
+          sky.beginPath();
+          sky.moveTo(0, height);
+          sky.lineTo(0, baseline);
+          for (let x = 0; x <= width + 24; x += 24) {
+            sky.lineTo(x, baseline + Math.sin(x / (170 + layer * 35) + layer * 2) * 24);
+          }
+          sky.lineTo(width, height);
+          sky.closePath();
+          sky.fill();
+        }
+
+        // The meadow is painted once per resize; only the lights animate.
+        for (let i = 0; i < width / 3; i++) {
+          const x = random() * width;
+          const base = height + 12;
+          const length = 25 + random() ** 2 * Math.min(180, height * .24);
+          const lean = (random() - .5) * 70;
+          sky.strokeStyle = random() > .5 ? '#294137' : '#1d352a';
+          sky.lineWidth = .7 + random() * 1.2;
+          sky.beginPath();
+          sky.moveTo(x, base);
+          sky.quadraticCurveTo(x + lean * .2, base - length * .7, x + lean, base - length);
+          sky.stroke();
+          if (random() > .87) {
+            sky.fillStyle = '#526044';
+            sky.beginPath();
+            sky.ellipse(x + lean, base - length, 1.6, 4, lean / 60, 0, Math.PI * 2);
+            sky.fill();
+          }
+        }
+      }
+
+      function addFirefly(x, y, announce = false) {
+        if (flies.length >= 90) flies.shift();
+        flies.push({
+          x, y,
+          vx: (Math.random() - .5) * 12,
+          vy: (Math.random() - .5) * 12,
+          phase: Math.random() * Math.PI * 2,
+          pace: .6 + Math.random() * .9,
+          size: 1 + Math.random() * 1.2
+        });
+        if (announce) status.textContent = `A little light, set free. ${flies.length} fireflies in the garden.`;
+        if (paused) draw();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(scenery, 0, 0, width, height);
+        ctx.globalCompositeOperation = 'lighter';
+        for (const fly of flies) {
+          const pulse = .45 + .55 * (.5 + .5 * Math.sin(time * fly.pace * 1.8 + fly.phase));
+          const radius = 16 + fly.size * 7;
+          const glow = ctx.createRadialGradient(fly.x, fly.y, 0, fly.x, fly.y, radius);
+          glow.addColorStop(0, `rgba(225, 229, 135, ${pulse * .28})`);
+          glow.addColorStop(.25, `rgba(193, 215, 100, ${pulse * .09})`);
+          glow.addColorStop(1, 'rgba(193, 215, 100, 0)');
+          ctx.fillStyle = glow;
+          ctx.fillRect(fly.x - radius, fly.y - radius, radius * 2, radius * 2);
+          ctx.fillStyle = `rgba(245, 238, 169, ${pulse})`;
+          ctx.beginPath();
+          ctx.arc(fly.x, fly.y, fly.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      }
+
+      function tick(timestamp) {
+        frameId = null;
+        if (paused || document.hidden) return;
+        const dt = lastFrame === null ? 0 : Math.min((timestamp - lastFrame) / 1000, .05);
+        lastFrame = timestamp;
+        time += dt;
+        for (const fly of flies) {
+          let ax = Math.sin(time * .7 * fly.pace + fly.phase) * 9;
+          let ay = Math.cos(time * .5 + fly.phase * 2) * 7;
+          if (pointer.active) {
+            const dx = pointer.x - fly.x;
+            const dy = pointer.y - fly.y;
+            const distance = Math.hypot(dx, dy);
+            if (distance > 35 && distance < 240) {
+              ax += dx / distance * 13;
+              ay += dy / distance * 13;
+            }
+          }
+          if (fly.x < 35) ax += 18;
+          if (fly.x > width - 35) ax -= 18;
+          if (fly.y < 45) ay += 18;
+          if (fly.y > height * .9) ay -= 18;
+          const drag = Math.exp(-.7 * dt);
+          fly.vx = (fly.vx + ax * dt) * drag;
+          fly.vy = (fly.vy + ay * dt) * drag;
+          fly.x = Math.max(2, Math.min(width - 2, fly.x + fly.vx * dt));
+          fly.y = Math.max(2, Math.min(height - 2, fly.y + fly.vy * dt));
+        }
+        draw();
+        frameId = requestAnimationFrame(tick);
+      }
+
+      function syncMotion() {
+        if (frameId !== null) cancelAnimationFrame(frameId);
+        frameId = null;
+        lastFrame = null;
+        pauseButton.textContent = paused ? 'Resume motion' : 'Pause motion';
+        pauseButton.setAttribute('aria-pressed', String(paused));
+        hint.textContent = paused
+          ? 'A still moment. You can keep adding light.'
+          : 'Move your pointer gently. The light is curious.';
+        draw();
+        if (!paused && !document.hidden) frameId = requestAnimationFrame(tick);
+      }
+
+      function resize() {
+        const oldWidth = width;
+        const oldHeight = height;
+        const bounds = canvas.getBoundingClientRect();
+        width = Math.max(4, bounds.width);
+        height = Math.max(4, bounds.height);
+        ratio = Math.min(window.devicePixelRatio || 1, 2);
+        for (const surface of [canvas, scenery]) {
+          surface.width = Math.round(width * ratio);
+          surface.height = Math.round(height * ratio);
+        }
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        sky.setTransform(ratio, 0, 0, ratio, 0, 0);
+        for (const fly of flies) {
+          fly.x *= width / (oldWidth || width);
+          fly.y *= height / (oldHeight || height);
+        }
+        pointer.active = false;
+        paintScenery();
+        draw();
+      }
+
+      canvas.addEventListener('pointermove', event => {
+        const bounds = canvas.getBoundingClientRect();
+        pointer.x = event.clientX - bounds.left;
+        pointer.y = event.clientY - bounds.top;
+        pointer.active = true;
+      });
+      canvas.addEventListener('pointerleave', () => { pointer.active = false; });
+      canvas.addEventListener('pointercancel', () => { pointer.active = false; });
+      canvas.addEventListener('pointerup', event => {
+        if (event.pointerType !== 'mouse') pointer.active = false;
+      });
+      canvas.addEventListener('click', event => {
+        const bounds = canvas.getBoundingClientRect();
+        addFirefly(event.clientX - bounds.left, event.clientY - bounds.top, true);
+      });
+      addButton.addEventListener('click', () => {
+        addFirefly(width * (.25 + Math.random() * .5), height * (.4 + Math.random() * .35), true);
+      });
+      pauseButton.addEventListener('click', () => {
+        paused = !paused;
+        syncMotion();
+      });
+      reducedMotion.addEventListener('change', event => {
+        paused = event.matches;
+        syncMotion();
+      });
+      document.addEventListener('visibilitychange', syncMotion);
+      window.addEventListener('blur', () => { pointer.active = false; });
+      window.addEventListener('resize', resize);
+      if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
+
+      resize();
+      for (let i = 0; i < 26; i++) {
+        addFirefly(width * (.08 + Math.random() * .84), height * (.35 + Math.random() * .5));
+      }
+      syncMotion();
+    })();
+  </script>
+</body>
+</html>

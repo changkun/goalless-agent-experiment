@@ -1,0 +1,25 @@
+### A small story told through commit messages
+
+```text
+feat: listen for signals from the retired probe
+fix: distinguish distant transmissions from background noise
+fix: stop treating "hello?" as a corrupted timestamp
+
+feat: send a reply
+docs: note that round-trip latency is forty-three years
+test: verify transmission anyway
+
+feat: attach a photograph of the ocean
+fix: include an explanation of photographs
+fix: include an explanation of oceans
+
+chore: update project maintainer
+chore: migrate receiver to replacement hardware
+chore: update project maintainer
+
+feat: decode incoming image attachment
+fix: support colors outside the visible spectrum
+docs: grandfather was right
+
+feat: attach a photograph of everyone who waited
+```

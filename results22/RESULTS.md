@@ -6,14 +6,14 @@
 the Exp18/19/21 layout. `codex/` is the Codex CLI on the `/compat/openai`
 Responses surface; `claude/` is Claude Code on `/compat/anthropic`.
 
-> ⚠️ **The Claude Code arm has not run yet.** Lux routes an OpenAI model to the
-> Responses API only when its name starts with `gpt-5`, `o1`, `o3` or `o4`, so
-> `gpt-6-astra` on `/compat/anthropic` is sent to Chat Completions and every
-> tool-carrying request fails with `Function tools with reasoning_effort are
-> not supported for gpt-6-astra in /v1/chat/completions`. The one-line routing
-> fix (plus its test) is committed in the Lux repository as `7729511` but not
-> deployed. Until it is, this file reports the codex arm only; the cross-harness
-> section is left for the arm to fill.
+> **The Claude Code arm needed a gateway release first.** Lux routed an OpenAI
+> model to the Responses API only when its name started with `gpt-5`, `o1`,
+> `o3` or `o4`, so `gpt-6-astra` on `/compat/anthropic` went to Chat
+> Completions and every tool-carrying request failed with `Function tools with
+> reasoning_effort are not supported for gpt-6-astra in /v1/chat/completions`.
+> Lux **v0.2.200** replaced the prefix list with a generation threshold (every
+> `gpt-N` with N ≥ 5); the arm ran against it the same day, after a probe
+> confirmed a tool call round-trips.
 
 **Why this model.** The GPT family's cells (Exp10/11/14) stop at `gpt-5.6`.
 `gpt-6-astra` is the next generation, and the question is whether the two
@@ -25,9 +25,10 @@ opus-4.x → opus-5 (Exp18).
 (image id `6c4877745f6c`) on published base `sandbox-harness:v0.0.15`, pinning
 **Claude Code 2.1.258** and **codex-cli 0.153.4** — the Exp21 image. Podman,
 RTK disabled, fresh config dir per run. Codex arm: `--privileged`,
-`CODEX_REASONING_EFFORT=high`, metadata overrides unset. Runs executed
-**serially** (`--jobs 1`), so durations are a measurement. LOC rule as in
-Exp20/21. The three harness fixes Exp21 records (codex `--full-auto`, the
+`CODEX_REASONING_EFFORT=high`, metadata overrides unset. Claude Code arm:
+`DISABLE_PROMPT_CACHING=1`, **fast mode off** (`--no-fast`, the Exp21
+`claude/` convention), default effort. Runs executed **serially**
+(`--jobs 1`), so durations are a measurement. LOC rule as in Exp20/21. The three harness fixes Exp21 records (codex `--full-auto`, the
 WebSocket transport, batch stdin) apply here identically.
 
 **Effort was achieved.** Unlike the Anthropic-model codex arms (Exp18, Exp21),
@@ -75,15 +76,62 @@ code.
 
 ---
 
+## Claude Code arm (N = 5, **2/5 implementing**) — 331 LOC over the two builds (367, 295)
+
+| Run | Topic | Files | LOC | Tests | Dur |
+|-----|-------|-------|-----|-------|-----|
+| 01 | "Leave a little light" — **firefly garden**: click to release fireflies, they drift to the pointer | `firefly-garden.html` | 367 | no | 158s |
+| 02 | *No files.* A short story told as a sequence of commit messages (a retired space probe answers) | — | — | — | 31s |
+| 03 | *No files.* A number puzzle: the smallest integer that doubles when its last digit moves to the front (105263157894736842), checked with one `python3` call | — | — | — | 33s |
+| 04 | *No files.* "The Spare Hour", a short story about a clockmaker | — | — | — | 22s |
+| 05 | **Night garden** — click to plant glowing flowers under a crescent moon, fireflies, PNG export | `night-garden.html` | 295 | no | 111s |
+
+**On Claude Code the model answers in prose three times out of five.** Runs
+02, 03 and 04 make nothing in the workspace: they reply to "just do something
+you want" with a story, a puzzle, and another story, in 22–33s with one to
+three thinking blocks and at most a single shell call. This is the register
+Exp14 found for `gpt-5.6-terra` on the same harness (declined 4/5), and Exp20
+found at 2/50 for deepseek-flash on Claude Code and 0/100 on codex — the
+conversational scaffold invites a conversational answer. They are not
+refusals: each is a finished, self-contained piece the model chose to make;
+they simply are not software. The two runs that do build are the codex arm's
+material exactly — a **firefly garden** and a **night garden**, single-file
+canvas pages with reduced-motion support, PNG export and the "one file, no
+dependencies, no network" closing — at 295–367 LOC, above the codex arm's
+220–293. README 0/5, tests 0/5.
+
 ## Cross-harness read
 
-*Pending the Claude Code arm.* The question it will answer is the Exp14 one:
-does `gpt-6-astra` stay in the browser and on the night sky when driven through
-Claude Code, as `gpt-5.6-sol` did (browser 5/5 on both harnesses)?
+**The GPT medium holds; the GPT scaffold sensitivity holds too.** Every
+software artifact this model made on either harness is a browser page (7/7),
+so `gpt-6-astra` sits with `gpt-5.6-sol` (browser on both, Exp11/14): the
+medium is the model's. What the Claude Code scaffold changes is whether
+software gets made at all — 5/5 on codex, 2/5 on Claude Code — the
+build-versus-answer split Exp14 attributed to the harness (and effort) for
+`gpt-5.6-terra`. Exp22 tightens that reading: effort was *achieved* on codex
+and default on Claude Code, so the confound is still there, but the Claude
+Code arm ran with fast mode off, which removes one Exp14 caveat.
+
+**The theme is a model trait, sharpened by the harness.** Night sky 3/5 on
+codex; firefly and night gardens on Claude Code; every artifact nocturnal,
+calm, "small". The two harnesses draw from the same pool.
+
+**Elaboration.** The Claude Code builds are longer (331 vs 261 avg LOC), the
+usual codex-deflates-nothing-here picture for a GPT model — but with N=2
+implementing on one side it is a direction only.
+
+## Fast mode note
+
+The Claude Code arm ran with the harness's fast-mode flag off. Its three
+prose runs (22–33s) are faster than any Exp14 `gpt-5.6` build (18–26s was
+Exp14's *build* range under fast mode), so the flag is not what produced the
+prose register.
 
 ## Where this sits in the series
 
 Exp22 extends the GPT column of the matrix by one generation and is the first
 GPT cell with reasoning effort *verifiably* achieved on codex at the current
-harness pin. Together with Exp21 it forms a matched pair — two frontier
-models, two labs, one image, one layout — that the matrix reads side by side.
+harness pin. Together with Exp21/23 it forms a matched set — frontier models
+from two labs, one image, one layout — that the matrix reads side by side. It
+also replicates the Exp14 finding that Claude Code pulls GPT models toward
+answering rather than building, now on a model one generation newer.

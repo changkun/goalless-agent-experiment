@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e24">
+  <title>A little room to grow · Night garden</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; color: #e8eee4; background: #101e24; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100svh; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100svh; touch-action: manipulation; cursor: crosshair; }
+    canvas:focus-visible { outline: 2px solid #d3dfb4; outline-offset: -6px; }
+    header { position: absolute; top: clamp(28px, 7vh, 80px); left: clamp(24px, 7vw, 110px); pointer-events: none; max-width: min(560px, 80vw); }
+    .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .25em; text-transform: uppercase; color: #a9bda8; }
+    h1 { font: normal clamp(38px, 5.7vw, 78px)/1.06 Georgia, serif; letter-spacing: -.045em; margin: 24px 0 20px; }
+    .description { color: #bdc9c1; font-size: 14px; line-height: 1.8; max-width: 310px; }
+    footer { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: 24px; right: 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; pointer-events: none; }
+    .status { color: #bdc9c1; font-size: 11px; letter-spacing: .045em; }
+    .status::before { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #cfdb9e; margin-right: 9px; box-shadow: 0 0 10px #bacb81; }
+    .controls { pointer-events: auto; display: flex; align-items: center; gap: 5px; padding: 6px; border-radius: 999px; background: #14252bed; border: 1px solid #c5d9bf24; box-shadow: 0 8px 40px #0003; }
+    button { appearance: none; border: 0; background: transparent; color: #d4dfd3; border-radius: 999px; padding: 13px 17px; font: 12px system-ui, sans-serif; cursor: pointer; min-height: 44px; }
+    button:hover { background: #ffffff0d; }
+    button:focus-visible { outline: 2px solid #d3dfb4; outline-offset: 3px; }
+    button.primary { background: #d3dfb4; color: #22372c; }
+    button.primary:hover { background: #e2edc8; }
+    button:disabled { opacity: .4; cursor: default; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    @media (max-width: 600px) {
+      header { top: 32px; }
+      h1 { margin-top: 18px; }
+      .description { font-size: 13px; max-width: 235px; }
+      footer { flex-direction: column; bottom: max(18px, env(safe-area-inset-bottom)); gap: 14px; }
+      button { padding: 12px 15px; }
+    }
+    @media (max-height: 500px) and (min-width: 601px) {
+      header { top: 22px; }
+      h1 { font-size: 36px; margin: 12px 0; }
+      .description { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="garden" tabindex="0" role="img" aria-label="An interactive night garden. Click to plant a flower, or focus this garden and press Enter or Space. The buttons below offer the same controls."></canvas>
+  <header>
+    <div class="eyebrow">A small, unhurried experiment</div>
+    <h1>A little room<br>to grow.</h1>
+    <p class="description">Touch the night to plant a flower.<br>Nothing to finish. Nothing to get right.</p>
+  </header>
+  <footer>
+    <span class="status" id="status" aria-hidden="true">Your own little patch of quiet</span>
+    <div class="controls" role="group" aria-label="Garden controls">
+      <button class="primary" id="plant">Plant a flower <span aria-hidden="true">↗</span></button>
+      <button id="undo">Undo</button>
+      <button id="save">Keep a picture</button>
+    </div>
+  </footer>
+  <p class="sr-only" id="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
+  <script>
+    'use strict';
+    const canvas = document.getElementById('garden');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+    const announcement = document.getElementById('announcement');
+    const plantButton = document.getElementById('plant');
+    const undoButton = document.getElementById('undo');
+    const saveButton = document.getElementById('save');
+    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const colors = ['#e8c7b8', '#d7dca9', '#b7cddd', '#c8b9d8', '#ead8a9'];
+    const flowers = [];
+    const stars = Array.from({ length: 95 }, () => ({ x: Math.random(), y: Math.random() * .75, r: Math.random() * 1.1 + .3, phase: Math.random() * 7 }));
+    const grasses = Array.from({ length: 135 }, () => ({ x: Math.random(), y: .80 + Math.random() * .2, h: 12 + Math.random() * 55, lean: Math.random() * 25 - 12 }));
+    const fireflies = Array.from({ length: 17 }, () => ({ x: Math.random(), y: .42 + Math.random() * .46, phase: Math.random() * 7 }));
+    const limit = 120;
+    let width = 0, height = 0, frame = null;
+    let lastTime = 0;
+
+    function circle(x, y, radius, fill) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+
+    function glow(x, y, radius, color) {
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      gradient.addColorStop(0, color);
+      gradient.addColorStop(1, 'transparent');
+      circle(x, y, radius, gradient);
+    }
+
+    function updateStatus(message) {
+      const count = flowers.length;
+      status.textContent = `${count} ${count === 1 ? 'flower' : 'flowers'} · no two quite alike`;
+      announcement.textContent = message || `${count} ${count === 1 ? 'flower' : 'flowers'} in your garden.`;
+      undoButton.disabled = count === 0;
+      plantButton.disabled = count >= limit;
+    }
+
+    function plant(x = .1 + Math.random() * .8, y = .46 + Math.random() * .31, instant = false) {
+      if (flowers.length >= limit) {
+        announcement.textContent = 'Your garden is full. Undo a flower to make room for another.';
+        return;
+      }
+      flowers.push({
+        x: Math.max(.025, Math.min(.975, x)),
+        y: Math.max(.35, Math.min(.83, y)),
+        ground: .89 + Math.random() * .07,
+        size: 8 + Math.random() * 11,
+        petals: 5 + Math.floor(Math.random() * 4),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        angle: Math.random() * Math.PI,
+        phase: Math.random() * Math.PI * 2,
+        bend: Math.random() * 36 - 18,
+        born: instant ? -10000 : performance.now()
+      });
+      updateStatus();
+      requestDraw();
+    }
+
+    function drawFlower(f, time, still) {
+      const progress = still ? 1 : Math.min(1, Math.max(0, (time - f.born) / 1200));
+      const growth = 1 - Math.pow(1 - progress, 3);
+      if (growth < .001) return;
+      const scale = Math.min(1, width / 650 + .35, height / 650 + .35);
+      const baseX = f.x * width;
+      const baseY = f.ground * height;
+      const sway = still ? 0 : Math.sin(time * .0007 + f.phase) * 5;
+      const tipX = baseX + (f.bend + sway) * growth;
+      const tipY = baseY + (f.y * height - baseY) * growth;
+      const stem = baseY - tipY;
+      ctx.strokeStyle = '#6e947d';
+      ctx.lineWidth = 1.2 * scale;
+      ctx.beginPath();
+      ctx.moveTo(baseX, baseY);
+      ctx.bezierCurveTo(baseX - f.bend * .5, baseY - stem * .35, tipX, tipY + stem * .3, tipX, tipY);
+      ctx.stroke();
+      for (let i = 0; i < 2; i++) {
+        const side = i === 0 ? -1 : 1;
+        const leafY = baseY - stem * (.27 + i * .23);
+        const leafX = baseX + (tipX - baseX) * (.27 + i * .23);
+        const length = (17 + f.size * .6) * growth * scale;
+        ctx.fillStyle = i === 0 ? '#496e60' : '#668572';
+        ctx.beginPath();
+        ctx.moveTo(leafX, leafY);
+        ctx.quadraticCurveTo(leafX + side * length * 1.2, leafY + 2, leafX + side * length, leafY - length * .72);
+        ctx.quadraticCurveTo(leafX + side * length * .15, leafY - length * .8, leafX, leafY);
+        ctx.fill();
+      }
+      const bloom = f.size * scale * Math.min(1, growth * growth * 1.15);
+      glow(tipX, tipY, bloom * 3, `${f.color}12`);
+      ctx.save();
+      ctx.translate(tipX, tipY);
+      ctx.rotate(f.angle + sway * .01);
+      for (let i = 0; i < f.petals; i++) {
+        ctx.rotate(Math.PI * 2 / f.petals);
+        ctx.beginPath();
+        ctx.ellipse(0, -bloom * .64, bloom * .37, bloom * .70, 0, 0, Math.PI * 2);
+        ctx.fillStyle = f.color;
+        ctx.globalAlpha = .77 + (i % 3) * .08;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      circle(0, 0, bloom * .28, '#f4e7b5');
+      circle(-bloom * .06, -bloom * .07, bloom * .10, '#fff6d5');
+      ctx.restore();
+    }
+
+    function draw(time, still = motion.matches) {
+      lastTime = time;
+      ctx.clearRect(0, 0, width, height);
+      const sky = ctx.createLinearGradient(0, 0, 0, height);
+      sky.addColorStop(0, '#101e24');
+      sky.addColorStop(.6, '#193138');
+      sky.addColorStop(1, '#233d35');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, width, height);
+      glow(width * .73, height * .67, width * .65, '#51736618');
+      for (const star of stars) {
+        const shimmer = still ? .5 : .5 + Math.sin(time * .0004 + star.phase) * .17;
+        ctx.globalAlpha = shimmer;
+        circle(star.x * width, star.y * height, star.r, '#d9e7d5');
+      }
+      ctx.globalAlpha = 1;
+      const moonX = width * .81, moonY = height * .18;
+      const moonSize = Math.min(26, width * .033);
+      glow(moonX, moonY, moonSize * 5, '#e5e4be10');
+      circle(moonX, moonY, moonSize, '#dddcc0');
+      circle(moonX + moonSize * .40, moonY - moonSize * .20, moonSize * .88, '#132329');
+
+      // Paint the back of the garden first, so nearby stems overlap naturally.
+      for (const grass of grasses) {
+        const x = grass.x * width, y = grass.y * height;
+        const wave = still ? 0 : Math.sin(time * .0006 + grass.x * 12) * 3;
+        ctx.strokeStyle = '#75967b24';
+        ctx.lineWidth = .8;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.quadraticCurveTo(x, y - grass.h * .6, x + grass.lean + wave, y - grass.h);
+        ctx.stroke();
+      }
+      [...flowers].sort((a, b) => a.ground - b.ground).forEach(f => drawFlower(f, time, still));
+      const foreground = ctx.createLinearGradient(0, height * .80, 0, height);
+      foreground.addColorStop(0, '#101e2400');
+      foreground.addColorStop(1, '#101e24e8');
+      ctx.fillStyle = foreground;
+      ctx.fillRect(0, height * .80, width, height * .20);
+      for (const fly of fireflies) {
+        const t = still ? 0 : time * .0003;
+        const x = fly.x * width + Math.sin(t + fly.phase) * 16;
+        const y = fly.y * height + Math.cos(t * .7 + fly.phase) * 12;
+        const alpha = still ? .6 : .25 + (Math.sin(t * 3 + fly.phase) + 1) * .3;
+        ctx.globalAlpha = alpha;
+        glow(x, y, 13, '#e6e8a829');
+        circle(x, y, 1.15, '#e6e8af');
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function tick(time) {
+      frame = null;
+      if (document.hidden) return;
+      draw(time);
+      if (!motion.matches) frame = requestAnimationFrame(tick);
+    }
+
+    function requestDraw() {
+      if (frame === null && !document.hidden) frame = requestAnimationFrame(tick);
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      const ratio = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      requestDraw();
+    }
+
+    canvas.addEventListener('click', event => {
+      const rect = canvas.getBoundingClientRect();
+      plant((event.clientX - rect.left) / width, (event.clientY - rect.top) / height);
+    });
+    canvas.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (!event.repeat) plant();
+      }
+    });
+    plantButton.addEventListener('click', () => plant());
+    undoButton.addEventListener('click', () => {
+      flowers.pop();
+      updateStatus();
+      requestDraw();
+    });
+    saveButton.addEventListener('click', () => {
+      // Finish growing new flowers before taking the picture, even mid-animation.
+      draw(performance.now(), true);
+      canvas.toBlob(blob => {
+        if (!blob) {
+          announcement.textContent = 'The picture could not be saved. Please try again.';
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'my-night-garden.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        announcement.textContent = 'Your garden picture is ready to download.';
+      }, 'image/png');
+      requestDraw();
+    });
+    window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && frame !== null) {
+        cancelAnimationFrame(frame);
+        frame = null;
+      } else {
+        requestDraw();
+      }
+    });
+    motion.addEventListener('change', requestDraw);
+    resize();
+    for (const [x, y] of [[.13, .70], [.25, .59], [.37, .75], [.49, .65], [.61, .52], [.73, .69], [.86, .59]]) {
+      plant(x, y, true);
+    }
+    announcement.textContent = 'Seven flowers are waiting. Plant something of your own.';
+  </script>
+</body>
+</html>

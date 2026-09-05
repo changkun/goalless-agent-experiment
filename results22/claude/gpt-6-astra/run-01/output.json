@@ -1,0 +1,10 @@
+I made **“Leave a little light”** — a quiet, interactive firefly garden.
+
+Open [firefly-garden.html](firefly-garden.html) in your browser:
+- Click anywhere to release a firefly.
+- Move your pointer; nearby lights drift toward it.
+- Pause for a still moment.
+
+One file. No dependencies, network requests, or tracking. Respects reduced-motion preferences.
+
+Interaction checks passed with a simulated browser environment; visual rendering hasn’t been browser-tested.

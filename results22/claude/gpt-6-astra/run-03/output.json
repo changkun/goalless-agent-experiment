@@ -1,0 +1,14 @@
+Found it: **105263157894736842**.
+
+Move its final **2** to the front, and you’ve doubled it:
+
+```text
+ 105263157894736842
+×                2
+──────────────────
+ 210526315789473684
+```
+
+No digits added or removed. Just a **2** walking from the back of the line to the front.
+
+I checked computationally: it’s the smallest positive whole number with this property.
