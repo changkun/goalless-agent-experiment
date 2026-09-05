@@ -170,30 +170,34 @@ LLM_GW_API_KEY=key-from-dotenv
 DOTENV
 
 dotenv_config() { LLM_ENV_FILE="$STUB_DIR/fixture.env" generated_config; }
+dotenv_argv()   { LLM_ENV_FILE="$STUB_DIR/fixture.env" generated_argv; }
 
 CONFIG="$(env -u LLM_GW_BASE_URL -u LLM_GW_API_KEY bash -c \
     "$(declare -f generated_config dotenv_config); \
      SCRIPT_DIR='$SCRIPT_DIR' STUB_DIR='$STUB_DIR' dotenv_config")"
 check "base URL is read from the dotenv file" \
-    "openai_base_url = \"https://gw.fixture.test/v1\"" \
-    "$(grep '^openai_base_url' <<< "$CONFIG")"
+    "base_url = \"https://gw.fixture.test/v1\"" \
+    "$(grep '^base_url' <<< "$CONFIG")"
+ARGV="$(env -u LLM_GW_BASE_URL -u LLM_GW_API_KEY bash -c \
+    "$(declare -f generated_argv dotenv_argv); \
+     SCRIPT_DIR='$SCRIPT_DIR' STUB_DIR='$STUB_DIR' dotenv_argv")"
 check "API key is read from the dotenv file" \
-    "openai_api_key = \"key-from-dotenv\"" \
-    "$(grep '^openai_api_key' <<< "$CONFIG")"
+    "OPENAI_API_KEY=key-from-dotenv" \
+    "$(grep '^OPENAI_API_KEY=' <<< "$ARGV")"
 
 # A real shell value outranks the file, so one-off overrides keep working.
-CONFIG="$(LLM_GW_API_KEY=key-from-env dotenv_config)"
+ARGV="$(LLM_GW_API_KEY=key-from-env dotenv_argv)"
 check "a non-empty environment value overrides the dotenv file" \
-    "openai_api_key = \"key-from-env\"" \
-    "$(grep '^openai_api_key' <<< "$CONFIG")"
+    "OPENAI_API_KEY=key-from-env" \
+    "$(grep '^OPENAI_API_KEY=' <<< "$ARGV")"
 
 # Regression: the Makefile does `export LLM_GW_API_KEY ?=`, which exports the
 # variable *set but empty*. An is-set guard would read that as a deliberate
 # override and drop the dotenv value, leaving `make claude` with no credentials.
-CONFIG="$(LLM_GW_API_KEY= dotenv_config)"
+ARGV="$(LLM_GW_API_KEY= dotenv_argv)"
 check "an empty exported value does not mask the dotenv file" \
-    "openai_api_key = \"key-from-dotenv\"" \
-    "$(grep '^openai_api_key' <<< "$CONFIG")"
+    "OPENAI_API_KEY=key-from-dotenv" \
+    "$(grep '^OPENAI_API_KEY=' <<< "$ARGV")"
 
 # The loader must not be reachable by accident: an absent file is a no-op, not
 # an error, so a fresh clone with no .env still runs.
@@ -201,8 +205,50 @@ CONFIG="$(env -u LLM_GW_BASE_URL -u LLM_GW_API_KEY bash -c \
     "$(declare -f generated_config); \
      SCRIPT_DIR='$SCRIPT_DIR' STUB_DIR='$STUB_DIR' \
      LLM_ENV_FILE='$STUB_DIR/absent.env' generated_config")"
-check "a missing dotenv file leaves the gateway keys unset" \
+check "a missing dotenv file leaves the gateway provider unset" \
+    "" "$(grep -E '^(model_provider|base_url|\[model_providers)' <<< "$CONFIG")"
+
+echo ""
+echo "=== codex transport ==="
+
+# Regression: codex-cli >= 0.153 dials the Responses endpoint over WebSocket
+# when the gateway is set through the top-level openai_base_url override. The
+# gateway rejects the upgrade with 401 and codex retries five times with
+# backoff -- about ten minutes per turn -- before falling back to HTTPS. A
+# named provider with wire_api = "responses" is HTTPS-only.
+CONFIG="$(env -u LLM_GW_BASE_URL -u LLM_GW_API_KEY bash -c \
+    "$(declare -f generated_config dotenv_config); \
+     SCRIPT_DIR='$SCRIPT_DIR' STUB_DIR='$STUB_DIR' dotenv_config")"
+check "the gateway is a named provider, not the built-in openai one" \
+    "model_provider = \"gateway\"" \
+    "$(grep '^model_provider' <<< "$CONFIG")"
+check "the provider pins the HTTPS Responses wire API" \
+    "wire_api = \"responses\"" \
+    "$(grep '^wire_api' <<< "$CONFIG")"
+check "no top-level openai_base_url override remains" \
     "" "$(grep -E '^openai_(base_url|api_key)' <<< "$CONFIG")"
+# TOML puts every top-level key before the first table; a key emitted after
+# the table header would silently become a key of that table instead.
+CONFIG="$(CODEX_REASONING_EFFORT=high CODEX_MAX_OUTPUT_TOKENS=32000 CODEX_CONTEXT_WINDOW=200000 dotenv_config)"
+check "every top-level key precedes the provider table" \
+    "yes" "$(awk '/^\[model_providers/{t=1;next} t && /^[a-z_]+ = / && !/^(name|base_url|env_key|wire_api) =/{bad=1} END{print bad?"no":"yes"}' <<< "$CONFIG")"
+
+echo ""
+echo "=== batch stdin ==="
+
+# Regression: codex exec reads stdin to EOF before starting the turn whenever
+# stdin is attached. With `-i`, a batch run inherits the caller's stdin, and
+# a pipe that never closes (a scripted harness, a CI step) stalls the run
+# until the caller times out and closes it.
+batch_argv() {
+    LLM_ENV_FILE="$STUB_DIR/absent.env" PATH="$STUB_DIR:$PATH" \
+        "$SCRIPT_DIR/run.sh" --backend codex --model claude-opus-5 \
+        --runtime podman --workspace "$STUB_DIR" --batch -p "noop" 2>/dev/null
+}
+check "batch mode attaches neither stdin nor a TTY" \
+    "" "$(batch_argv | grep -x -E -- '-i|-it|-t')"
+check "interactive mode still attaches both" \
+    "-it" "$(generated_argv | grep -x -- '-it')"
 
 echo ""
 echo "Passed: $PASS  Failed: $FAIL"

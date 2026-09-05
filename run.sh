@@ -173,8 +173,12 @@ esac
 WORKSPACE="$(cd "$WORKSPACE" && pwd)"
 
 # --- Build docker run command ---
+# Batch mode attaches neither a TTY nor stdin. codex exec reads stdin to the
+# end whenever it is attached ("Reading additional input from stdin...") and
+# only then starts the turn, so an inherited pipe that never closes stalls the
+# run until the caller gives up. Nothing is ever fed on stdin in batch mode.
 if [[ "$BATCH" == "true" ]]; then
-    RUN_ARGS=("$RUNTIME" run --rm -i)
+    RUN_ARGS=("$RUNTIME" run --rm)
 else
     RUN_ARGS=("$RUNTIME" run --rm -it)
 fi
@@ -254,14 +258,18 @@ case "$BACKEND" in
         CODEX_HOME_DIR=$(mktemp -d)
         AGENT_HOME_DIR="$CODEX_HOME_DIR"
         chmod 777 "$CODEX_HOME_DIR"
+        # The gateway is declared as a named provider rather than through the
+        # top-level openai_base_url override. Since codex-cli 0.153 the built-in
+        # "openai" provider dials the Responses endpoint over WebSocket first;
+        # the gateway answers that upgrade with 401, and codex retries it five
+        # times with backoff (about ten minutes) before falling back to HTTPS.
+        # A named provider with wire_api = "responses" speaks HTTPS only, which
+        # is the transport every earlier codex version used. The key travels
+        # as OPENAI_API_KEY (env_key) rather than an openai_api_key line.
         CODEX_TOML=""
         if [[ -n "$LLM_GW_BASE_URL" ]]; then
-            CODEX_TOML+="openai_base_url = \"${LLM_GW_BASE_URL}/v1\""$'\n'
+            CODEX_TOML+="model_provider = \"gateway\""$'\n'
         fi
-        if [[ -n "$LLM_GW_API_KEY" ]]; then
-            CODEX_TOML+="openai_api_key = \"${LLM_GW_API_KEY}\""$'\n'
-        fi
-        # Disable web search to avoid Vertex AI org policy violations
         CODEX_TOML+="web_search = \"disabled\""$'\n'
         # Pro reasoning models reject the codex default effort 'low'
         # (gpt-5.5-pro supports only medium/high/xhigh) — pin to high.
@@ -277,6 +285,14 @@ case "$BACKEND" in
         fi
         if [[ -n "$CODEX_CONTEXT_WINDOW" ]]; then
             CODEX_TOML+="model_context_window = $CODEX_CONTEXT_WINDOW"$'\n'
+        fi
+        # TOML: the provider table has to come after every top-level key.
+        if [[ -n "$LLM_GW_BASE_URL" ]]; then
+            CODEX_TOML+="[model_providers.gateway]"$'\n'
+            CODEX_TOML+="name = \"gateway\""$'\n'
+            CODEX_TOML+="base_url = \"${LLM_GW_BASE_URL}/v1\""$'\n'
+            CODEX_TOML+="env_key = \"OPENAI_API_KEY\""$'\n'
+            CODEX_TOML+="wire_api = \"responses\""$'\n'
         fi
         if [[ -n "$CODEX_TOML" ]]; then
             printf '%s' "$CODEX_TOML" > "$CODEX_HOME_DIR/config.toml"
