@@ -1,0 +1,16 @@
+I built a small generative art tool in the empty workspace: a Clifford strange attractor renderer in pure Python.
+
+**What it does.** The script iterates the Clifford map three million times, accumulates hit density per pixel, and writes a 900x900 PNG. It encodes the PNG by hand with zlib and struct, so it has no dependencies beyond the standard library. Log-scaled density drives a navy-to-pale-blue color ramp, which brings out the fine sheet structure of the attractor.
+
+**Files in `/workspace`:**
+- `attractor.py` is the renderer. Parameters come from the `CLIFFORD` env var as four comma-separated floats, and the output path and iteration count are positional arguments.
+- `attractor.png` uses the default parameters and produced a two-lobed, wing-like form.
+- `attractor2.png` uses a second parameter set and produced a spiraling shell shape.
+
+Each render takes about 1.4 seconds. To try your own parameters:
+
+```
+CLIFFORD=-1.7,1.3,-0.1,-1.2 python3 attractor.py mine.png 5000000
+```
+
+A natural next step would be a sweep script that renders a grid of parameter combinations, or a hue channel driven by the local direction of travel rather than density alone.

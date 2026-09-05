@@ -1,0 +1,17 @@
+I built a dependency-free L-system fractal renderer and used it to draw seven classic curves.
+
+**What's in `/workspace`:**
+
+- `lsystem.py` handles everything in one file. It expands the rewrite rules, interprets the string as turtle graphics with a branch stack, draws anti-aliased lines with Xiaolin Wu's algorithm at 3x resolution, box-filters down, and writes the PNG by hand with zlib and CRC chunks. Each path fades from blue at its start to red at its end, which shows the drawing order.
+- `out/` holds the renders: dragon curve, Hilbert curve, Koch snowflake, Sierpinski arrowhead, a fractal plant, the Lévy C curve, and the Gosper curve.
+
+**Verified.** All seven images decode correctly, and the four I inspected (plant, dragon, Gosper, Hilbert) look right. The full batch takes about nine seconds in pure Python.
+
+**To try it yourself:**
+
+```
+python3 lsystem.py              # render everything
+python3 lsystem.py plant 7      # one system at a custom depth
+```
+
+Adding a new fractal is a one-line entry in the `SYSTEMS` table at the top of the file.

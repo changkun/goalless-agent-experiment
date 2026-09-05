@@ -1,0 +1,8 @@
+>>> Running codex sandbox
+>>> Image:     sandbox-harness:pinned-cc2.1.258-cx0.153.4
+>>> Endpoint:  https://lux.latere.ai/compat/openai
+>>> API Key:   lux_YCRX...
+>>> Model:     claude-fable-5-1
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results23/codex/claude-fable-5-1/run-02/workspace
+
+>>> Transcript: results23/codex/claude-fable-5-1/run-02/transcript.jsonl

@@ -1,0 +1,20 @@
+Worms now renders as sparse, moving segments and dots rather than a dead blank, which is the expected look for that regime. All five presets are done and consistent between the code and README.
+
+I built a self-contained Gray-Scott reaction-diffusion simulator in `/workspace/reaction-diffusion/`. It is a single C file with no dependencies beyond libm, and it writes PNG images using a hand-rolled encoder with its own CRC-32, Adler-32, and stored-deflate zlib stream.
+
+Build and run:
+
+```
+gcc -O2 -Wall -o rd rd.c -lm
+./rd [preset] [steps] [out.png]      # default: coral 10000 rd.png
+```
+
+What is in the directory:
+
+- **rd.c** is the whole project. A 512x512 toroidal grid, 9-point Laplacian, double-buffered floats, five presets, and the PNG writer.
+- **README.md** documents the model, the parameters, and the preset table.
+- **coral.png, mitosis.png, maze.png, spots.png, worms.png** are 10000-step renders of each preset, all visually confirmed. Coral and maze give labyrinths, mitosis gives dividing spots in clusters, spots gives a dense hexagonal lattice, worms gives sparse segments and dots.
+
+Two fixes happened along the way. The initial diffusion rates were far too low for a normalized Laplacian at dt=1, so nothing grew until I switched to Du=1.0 and Dv=0.5. The original worms parameters (F=0.078, k=0.061) sit outside the pattern-forming region and the chemical V died to zero, so I replaced them with F=0.058, k=0.065 in both the source and the README.
+
+One caveat: the PNG writer uses uncompressed deflate blocks, so every image is about 787 KB regardless of content. Adding real compression would be the natural next improvement, along with a wider parameter sweep to explore Pearson's other pattern classes.

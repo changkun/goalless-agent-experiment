@@ -1,0 +1,16 @@
+I built a small terminal Mandelbrot renderer in Go at `/workspace/braillebrot`, with tests passing and a README.
+
+**What it does.** It draws the Mandelbrot set using Unicode braille characters, so each terminal cell holds a 2×4 grid of dots and an 80×24 window gives 160×96 pixels. Points outside the set light a dot and are colored by smooth escape time through a cyclic sine palette in 24-bit ANSI color. The set itself is left dark, which reads as a silhouette. The main cardioid and period-2 bulb are detected analytically so those interior regions skip iteration entirely.
+
+**Files.**
+- `main.go` holds the escape-time math, the braille packing, and the flag-driven CLI for size, center, zoom, iteration cap, and a no-color mode.
+- `main_test.go` covers interior and exterior points, monotonic smooth escape counts, distinct braille bit coverage, and the rendered grid's shape and content.
+- `README.md` documents the flags and lists four zoom targets worth trying, including seahorse valley and a mini-Mandelbrot.
+
+**Verified.** `go vet` and `go test` are clean. I rendered the full set, a seahorse valley zoom showing the filament structure, and the mini-Mandelbrot at -0.1592 -1.0317i, and all three produced the expected shapes.
+
+To try it:
+
+```sh
+cd /workspace/braillebrot && go build -o braillebrot . && ./braillebrot -x -0.745 -y 0.1 -scale 0.02 -iter 600
+```

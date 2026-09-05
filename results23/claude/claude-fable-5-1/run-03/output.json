@@ -1,0 +1,21 @@
+I built a small Lisp interpreter from scratch in the empty workspace, with tests and a demo, and everything passes.
+
+**What's in `/workspace/minilisp/`:**
+
+- `minilisp.py` is a single-file Scheme-flavoured interpreter with a reader, printer, lexical environments, closures, and a REPL. The evaluator is one loop that rewrites the current expression for anything in tail position, so tail-recursive loops run in constant stack.
+- `test_minilisp.py` holds 30 unit tests covering the reader, every special form, tail calls through `if`/`cond`/`let`/`and`/`or`, list primitives, error cases, and a few whole programs like quicksort and closure-based counters.
+- `demo.lisp` runs a prime sieve, a tail-recursive sum over 200,000 numbers, a closure-based bank account, and Church numeral addition.
+- `README.md` documents usage, supported features, and the design.
+
+**Bugs I hit and fixed along the way.** The first test run failed because the empty-list singleton wasn't iterable, and because the reader had no dotted-pair syntax, so `(a . rest)` parsed as three plain symbols. I fixed both, made `display` concatenate its arguments, and reran.
+
+**Verified.** All 30 tests pass, the demo produces correct output, and the REPL handles multi-line forms and recovers from errors. Run it with:
+
+```
+cd /workspace/minilisp
+python3 -m unittest test_minilisp
+python3 minilisp.py demo.lisp
+python3 minilisp.py
+```
+
+Natural next steps if you want to extend it would be `define-macro` or `quasiquote`, string ports, or a `do` loop.

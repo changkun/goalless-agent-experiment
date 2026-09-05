@@ -24,3 +24,5 @@ venv/
 # The Go/Python sources that produced them are committed.
 results*/**/workspace/**/snake
 results*/**/workspace/**/gol
+results*/**/workspace/**/rd
+results23/claude/claude-fable-5-1/run-05/workspace/braillebrot/braillebrot
