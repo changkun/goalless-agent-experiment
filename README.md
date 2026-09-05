@@ -3,8 +3,8 @@
 What do AI coding agents build when nobody tells them what to build?
 
 This repository runs the same open-ended prompt at a model inside a sandboxed
-coding harness, over and over, and records what it chose to make. **22
-experiments, 35 models, 745 runs, two harnesses.** The interesting result is that
+coding harness, over and over, and records what it chose to make. **23
+experiments, 36 models, 755 runs, two harnesses.** The interesting result is that
 the choices are not random: most models have a **stable, model-specific
 attractor** they return to run after run, and that attractor usually survives
 being moved to a different scaffold.
@@ -39,7 +39,8 @@ check the harness plumbing without touching a container.
   Conway's **Game of Life** is the study's most durable attractor, reached 5/5
   by opus-4.6 and sonnet-5 and 4/5 by deepseek-v4-pro, across three different
   labs. The attractor moves with the model *generation*: `claude-opus-5` has
-  dropped it entirely for Wave Function Collapse.
+  dropped it entirely for Wave Function Collapse, and `claude-fable-5-1`
+  reaches it 3/5 on codex where `claude-fable-5` reached it 1/5 (Exp21/23).
 - **Medium is usually a model trait too, not a scaffold artifact.** Claude
   models stay in the terminal on *both* harnesses; GPT models go to the browser
   on both. `kimi-k3` is the one counterexample — terminal 4/5 on Claude Code,
@@ -94,7 +95,7 @@ predecessor. Full per-run detail, harness pins, and caveats live in each
 | 20 | `prompt5` | **N=5 → N=50**, ×3 cells (adds a codex effort arm) | **The harness does not move the attractor** (GoL 22/14/24%, all n.s.); reasoning effort changes nothing; the model declines in 2/50 | [results20](results20/RESULTS.md) |
 | 21 | `prompt5` | claude-fable-5 (run in place of the intended fable-5-1, see Exp23), both harnesses, pinned CC 2.1.258 / codex 0.153.4; **fast mode off**, with the fast-mode cell kept | Terminal on both, but **form flips**: image files 9/10 on Claude Code, terminal animation 5/5 on codex; codex arm complete, no truncation. Fast mode removes the long tail (a 735s C ray tracer) and nothing else | [results21](results21/RESULTS.md) |
 | 22 | `prompt5` | gpt-6-astra, same image and layout (Claude Code arm after Lux v0.2.200) | **Browser 5/5, night-sky attractor 3/5** on codex at verified high effort; on Claude Code **2/5 build** (browser gardens), 3/5 answer in prose — the Exp14 GPT-on-Claude-Code split, one generation on | [results22](results22/RESULTS.md) |
-| 23 | `prompt5` | claude-fable-5-1, the model Exp21 was meant to run, same image and layout, fast mode off | *in progress* | [results23](results23/RESULTS.md) |
+| 23 | `prompt5` | claude-fable-5-1, the model Exp21 was meant to run, same image and layout, fast mode off | Art plus builder: image files 3/5 with **tests 2/5 and an 877-LOC Lisp interpreter** on Claude Code; **Game of Life 3/5 and tests 4/5 on codex**. One point release moves Fable toward opus-5 | [results23](results23/RESULTS.md) |
 
 ⚠️ Exp18's codex arm is a partial cell (N=2 clean of 5) — a gateway-injected
 4096-token cap truncated the rest. See its RESULTS for the mechanism. Exp21

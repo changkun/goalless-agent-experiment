@@ -1,6 +1,6 @@
 # Findings
 
-Cross-experiment synthesis over **22 experiments, 35 models, 745 runs, two
+Cross-experiment synthesis over **23 experiments, 36 models, 755 runs, two
 harnesses**. Each claim traces to a numbered experiment; the per-experiment
 detail lives in that experiment's `resultsN/RESULTS.md`.
 
@@ -14,11 +14,12 @@ Ordered by how well supported each claim is.
 
 1. **Under a volitional prompt, models return to a model-specific attractor.**
    Conway's Game of Life is the most durable one: 5/5 for opus-4.6 (E7/E8/E15),
-   5/5 for sonnet-5 (E9), 4/5 for deepseek-v4-pro (E12), and 22% of 50 runs for
-   deepseek-v4-flash (E20) — across three labs. It is a *frequency*, not a law:
+   5/5 for sonnet-5 (E9), 4/5 for deepseek-v4-pro (E12), 22% of 50 runs for
+   deepseek-v4-flash (E20), and 3/5 for claude-fable-5-1 on codex (E23) —
+   across three labs. It is a *frequency*, not a law:
    the N=50 measurement puts it near one run in five, where the N=5 cells that
    found it 4/5 or 5/5 were sampling the high end.
-2. **Everything is greenfield.** In 745 runs no model has extended or modified
+2. **Everything is greenfield.** In 755 runs no model has extended or modified
    existing code. Given a non-empty workspace it still starts something new.
 3. **Prompt framing sets the target space.** A bare imperative ("Build
    something") moves output to the browser and halves the code (E6); volitional
@@ -80,7 +81,7 @@ particular rests on the same 5-runs-per-cell footing and has not been re-tested.
 Detail for Exp12 onward lives in each `resultsN/RESULTS.md`; the summaries below
 are the cross-experiment takeaways only.
 
-### Exp12–22 — the harness-variable era
+### Exp12–23 — the harness-variable era
 
 - **Exp12/13** — six open-weights models across both harnesses. Model signatures
   (the GoL attractor, kimi packaging, minimax diversity) replicate on both. The
@@ -121,8 +122,12 @@ are the cross-experiment takeaways only.
   Code (after Lux v0.2.200 shipped the routing fix for `gpt-6*` names) it
   builds 2/5, both browser gardens, and answers in prose 3/5 — the Exp14
   build-versus-answer split, one generation on.
-- **Exp23** — `claude-fable-5-1`, the current Fable, in the Exp21 layout. In
-  progress.
+- **Exp23** — `claude-fable-5-1`, the current Fable, in the Exp21 layout. The
+  art register survives the point release (PNG-rendered reaction-diffusion,
+  Clifford attractor, L-systems) and a builder register arrives: an 877-LOC
+  Lisp interpreter with tests, a tested Go Mandelbrot, READMEs 3/5. On codex
+  the Game of Life attractor returns at 3/5 with tests 4/5. Terminal on both,
+  image files only on Claude Code — the Exp21 form effect again.
 
 ### Exp1–11 — the prompt-and-model era
 
@@ -297,6 +302,7 @@ Each model shows a consistent thematic identity across experiments (topic analys
 | **opus-4.7** | The emergence explorer. Boids flocking, reaction-diffusion, procedural dungeons, maze generation. Drawn to systems where structure emerges from simple spatial rules. Under "what do you want" framing on harness 2.1.112 (Exp7): Mandelbrot 5/5 — but on 2.1.154 (Exp8) that fixation breaks into 5 distinct topics. Its preference is the most harness-fragile of the Opus line. | Boids (Exp5), Mandelbrot (Exp7, harness-fragile) | Medium (tests in Exp4) |
 | **opus-4.8** | The elaborating generalist. Under the volitional prompt (Exp8) it spreads across the rule-based-visual-artifact family (mazes, Mandelbrot, flow-field generative art) without committing to one attractor, and writes ~4× the code of 4.6/4.7 — the only Opus model to add READMEs, a self-validation harness, and a hand-rolled PNG encoder with rendered previews. | Partial (maze/Mandelbrot cluster) | Medium–High (READMEs, self-tests) |
 | **fable-5** † | The generative-art renderer. Under the volitional prompt (Exp8, on harness 2.1.170) it makes visual art that *renders to image files* — flow fields, a fractal nightscape, a from-scratch ray tracer, a recursive garden — emitting PNG/SVG in 4/5 runs (two with hand-rolled PNG encoders, no PIL). Exp21 replicates this on Claude Code 2.1.258 at 9/10 across fast mode on and off (flow field ×2, a nightscape, a C ray tracer with its own PNG encoder, an invented sky, star charts, illustrated fables, a Clifford attractor twice) and adds the codex arm, where the same model draws **live terminal animations 5/5** (aquarium, fireworks, boids, maze, one Game of Life) and writes no image at all — terminal on both, form flipped. ~178 LOC (Exp8), 191 / 156 / 150 on the Exp21 cells. †Exp8 ran on harness 2.1.170 / image v0.0.13, not the Opus 2.1.154 stack. | Partial (flow-field / Clifford clusters) | Medium (rendered output, 1/5 README) |
+| **fable-5-1** | The artist who started shipping. Under the volitional prompt with fast mode off (Exp23) it keeps the Fable art — Gray-Scott reaction-diffusion in C, a Clifford attractor, L-system fractals, each rendered through a hand-rolled PNG encoder — and adds what fable-5 never did: a Scheme interpreter with 242 lines of tests (877 LOC), a tested Go braille Mandelbrot, READMEs in 3/5. On codex it converges on Game of Life 3/5 with tests 4/5, the family attractor its predecessor reached 1/5. | Partial on Claude Code; **GoL 3/5 on codex** | Medium–High (tests 2/5 → 4/5 by harness, READMEs 3/5) |
 | **opus-4.5** | The personal tools craftsman. Habit trackers, snippet managers, pomodoro timers — consistent across error and successful runs alike. | Habit trackers | Medium (READMEs, config) |
 | **haiku-4.5** | The diligent engineer. Task managers every time, but ships them with READMEs, tests, config, multi-file structure. Highest engineering maturity of any model. Proposed without implementing in Exp2 (4/5), fully implemented in Exp3 (5/5). | Task managers | High (tests, READMEs, config) |
 | **gpt-5-mini** | The disciplined shipper. Small but complete: tests, CI, pyproject.toml every time. Only productive GPT model on claude backend. | None | Highest (tests + CI always) |
