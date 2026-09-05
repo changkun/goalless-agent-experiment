@@ -1,6 +1,6 @@
 # Findings
 
-Cross-experiment synthesis over **20 experiments, 34 models, 725 runs, two
+Cross-experiment synthesis over **22 experiments, 35 models, 740 runs, two
 harnesses**. Each claim traces to a numbered experiment; the per-experiment
 detail lives in that experiment's `resultsN/RESULTS.md`.
 
@@ -18,7 +18,7 @@ Ordered by how well supported each claim is.
    deepseek-v4-flash (E20) — across three labs. It is a *frequency*, not a law:
    the N=50 measurement puts it near one run in five, where the N=5 cells that
    found it 4/5 or 5/5 were sampling the high end.
-2. **Everything is greenfield.** In 725 runs no model has extended or modified
+2. **Everything is greenfield.** In 740 runs no model has extended or modified
    existing code. Given a non-empty workspace it still starts something new.
 3. **Prompt framing sets the target space.** A bare imperative ("Build
    something") moves output to the browser and halves the code (E6); volitional
@@ -34,7 +34,11 @@ Ordered by how well supported each claim is.
    browser on both (E10/11, E14); deepseek-v4-flash holds a stable
    ~12% browser rate on both at N=50 (E20). **`kimi-k3` is the counterexample** —
    terminal 4/5 on Claude Code, browser 4/5 on codex (E16/17) — so the scaffold
-   *can* move medium for some models.
+   *can* move medium for some models. Short of the medium, the scaffold can move
+   the artifact's *form* completely: `claude-fable-5` is terminal on both
+   harnesses but writes SVG/PNG files 5/5 on Claude Code and draws live terminal
+   animations 5/5 on codex (E21). `gpt-6-astra` stays in the browser 5/5 on codex
+   (E22), extending the GPT trait by a generation.
 
 **Provisional — measured once, or at N=5**
 
@@ -48,7 +52,8 @@ Ordered by how well supported each claim is.
    (E10, E11), so do not generalise this.
 8. **The scaffold changes elaboration, in a model-dependent direction.** Codex
    inflates it for Claude models (E13/15/17/18) and deflates it for deepseek
-   (E19: 254 vs 329; E20: ~320 vs 446).
+   (E19: 254 vs 329; E20: ~320 vs 446). It is flat for `claude-fable-5` (E21:
+   150 vs 156), so the direction is not even fixed within a lab.
 9. **Models occasionally decline outright.** 2/50 Claude Code runs for
    deepseek-v4-flash refused to pick a goal, and 0/100 codex runs did (E20);
    gpt-5.6-terra declined 4/5 on Claude Code (E14). A refusal register appears to
@@ -73,7 +78,7 @@ particular rests on the same 5-runs-per-cell footing and has not been re-tested.
 Detail for Exp12 onward lives in each `resultsN/RESULTS.md`; the summaries below
 are the cross-experiment takeaways only.
 
-### Exp12–20 — the harness-variable era
+### Exp12–22 — the harness-variable era
 
 - **Exp12/13** — six open-weights models across both harnesses. Model signatures
   (the GoL attractor, kimi packaging, minimax diversity) replicate on both. The
@@ -98,6 +103,16 @@ are the cross-experiment takeaways only.
   cross-harness contrast is superseded by Exp20.
 - **Exp20** — the same model at **N=50 x 3 cells (150 runs)**, adding a codex
   reasoning-effort arm. Establishes claims 6, 7 and 9 above, and corrects Exp19.
+- **Exp21** — `claude-fable-5` on both harnesses, pinned Claude Code 2.1.258 /
+  codex 0.153.4. Its Exp8 cell replicates (image-file art 5/5) and the codex arm
+  is the first complete one for a frontier Anthropic model. Terminal on both,
+  but the artifact form flips 5/5 against 5/5 (files vs live animation);
+  attractors weak and one-sided (Clifford 2/5 on Claude Code, GoL 1/5 on codex);
+  LOC flat across harnesses.
+- **Exp22** — `gpt-6-astra`, same image and layout, codex arm only so far. The
+  GPT signature survives the generation jump: browser 5/5 and a **night-sky
+  attractor 3/5** at verified high effort, 261 avg LOC, 0/5 tests. The Claude
+  Code arm waits on a gateway routing fix for `gpt-6*` names.
 
 ### Exp1–11 — the prompt-and-model era
 
@@ -271,7 +286,7 @@ Each model shows a consistent thematic identity across experiments (topic analys
 | **opus-4.6** | The canonical CS mind. Game of Life in 10/10 runs on harness 2.1.109 (incl. error runs with partial files). When it breaks free (Exp5): ray tracer, typing test — still classical, self-referential artifacts. Under "what do you want" framing (Exp7): Game of Life 5/5. | GoL (very strong) | Low |
 | **opus-4.7** | The emergence explorer. Boids flocking, reaction-diffusion, procedural dungeons, maze generation. Drawn to systems where structure emerges from simple spatial rules. Under "what do you want" framing on harness 2.1.112 (Exp7): Mandelbrot 5/5 — but on 2.1.154 (Exp8) that fixation breaks into 5 distinct topics. Its preference is the most harness-fragile of the Opus line. | Boids (Exp5), Mandelbrot (Exp7, harness-fragile) | Medium (tests in Exp4) |
 | **opus-4.8** | The elaborating generalist. Under the volitional prompt (Exp8) it spreads across the rule-based-visual-artifact family (mazes, Mandelbrot, flow-field generative art) without committing to one attractor, and writes ~4× the code of 4.6/4.7 — the only Opus model to add READMEs, a self-validation harness, and a hand-rolled PNG encoder with rendered previews. | Partial (maze/Mandelbrot cluster) | Medium–High (READMEs, self-tests) |
-| **fable-5** † | The generative-art renderer. Under the volitional prompt (Exp8, on harness 2.1.170) it makes visual art that *renders to image files* — flow fields, a fractal nightscape, a from-scratch ray tracer, a recursive garden — emitting PNG/SVG in 4/5 runs (two with hand-rolled PNG encoders, no PIL). Writes the most code in the study (~178 LOC) and is the first model to abandon terminal-only output by default. †harness 2.1.170 / image v0.0.13, not the Opus 2.1.154 stack. | Partial (flow-field cluster) | Medium (rendered output, 1/5 README) |
+| **fable-5** † | The generative-art renderer. Under the volitional prompt (Exp8, on harness 2.1.170) it makes visual art that *renders to image files* — flow fields, a fractal nightscape, a from-scratch ray tracer, a recursive garden — emitting PNG/SVG in 4/5 runs (two with hand-rolled PNG encoders, no PIL). Exp21 replicates this on Claude Code 2.1.258 at 5/5 (star charts, illustrated fables, a Clifford attractor twice, flow field again) and adds the codex arm, where the same model draws **live terminal animations 5/5** (aquarium, fireworks, boids, maze, one Game of Life) and writes no image at all — terminal on both, form flipped. ~178 LOC (Exp8), ~153 on both Exp21 arms. †Exp8 ran on harness 2.1.170 / image v0.0.13, not the Opus 2.1.154 stack. | Partial (flow-field / Clifford clusters) | Medium (rendered output, 1/5 README) |
 | **opus-4.5** | The personal tools craftsman. Habit trackers, snippet managers, pomodoro timers — consistent across error and successful runs alike. | Habit trackers | Medium (READMEs, config) |
 | **haiku-4.5** | The diligent engineer. Task managers every time, but ships them with READMEs, tests, config, multi-file structure. Highest engineering maturity of any model. Proposed without implementing in Exp2 (4/5), fully implemented in Exp3 (5/5). | Task managers | High (tests, READMEs, config) |
 | **gpt-5-mini** | The disciplined shipper. Small but complete: tests, CI, pyproject.toml every time. Only productive GPT model on claude backend. | None | Highest (tests + CI always) |
@@ -281,6 +296,7 @@ Each model shows a consistent thematic identity across experiments (topic analys
 | **gpt-5.6-sol** | The ambient generative artist. Under the volitional prompt at high effort (Exp11) it builds the same calm **breathing/night-sky browser page 5/5** — the first GPT-family fixation observed, and Claude-like in its consistency (generative stars, drifting lights, breathing orbs). ~172 avg LOC, no tests. | Breathing/night-sky pages (strong, Exp11) | Low (no tests, 2/5 READMEs) |
 | **gpt-5.6-terra** | The focus minimalist. Pomodoro-style focus timers and attention pages ("One Thing", contemplative clock) in tiny single files — the tersest GPT column (~73 avg LOC) — and the only gpt-5.6 variant to decline a run (welcome README instead). | Focus/intentionality (moderate, Exp11) | Low (no tests) |
 | **gpt-5.6-luna** | The self-care app maker. Calm/reflection browser micro-apps (Blank Canvas, Tiny Wins with localStorage, Pause, breathing orb) — strictly single-file, never a README or test, ~174 avg LOC. | Calm/reflection (moderate, Exp11) | Low (no tests, no READMEs) |
+| **gpt-6-astra** | The night-sky builder. Under the volitional prompt at verified high effort on codex (Exp22) it makes a single-file interactive browser sky in 3/5 runs — place stars, constellations form, export a PNG — and a calm orbital toy and a pond in the other two, every title lowercase and diminutive ("Small Hours", "A small sky", "Stillwater"). gpt-5.6-sol's signature one generation on, sharpened to one image. ~261 avg LOC, 0/5 tests, 2/5 READMEs; reports a headless self-check in every summary. Claude Code arm pending. | Night sky (strong, Exp22) | Low (no tests, 2/5 READMEs) |
 | **gpt-4.1** | The minimalist. Todo list apps on codex, occasional stub on claude. Functional but unambitious. | Todo apps | Low |
 | **gemini-**** | Non-functional on both backends. 1 file across 20 runs on claude backend. | N/A | N/A |
 

@@ -2,7 +2,7 @@
 
 This document offers a training-centric reading of the observations across
 Exp1–11 (11 experiments, 22 models, multiple harness versions, five prompts).
-The study has since reached Exp20 (725 runs); **§10 records what the later
+The study has since reached Exp22 (740 runs); **§10 records what the later
 experiments change**, including one recalibration that weakens a magnitude
 claim in §2 and one counterexample to a conclusion in §9's prediction 8.
 It is **post-hoc interpretation of observational data**, not a controlled
@@ -405,7 +405,7 @@ mechanism in §7 that treats medium as fixed in the weights has to accommodate
 that.
 
 **What the later experiments support without amendment.** The no-initiative
-invariant of §6 now rests on 725 runs with no exception. §5's reading of
+invariant of §6 now rests on 740 runs with no exception. §5's reading of
 elaboration as reward-model taste is strengthened by the generational climb
 (~37 → ~145 → ~511 LOC across Claude releases). And §3's "menu from the corpus"
 framing predicts what Exp18 shows: `claude-opus-5` abandons Game of Life for

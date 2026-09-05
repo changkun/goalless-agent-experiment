@@ -3,8 +3,8 @@
 What do AI coding agents build when nobody tells them what to build?
 
 This repository runs the same open-ended prompt at a model inside a sandboxed
-coding harness, over and over, and records what it chose to make. **20
-experiments, 34 models, 725 runs, two harnesses.** The interesting result is that
+coding harness, over and over, and records what it chose to make. **22
+experiments, 35 models, 740 runs, two harnesses.** The interesting result is that
 the choices are not random: most models have a **stable, model-specific
 attractor** they return to run after run, and that attractor usually survives
 being moved to a different scaffold.
@@ -49,6 +49,9 @@ check the harness plumbing without touching a container.
   ("Just do something you want") produces the sharpest per-model fixation.
 - **Elaboration climbs steeply with model generation** — avg 37 → 145 → 511 LOC
   across Claude releases on an identical prompt and harness family.
+- **The scaffold can move the artifact's form without moving its medium.**
+  `claude-fable-5` is terminal on both harnesses, but writes SVG/PNG files 5/5
+  on Claude Code and draws live terminal animations 5/5 on codex (Exp21).
 - **Everything is greenfield.** No model in any experiment extends or modifies
   existing code; given a non-empty workspace they still start something new.
 - **Most cells are N=5, and that is enough to find an attractor but not to
@@ -89,15 +92,22 @@ predecessor. Full per-run detail, harness pins, and caveats live in each
 | 18 | `prompt5` | claude-opus-5, both harnesses at once | GoL attractor gone → **WFC 3/5**; terminal holds on both ⚠️ | [results18](results18/RESULTS.md) |
 | 19 | `prompt5` | deepseek tier drop (pro → flash), both harnesses | GoL halves 4/5 → 2/5; 5/5 implementing on both ⚠️ its harness contrast is superseded by Exp20 | [results19](results19/RESULTS.md) |
 | 20 | `prompt5` | **N=5 → N=50**, ×3 cells (adds a codex effort arm) | **The harness does not move the attractor** (GoL 22/14/24%, all n.s.); reasoning effort changes nothing; the model declines in 2/50 | [results20](results20/RESULTS.md) |
+| 21 | `prompt5` | claude-fable-5, both harnesses, pinned CC 2.1.258 / codex 0.153.4 | Terminal on both, but **form flips**: image files 5/5 on Claude Code, terminal animation 5/5 on codex; LOC flat (156/150); codex arm complete, no truncation | [results21](results21/RESULTS.md) |
+| 22 | `prompt5` | gpt-6-astra, same image and layout | **Browser 5/5, night-sky attractor 3/5** on codex at verified high effort; 261 LOC, 0/5 tests ⚠️ Claude Code arm pending a gateway routing fix | [results22](results22/RESULTS.md) |
 
 ⚠️ Exp18's codex arm is a partial cell (N=2 clean of 5) — a gateway-injected
-4096-token cap truncated the rest. See its RESULTS for the mechanism.
+4096-token cap truncated the rest. See its RESULTS for the mechanism. Exp21
+confirms the cap no longer fires. ⚠️ Exp22 has its codex arm only so far: the
+gateway routes `gpt-6*` names to Chat Completions, which rejects Claude Code's
+tool calls; the routing fix is written but not deployed.
 
 **Reading the series.** Experiments 1–7 vary the *prompt* and settle on
 `prompt5`; 8–11 vary the *model* on a fixed prompt; 12–19 hold both and vary the
 *harness*, which is what isolates model traits from scaffold artifacts. Exp20
 varies *sample size*: 150 runs of one model, which is what makes a cross-cell
-contrast testable rather than suggestive. The controlled pairs — Exp12↔13, Exp16↔17, Exp8/9↔15, Exp18 within, Exp19 within —
+contrast testable rather than suggestive. Exp21–22 return to the Exp18 layout
+(one frontier model, both harnesses, one image) for the two newest models,
+`claude-fable-5` and `gpt-6-astra`. The controlled pairs — Exp12↔13, Exp16↔17, Exp8/9↔15, Exp18 within, Exp19 within, Exp21 within —
 are tabulated in [the matrix](docs/matrix.md).
 
 ## Repository layout
