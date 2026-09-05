@@ -31,11 +31,13 @@ events. A direct probe of `/compat/openai/v1/responses` for this model with
 `max_output_tokens` omitted streamed 6,610 output tokens to `status:
 completed`, so the Exp18 gateway cap does not apply.
 
-**The codex arm is not effort-matched, as in Exp18/21.** All five codex runs
-report `reasoning_output_tokens: 0`; codex attaches no reasoning for a model
-outside its catalogue, and each run carries the benign `Model metadata for
-'claude-fable-5-1' not found` item. The Claude Code arm shows thinking blocks
-in every transcript (3–10 per run).
+**Both arms requested effort `high`, and both reasoned.** The Claude Code
+transcripts record `effort: high` and 3–10 thinking blocks per run. The codex
+rollouts record `reasoning_effort: high` and 2–4 reasoning items per run,
+while reporting `reasoning_output_tokens: 0` — that zero is the gateway's
+Responses usage translation dropping Anthropic `thinking_tokens` (see Exp21),
+not an absence of reasoning. Each codex run also carries the benign `Model
+metadata for 'claude-fable-5-1' not found` item.
 
 ---
 

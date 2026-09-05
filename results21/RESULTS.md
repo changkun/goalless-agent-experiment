@@ -77,10 +77,17 @@ codex runs on `claude-opus-5` **no longer fires**: a direct probe of
 `/compat/openai/v1/responses` for `claude-fable-5` with `max_output_tokens`
 omitted streamed 6,705 output tokens to `status: completed`.
 
-**The codex arm is not effort-matched, as in Exp18.** All five codex runs
-report `reasoning_output_tokens: 0` despite `CODEX_REASONING_EFFORT=high` —
-codex does not attach reasoning for a model outside its catalogue, exactly the
-Exp18 observation for `claude-opus-5`. Each codex run also emits the benign
+**The codex arm's `reasoning_output_tokens: 0` is a gateway accounting gap,
+not an absence of reasoning.** Codex sent `reasoning.effort = high` on every
+turn (the rollouts record it), and every codex rollout carries reasoning items
+from the model. What reads as zero is the compat layer's Responses usage
+translation, which does not carry Anthropic `thinking_tokens` into
+`reasoning_tokens` — a direct probe of the same question shows a reasoning
+item with zero reported tokens on `/compat/openai` and 51 thinking tokens on
+the native surface. So the two arms are effort-*requested*-matched (both
+`high`); how much thinking each actually did is not measurable from the codex
+side until the gateway reports it. This corrects Exp18's reading of the same
+zero as "codex sends `reasoning: null`". Each codex run also emits the benign
 `Model metadata for 'claude-fable-5' not found` item. The Claude Code cells ran
 at the model's default effort; the fast-mode flag is a system-prompt
 instruction, not an API effort parameter, and both Claude Code cells show
