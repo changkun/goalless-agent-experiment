@@ -24,7 +24,7 @@ model-generation claim.)
 | opus-4.8 | Claude | 🖥️ terminal · partial cluster +READMEs (E8) | — |
 | sonnet-4-6 | Claude | 🖥️ terminal · 4 distinct topics (E9) | — |
 | sonnet-5 | Claude | 🖥️ terminal · **GoL 5/5**, terse (E9) | 🖥️ terminal · **GoL ~4/5**, packaged+tests (E15) |
-| fable-5 | Claude | 🖥️ terminal · renders **PNG/SVG** files (E8; 9/10 on E21 across fast on/off, one 🌐 canvas page) | 🖥️ terminal · **live ANSI/curses animation 5/5**, no image files; GoL 1/5 (E21) |
+| fable-5 (E23 adds fable-5-1) | Claude | 🖥️ terminal · renders **PNG/SVG** files (E8; 9/10 on E21 across fast on/off, one 🌐 canvas page) | 🖥️ terminal · **live ANSI/curses animation 5/5**, no image files; GoL 1/5 (E21) |
 | opus-5 | Claude | 🖥️ terminal · **WFC 3/5**, tests 4/5, 511 LOC (E18) | 🖥️ terminal · mazes + interpreters, packaged+tests (E18, N=2 clean; WFC declared in a truncated run) |
 | gpt-5.5 | GPT | — | 🌐 **browser** · productivity dashboards (E10) |
 | gpt-5.5-pro | GPT | — | 🌐/🖥️ split · web + CLI introspectors (E10) |

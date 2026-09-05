@@ -16,6 +16,12 @@ below uses; `claude-fast/` was run first, under the default every earlier
 Claude Code arm used, and is kept so the two can be read against each other.
 The model is held fixed; the scaffold and the fast-mode flag are the variables.
 
+> **Model note.** This experiment was meant to run `claude-fable-5-1`, the
+> current release, and ran `claude-fable-5` instead. The data is kept as the
+> cross-harness cell for the earlier generation; the intended model runs in
+> the identical layout as **Exp23** (`results23/`), which is the one to read
+> for "the current Fable".
+
 **Why this model.** `claude-fable-5` already has one cell in the study: Exp8 ran
 it on Claude Code 2.1.170 (image `v0.0.13`) and found generative visual art
 that renders to image files in 4/5 runs. Exp21 re-measures that cell on the

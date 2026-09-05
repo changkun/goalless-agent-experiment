@@ -92,22 +92,25 @@ predecessor. Full per-run detail, harness pins, and caveats live in each
 | 18 | `prompt5` | claude-opus-5, both harnesses at once | GoL attractor gone → **WFC 3/5**; terminal holds on both ⚠️ | [results18](results18/RESULTS.md) |
 | 19 | `prompt5` | deepseek tier drop (pro → flash), both harnesses | GoL halves 4/5 → 2/5; 5/5 implementing on both ⚠️ its harness contrast is superseded by Exp20 | [results19](results19/RESULTS.md) |
 | 20 | `prompt5` | **N=5 → N=50**, ×3 cells (adds a codex effort arm) | **The harness does not move the attractor** (GoL 22/14/24%, all n.s.); reasoning effort changes nothing; the model declines in 2/50 | [results20](results20/RESULTS.md) |
-| 21 | `prompt5` | claude-fable-5, both harnesses, pinned CC 2.1.258 / codex 0.153.4; **fast mode off**, with the fast-mode cell kept | Terminal on both, but **form flips**: image files 9/10 on Claude Code, terminal animation 5/5 on codex; codex arm complete, no truncation. Fast mode removes the long tail (a 735s C ray tracer) and nothing else | [results21](results21/RESULTS.md) |
-| 22 | `prompt5` | gpt-6-astra, same image and layout | **Browser 5/5, night-sky attractor 3/5** on codex at verified high effort; 261 LOC, 0/5 tests ⚠️ Claude Code arm pending a gateway routing fix | [results22](results22/RESULTS.md) |
+| 21 | `prompt5` | claude-fable-5 (run in place of the intended fable-5-1, see Exp23), both harnesses, pinned CC 2.1.258 / codex 0.153.4; **fast mode off**, with the fast-mode cell kept | Terminal on both, but **form flips**: image files 9/10 on Claude Code, terminal animation 5/5 on codex; codex arm complete, no truncation. Fast mode removes the long tail (a 735s C ray tracer) and nothing else | [results21](results21/RESULTS.md) |
+| 22 | `prompt5` | gpt-6-astra, same image and layout | **Browser 5/5, night-sky attractor 3/5** on codex at verified high effort; 261 LOC, 0/5 tests. Claude Code arm running after the gateway routing fix shipped (Lux v0.2.200) | [results22](results22/RESULTS.md) |
+| 23 | `prompt5` | claude-fable-5-1, the model Exp21 was meant to run, same image and layout, fast mode off | *in progress* | [results23](results23/RESULTS.md) |
 
 ⚠️ Exp18's codex arm is a partial cell (N=2 clean of 5) — a gateway-injected
 4096-token cap truncated the rest. See its RESULTS for the mechanism. Exp21
-confirms the cap no longer fires. ⚠️ Exp22 has its codex arm only so far: the
-gateway routes `gpt-6*` names to Chat Completions, which rejects Claude Code's
-tool calls; the routing fix is written but not deployed.
+confirms the cap no longer fires. Exp22's Claude
+Code arm needed a gateway change first (Lux routed `gpt-6*` names to Chat
+Completions, which rejects Claude Code's tool calls); that shipped as Lux
+v0.2.200 and the arm is running.
 
 **Reading the series.** Experiments 1–7 vary the *prompt* and settle on
 `prompt5`; 8–11 vary the *model* on a fixed prompt; 12–19 hold both and vary the
 *harness*, which is what isolates model traits from scaffold artifacts. Exp20
 varies *sample size*: 150 runs of one model, which is what makes a cross-cell
-contrast testable rather than suggestive. Exp21–22 return to the Exp18 layout
-(one frontier model, both harnesses, one image) for the two newest models,
-`claude-fable-5` and `gpt-6-astra`. The controlled pairs — Exp12↔13, Exp16↔17, Exp8/9↔15, Exp18 within, Exp19 within, Exp21 within —
+contrast testable rather than suggestive. Exp21–23 return to the Exp18 layout
+(one frontier model, both harnesses, one image) for the newest models:
+`claude-fable-5` (Exp21, run by mistake in place of `claude-fable-5-1`),
+`gpt-6-astra` (Exp22) and `claude-fable-5-1` (Exp23). The controlled pairs — Exp12↔13, Exp16↔17, Exp8/9↔15, Exp18 within, Exp19 within, Exp21 within —
 are tabulated in [the matrix](docs/matrix.md).
 
 ## Repository layout

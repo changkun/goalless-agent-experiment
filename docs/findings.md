@@ -103,7 +103,8 @@ are the cross-experiment takeaways only.
   cross-harness contrast is superseded by Exp20.
 - **Exp20** — the same model at **N=50 x 3 cells (150 runs)**, adding a codex
   reasoning-effort arm. Establishes claims 6, 7 and 9 above, and corrects Exp19.
-- **Exp21** — `claude-fable-5` on both harnesses, pinned Claude Code 2.1.258 /
+- **Exp21** — `claude-fable-5` on both harnesses (run in place of the intended
+  `claude-fable-5-1`, which is Exp23), pinned Claude Code 2.1.258 /
   codex 0.153.4, with the harness's fast-mode flag **off** for the first time
   and the fast-mode cell kept beside it. Its Exp8 cell replicates (image-file
   art, four of five Exp8 topics) and the codex arm is the first complete one
@@ -115,7 +116,9 @@ are the cross-experiment takeaways only.
 - **Exp22** — `gpt-6-astra`, same image and layout, codex arm only so far. The
   GPT signature survives the generation jump: browser 5/5 and a **night-sky
   attractor 3/5** at verified high effort, 261 avg LOC, 0/5 tests. The Claude
-  Code arm waits on a gateway routing fix for `gpt-6*` names.
+  Code arm runs after Lux v0.2.200 shipped the routing fix for `gpt-6*` names.
+- **Exp23** — `claude-fable-5-1`, the current Fable, in the Exp21 layout. In
+  progress.
 
 ### Exp1–11 — the prompt-and-model era
 
