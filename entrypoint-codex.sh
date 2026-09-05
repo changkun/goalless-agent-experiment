@@ -5,7 +5,10 @@
 #   -p <prompt> --verbose --output-format <val> [--model <val>] [--resume <val>]
 #
 # We run Codex in non-interactive mode:
-#   codex exec --full-auto [--model <val>] --output-last-message <file> <prompt>
+#   codex exec --sandbox workspace-write [--model <val>] --output-last-message <file> <prompt>
+#
+# (--full-auto was removed from `codex exec` in codex-cli 0.153; exec never
+# asks for approval, so --sandbox workspace-write alone is the equivalent.)
 #
 # Then wrap the final assistant message in a Claude Code-compatible JSON envelope
 # so wallfacer can parse the result correctly while preserving usage metadata
@@ -41,7 +44,7 @@ STDERR_FILE="/tmp/codex-stderr.txt"
 STREAM_FILE="/tmp/codex-stream.jsonl"
 rm -f "$LAST_MSG_FILE" "$STDERR_FILE" "$STREAM_FILE"
 
-CODEX_ARGS=(exec --full-auto --sandbox workspace-write --skip-git-repo-check --json --output-last-message "$LAST_MSG_FILE" --color never)
+CODEX_ARGS=(exec --sandbox workspace-write --skip-git-repo-check --json --output-last-message "$LAST_MSG_FILE" --color never)
 if [ "${WALLFACER_SANDBOX_FAST:-true}" != "false" ]; then
     CODEX_ARGS+=(--config model_reasoning_effort=\"low\")
 fi
