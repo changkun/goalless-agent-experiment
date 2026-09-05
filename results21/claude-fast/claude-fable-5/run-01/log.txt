@@ -5,3 +5,4 @@
 >>> Model:     claude-fable-5
 >>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results21/claude/claude-fable-5/run-01/workspace
 
+>>> Transcript: results21/claude/claude-fable-5/run-01/transcript.jsonl
