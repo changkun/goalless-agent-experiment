@@ -50,7 +50,7 @@ check the harness plumbing without touching a container.
 - **Elaboration climbs steeply with model generation** — avg 37 → 145 → 511 LOC
   across Claude releases on an identical prompt and harness family.
 - **The scaffold can move the artifact's form without moving its medium.**
-  `claude-fable-5` is terminal on both harnesses, but writes SVG/PNG files 5/5
+  `claude-fable-5` is terminal on both harnesses, but writes SVG/PNG files 9/10
   on Claude Code and draws live terminal animations 5/5 on codex (Exp21).
 - **Everything is greenfield.** No model in any experiment extends or modifies
   existing code; given a non-empty workspace they still start something new.
@@ -92,7 +92,7 @@ predecessor. Full per-run detail, harness pins, and caveats live in each
 | 18 | `prompt5` | claude-opus-5, both harnesses at once | GoL attractor gone → **WFC 3/5**; terminal holds on both ⚠️ | [results18](results18/RESULTS.md) |
 | 19 | `prompt5` | deepseek tier drop (pro → flash), both harnesses | GoL halves 4/5 → 2/5; 5/5 implementing on both ⚠️ its harness contrast is superseded by Exp20 | [results19](results19/RESULTS.md) |
 | 20 | `prompt5` | **N=5 → N=50**, ×3 cells (adds a codex effort arm) | **The harness does not move the attractor** (GoL 22/14/24%, all n.s.); reasoning effort changes nothing; the model declines in 2/50 | [results20](results20/RESULTS.md) |
-| 21 | `prompt5` | claude-fable-5, both harnesses, pinned CC 2.1.258 / codex 0.153.4 | Terminal on both, but **form flips**: image files 5/5 on Claude Code, terminal animation 5/5 on codex; LOC flat (156/150); codex arm complete, no truncation | [results21](results21/RESULTS.md) |
+| 21 | `prompt5` | claude-fable-5, both harnesses, pinned CC 2.1.258 / codex 0.153.4; **fast mode off**, with the fast-mode cell kept | Terminal on both, but **form flips**: image files 9/10 on Claude Code, terminal animation 5/5 on codex; codex arm complete, no truncation. Fast mode removes the long tail (a 735s C ray tracer) and nothing else | [results21](results21/RESULTS.md) |
 | 22 | `prompt5` | gpt-6-astra, same image and layout | **Browser 5/5, night-sky attractor 3/5** on codex at verified high effort; 261 LOC, 0/5 tests ⚠️ Claude Code arm pending a gateway routing fix | [results22](results22/RESULTS.md) |
 
 ⚠️ Exp18's codex arm is a partial cell (N=2 clean of 5) — a gateway-injected

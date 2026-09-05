@@ -192,5 +192,5 @@ disabled from Exp2 onward to keep it from biasing the environment.
 | 18 | prompt5 | out | claude-opus-5 @ effort=high | harness v0.0.14 (CC 2.1.207, codex 0.144.1) | Claude Code · `/anthropic` + codex · `/compat/openai` |
 | 19 | prompt5 | out | deepseek-v4-flash-0731 @ effort=high | pinned CC 2.1.220 / codex 0.146.0 on base v0.0.15 | Claude Code · `/compat/anthropic` + codex · `/compat/openai` |
 | 20 | prompt5 | out | deepseek-v4-flash-0731, **50 runs × 3 cells** (claude; codex @ high; codex @ low) | pinned CC 2.1.220 / codex 0.146.0 on base v0.0.15 | Claude Code · `/compat/anthropic` + codex · `/compat/openai` |
-| 21 | prompt5 | out | claude-fable-5 @ codex effort=high (not applied) | pinned CC 2.1.258 / codex 0.153.4 on base v0.0.15 | Claude Code · `/anthropic` + codex · `/compat/openai` |
+| 21 | prompt5 | out | claude-fable-5, **fast mode off** (`claude/`) plus a fast-mode cell (`claude-fast/`); codex effort=high (not applied) | pinned CC 2.1.258 / codex 0.153.4 on base v0.0.15 | Claude Code · `/anthropic` + codex · `/compat/openai` |
 | 22 | prompt5 | out | gpt-6-astra @ codex effort=high (achieved) | pinned CC 2.1.258 / codex 0.153.4 on base v0.0.15 | codex · `/compat/openai` (Claude Code · `/compat/anthropic` pending a gateway routing fix) |
