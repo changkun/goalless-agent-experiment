@@ -1,0 +1,9 @@
+I made generative art. The workspace was completely empty, so I treated it as a blank canvas and built a tiny zero-dependency flow-field art generator, then verified it visually — two finished pieces came out looking like glowing rivers of light: one in violet ("orchid" palette, seeded with today's date 20260905) and one in ember orange.
+
+What's now in `/workspace`:
+
+- **`flowfield.py`** — the generator. It builds smooth 2D value noise from scratch (random lattice + cosine interpolation), drops ~420 particles onto it, and lets each one walk downstream for up to 140 steps, tracing its path as an SVG polyline. Because the field is static, nearby particles merge into shared "rivers," which gives the images their braided, wind-swept look. Run `python3 flowfield.py [seed]` — five palettes (dusk, tide, ember, moss, orchid), picked by the seed.
+- **`rasterize.py`** — since the sandbox had no SVG renderer, I wrote a pure-Python PNG rasterizer too: DDA line drawing with alpha blending into a pixel buffer, PNG chunks assembled by hand with stdlib `zlib`. It consumes the RNG stream identically to the SVG path, so the same seed produces the same artwork in both formats.
+- **`README.md`**, plus the two artworks as both SVG and PNG (`flowfield_20260905.*`, `flowfield_164432.*`).
+
+Try `python3 flowfield.py` for a fresh random piece, or feed both scripts the same seed to get matching vector and raster versions.

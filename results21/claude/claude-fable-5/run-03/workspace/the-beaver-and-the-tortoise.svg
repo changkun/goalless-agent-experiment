@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#f4e8d0"/>
+  <circle cx="187" cy="70" r="34" fill="#e8b04b" opacity="0.9"/>
+  <polygon points="0,360 0,243 103,256 168,259 255,224 316,227 389,236 481,260 542,257 614,267 640,360" fill="#8a9a5b"/>
+  <polygon points="0,360 0,282 86,261 174,284 251,247 359,257 463,274 544,264 613,260 640,360" fill="#5b6e3a"/>
+  <polygon points="0,360 0,293 65,296 131,294 245,294 343,288 454,274 560,301 640,360" fill="#3d4d28"/>
+  <g transform="translate(110,290) scale(0.81)"><rect x="-2" y="-4" width="4" height="16" fill="#4a3728"/><circle cy="-14" r="12" fill="#3d4d28"/></g>
+  <g transform="translate(400,291) scale(0.73)"><rect x="-2" y="-4" width="4" height="16" fill="#4a3728"/><circle cy="-14" r="12" fill="#3d4d28"/></g>
+  <g transform="translate(101,257) scale(1.06)"><rect x="-2" y="-4" width="4" height="16" fill="#4a3728"/><circle cy="-14" r="12" fill="#3d4d28"/></g>
+  <g transform="translate(326,260) scale(1.20)"><rect x="-2" y="-4" width="4" height="16" fill="#4a3728"/><circle cy="-14" r="12" fill="#3d4d28"/></g>
+  <g transform="translate(133,279) scale(0.79)"><rect x="-2" y="-4" width="4" height="16" fill="#4a3728"/><circle cy="-14" r="12" fill="#3d4d28"/></g>
+  <g transform="translate(403,265) scale(0.86)"><rect x="-2" y="-4" width="4" height="16" fill="#4a3728"/><circle cy="-14" r="12" fill="#3d4d28"/></g>
+  <ellipse cx="443" cy="300" rx="10" ry="6" fill="#d4a017"/>
+  <text x="320" y="342" text-anchor="middle" font-family="Georgia, serif" font-size="15" fill="#4a3728" font-style="italic">The Beaver and the Tortoise</text>
+</svg>

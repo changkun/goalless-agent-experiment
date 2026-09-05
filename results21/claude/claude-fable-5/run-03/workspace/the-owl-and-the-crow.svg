@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#dce7f0"/>
+  <circle cx="121" cy="70" r="34" fill="#f0d9a0" opacity="0.9"/>
+  <polygon points="0,360 0,258 63,254 136,224 201,249 287,226 362,227 457,249 520,258 587,236 640,360" fill="#7d94a8"/>
+  <polygon points="0,360 0,283 120,250 216,284 301,250 375,249 470,255 548,273 617,281 640,360" fill="#54708a"/>
+  <polygon points="0,360 0,299 95,315 166,278 263,308 363,284 446,278 541,317 605,308 640,360" fill="#39506b"/>
+  <g transform="translate(538,298) scale(0.97)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(351,284) scale(1.01)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(494,278) scale(0.81)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(214,299) scale(1.15)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <ellipse cx="394" cy="300" rx="10" ry="6" fill="#d4a017"/>
+  <text x="320" y="342" text-anchor="middle" font-family="Georgia, serif" font-size="15" fill="#2e3a48" font-style="italic">The Owl and the Crow</text>
+</svg>

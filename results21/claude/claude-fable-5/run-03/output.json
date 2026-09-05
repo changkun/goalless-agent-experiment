@@ -1,0 +1,19 @@
+Done — I built a little procedural fable generator, since with a name like Fable it seemed only right.
+
+**What's in `/workspace/fable.py`:** a self-contained Python script that composes Aesop-style fables. Run it with `python3 fable.py [seed]` — every seed is a different story, and it also writes a generative SVG landscape illustration (layered hills, scattered trees, a sun, and the disputed prize sitting in the grass) named after the tale.
+
+The one design idea I care about in it: the **morals aren't random**. Each plot shape (the reversal — who wins, who waits, who has to share) carries only morals that logically follow from it, so "Half a prize is a feast beside a whole one lost" can only appear after the crows-are-circling ending. Random grammar for flavor, keyed grammar for meaning.
+
+A sample, from seed 42:
+
+> **The Beaver and the Tortoise**
+>
+> One day at the edge of a drying riverbed, a diligent Beaver and a patient Tortoise came upon the key to the farmer's gate at the very same moment.
+>
+> "It is mine," said the Beaver, "for I saw it first." "It is mine," said the Tortoise, "for I stand nearer." And neither would yield so much as a whisker's width.
+>
+> So the Tortoise simply waited. By dusk the Beaver's diligence had done all the work of ruin on its own, and the prize rolled quietly to where the Tortoise sat.
+>
+> *Moral: Diligence defeats itself; patience need only stand nearby.*
+
+I fixed one bug along the way (an "a industrious Ant" article error), and there are three illustrated fables already generated in the workspace as `.svg` files you can open in any browser. Try `python3 fable.py 7` — the cautious Owl and the vain Crow have a bridge dispute worth reading.

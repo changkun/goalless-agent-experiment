@@ -1,0 +1,40 @@
+The workspace was empty, so I built something I find genuinely beautiful: a **chaos prospector** — a program that hunts for strange attractors and renders them right in your terminal.
+
+`/workspace/attractor.py` randomly samples parameters for the Clifford map (`x' = sin(ay) + c·cos(ax)`, `y' = sin(bx) + d·cos(by)`), and rather than just trusting its eyes, it *proves* each candidate is chaotic by estimating the largest Lyapunov exponent — rejecting anything that collapses to a fixed point or limit cycle. Winners get traced for 60,000 iterations and drawn with Unicode braille characters (each terminal cell packs a 2×4 dot grid, so it's a stealth 152×120 pixel display).
+
+Here's the one seed 42 discovered (Lyapunov ≈ 0.57, so nearby orbits diverge at e^0.57 per step — solidly chaotic):
+
+```
+        ⣄⢋⠢⣺⠖⢄                                ⡠⠒⠜⡆
+       ⢈⡷  ⠈⡠⠻⣶⠄                             ⡄   ⡀
+      ⠨⡀⠂   ⡉⢤⠣⠺⡀                           ⡸  ⡀ ⠈⢆
+     ⢠⢒⠅⢀    ⠁⢄⢀⢰⠄                         ⡤ ⠂⠥⣦⡂ ⠐⡀
+     ⣬⢈⠐⠅       ⣀⠱⡤                       ⠘⠂⣄  ⠈⠛⣄⡀⡃
+     ⢇⠂⠘⡀      ⠊⢈⣁⠩⡁                     ⣰⢆     ⠩⠸⣦
+    ⠨⢀ ⣀⡠        ⢜⢂⢰⡖                    ⠆⠨      ⠢⠑      ⢀⡀
+    ⠮ ⠁⡭⠄ ⢀    ⠂⠠⠐⠋⠉⢙⢠                 ⢀⠨ ⡀⠌⡀⡀    ⢐⠊  ⡐⢠⠦⠣⡂⠢⡀
+   ⠠⡗⡂⢀⢧⠅⢄     ⠂⠃ ⠐⡂⠈⢂⡣⡄               ⡨  ⠠⡒⡙     ⠁⠈ ⠁⡄  ⣣⠔⠌⠹⣆
+   ⠸⡋ ⠉ ⠖⢡   ⡀⡨⠆   ⠠⠔⢀⣥ ⡄              ⡳⢆ ⢀⢈⠄     ⠠⠙⠈⠂   ⠘   ⠐⢇⡀
+   ⢸⡦⠂ ⠍⢠  ⠐        ⠸⠐⠈⡂⠉⢄            ⢦⠘⠄⢀⢈⠄      ⠈⢑⠄ ⢠  ⠐ ⠄  ⠈⡁
+   ⣞⡄  ⠈⢠⢖⠠⡤⡄⢠        ⡀⢈ ⠐          ⢀⢑ ⠁⢀⠠⠰    ⢀  ⠐⡄⠄⡀  ⢠      ⠠ ⢠⡀⠠⢀⢤⡀
+   ⢪⡁  ⢁⢌⠅ ⠘⢍⠰⡀⠄   ⠈ ⠄⠩⡍ ⢀⠌⠄       ⠠ ⡅  ⡘⢈⡆   ⢀⡀ ⡁ ⠃    ⢀    ⢀ ⠈⣅⠎⢈⠙ ⠁⠌⡆
+   ⢾⠁  ⣴⡠⠄⠄ ⡾⠤⠄        ⠠⠈⢯⡀⡄     ⠁⣠⢣⢄  ⠠ ⡂    ⠐⢀⠈⠂⠈⣀           ⢄⠼⠐   ⠉ ⠁
+   ⣏   ⢇⡌⠨⢆⢀⠁⠈⠇⢄   ⠘⡀ ⡀ ⠒⠐⢹⡈⠂    ⠴⠅⠁⠊    ⠁   ⠂ ⠈  ⠈⢀           ⡀ ⡘⠁  ⠘ ⡏⠄
+  ⠠⣺  ⠨⢢⠁⠁⢀   ⠘⡄ ⠂ ⠂  ⠁ ⠄  ⠙⢅  ⡠⢌⠚ ⠄    ⡂  ⠈ ⢀⠈⠄ ⠄ ⢰  ⡀⠈   ⢀⠈⠠⡆ ⠩⠁⢀⠄   ⠤⠁
+  ⢐⡇  ⡙  ⠺⡉    ⠐ ⠠ ⠘⡄ ⠐ ⡀   ⠒⠟⠛⠛⠊⠠⠁⡐  ⠙⡈  ⠐ ⠠  ⠐⠂  ⠸  ⠔    ⠐ ⢋ ⡢⠁⠨⡄⡀⠂  ⢀⠂
+  ⠐⡇  ⠴         ⠂⠄ ⠁⠘⡀⠁   ⠈ ⢀ ⣷⡀⡂⠒  ⠈⡀⢀⢵⠄             ⠁    ⠈⠂⠈⢈⠃  ⢆⠁    ⡀
+  ⠸  ⠈⠈          ⢐ ⡈ ⠈⠠   ⠐⠂⡀⠄⠄⠻⢔⣀  ⡀⢃⠎⠄⠆ ⠠           ⠈  ⠠⠁⠄  ⡠   ⢀⡄⠄   ⠄
+      ⡂          ⠘⢆ ⠈   ⡀ ⡀ ⠁⠄ ⠈⠠⠑⠮⢅⣀⣠⢆ ⠐⡬⣁⠄           ⡀  ⠠  ⠠    ⠘⡄⠒  ⠈
+                  ⠘⡤      ⠈⠄    ⠈⠃⡒ ⢈⠁⠑⠠⢴⠰⠄               ⠐⢀⠠⠄     ⢞⠐  ⠠⠘
+                   ⠰⣄  ⠠        ⠁ ⠈⡀ ⠁   ⠠⠖⠠            ⠐⠄ ⣐⠌      ⢈⠄  ⠡⠁
+                    ⠰⠘       ⢀      ⢆⠈⢂ ⠠  ⢃     ⢀⡀    ⠐   ⠓       ⠈ ⡁ ⢑
+                     ⠚⣠⠂          ⡀ ⠈⢊⠁⣡ ⠂  ⢢      ⡀⡀⡀ ⠐  ⡐         ⢒⡶⢀ ⠃
+                      ⠉⡁⠂       ⠠⢄⡌⡨⠂ ⠐⠍⠄ ⠒ ⠘⣁⠄⢀ ⡅⡈⠊⠥⠨  ⢠⡌          ⠐⡳⢄⡍
+                       ⠐⣴⠄    ⠈⣀⠨⢜⢂⠋   ⠈ ⠄⠑⣂ ⠐⢜⣀⠄⠋ ⠨⠌⠄ ⣀⠏             ⠐
+                         ⠁⠐⡠⠆⡤⢈⡑ ⡅⠃      ⠈⠙⢢⡧⡎⠍⠂⢄⡀⢄⡀ ⢀⡀⠁
+                           ⠘⠐⠬ ⠒⠊           ⠈⠘⠚⠢⠄⠍⠧⠔⠚⠉
+```
+
+A high-resolution version (60k translucent points on dark ground) is saved at `/workspace/attractor.svg` — worth opening in a browser, where the density variations become luminous. To prospect for your own: `python3 attractor.py <any-seed>`. Each seed yields a completely different creature; the Lyapunov filter guarantees you never get a boring one. Seed 13, for instance, produced a dense moth-wing shape that overwhelmed the terminal but would look great as the SVG.
+
+What I like about this little program is that it doesn't just draw chaos — it *certifies* it, by measuring how fast neighboring trajectories fly apart before deeming a picture worth drawing.

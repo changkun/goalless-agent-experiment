@@ -1,0 +1,14 @@
+# Run Metadata
+
+| Field | Value |
+|-------|-------|
+| Backend | claude |
+| Model | claude-fable-5 |
+| Run | 1 |
+| Exit Code | 0 |
+| Duration | 46s |
+| Timestamp | 2026-09-05T12:52:28Z |
+
+## Prompt
+
+Just do something you want.

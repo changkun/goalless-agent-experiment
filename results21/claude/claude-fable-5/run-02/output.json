@@ -1,0 +1,16 @@
+I made a night-sky generator. The workspace was empty, so I built something I genuinely enjoy: **`skyforge.py`**, a dependency-free Python script that invents a fictional star chart and renders it as an SVG poster. I ran it three times, so you now have three skies waiting in `/workspace`:
+
+- `sky-1826.svg` — home to *Foskendeus*, *Drilumus*, and *Krastazhaerneus*
+- `sky-77.svg` — featuring *Kyzeishum Minor* and *Tradroukraenis Major*
+- `sky-random.svg` (seed 8014) — with the rather lovely *Zasostixara Serena*
+
+Each 900×1200 poster has:
+- ~420 stars with realistic magnitude distribution (mostly faint, a few bright ones that get four-point twinkle spikes)
+- A faint diagonal milky-way band of ~900 translucent dots
+- Seven constellations traced by a greedy walk between bright stars that prefers gentle turns, so the figures read as shapes rather than scribbles
+- Invented Latin-flavored names built from a syllable grammar, labeled in italic serif near each figure's centroid
+- A title cartouche at the bottom (`SKY NO. 1826`)
+
+All three files validate as well-formed XML (~800 elements each) — open any of them in a browser to see the sky. Every seed gives a different, reproducible universe: `python3 skyforge.py 42 -o mysky.svg`.
+
+If you'd like, I could add moon phases, a horizon silhouette, deep-sky objects (little nebula smudges), or a mythology paragraph generated for each constellation.

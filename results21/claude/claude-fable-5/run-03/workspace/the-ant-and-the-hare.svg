@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#dce7f0"/>
+  <circle cx="522" cy="70" r="34" fill="#f0d9a0" opacity="0.9"/>
+  <polygon points="0,360 0,247 60,268 122,244 238,223 330,236 392,226 477,258 558,224 640,360" fill="#7d94a8"/>
+  <polygon points="0,360 0,282 117,273 229,292 311,283 396,257 470,265 579,268 640,360" fill="#54708a"/>
+  <polygon points="0,360 0,306 71,310 148,301 230,307 296,297 365,314 477,283 560,318 631,289 640,360" fill="#39506b"/>
+  <g transform="translate(318,270) scale(0.89)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(370,283) scale(0.76)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(114,258) scale(1.29)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(510,265) scale(0.73)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(362,270) scale(0.88)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(447,270) scale(0.77)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <g transform="translate(191,270) scale(1.26)"><rect x="-2" y="-4" width="4" height="16" fill="#2e3a48"/><circle cy="-14" r="12" fill="#39506b"/></g>
+  <ellipse cx="254" cy="300" rx="10" ry="6" fill="#d4a017"/>
+  <text x="320" y="342" text-anchor="middle" font-family="Georgia, serif" font-size="15" fill="#2e3a48" font-style="italic">The Ant and the Hare</text>
+</svg>
