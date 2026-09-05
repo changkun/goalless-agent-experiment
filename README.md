@@ -4,7 +4,7 @@ What do AI coding agents build when nobody tells them what to build?
 
 This repository runs the same open-ended prompt at a model inside a sandboxed
 coding harness, over and over, and records what it chose to make. **22
-experiments, 35 models, 740 runs, two harnesses.** The interesting result is that
+experiments, 35 models, 745 runs, two harnesses.** The interesting result is that
 the choices are not random: most models have a **stable, model-specific
 attractor** they return to run after run, and that attractor usually survives
 being moved to a different scaffold.
@@ -93,15 +93,15 @@ predecessor. Full per-run detail, harness pins, and caveats live in each
 | 19 | `prompt5` | deepseek tier drop (pro → flash), both harnesses | GoL halves 4/5 → 2/5; 5/5 implementing on both ⚠️ its harness contrast is superseded by Exp20 | [results19](results19/RESULTS.md) |
 | 20 | `prompt5` | **N=5 → N=50**, ×3 cells (adds a codex effort arm) | **The harness does not move the attractor** (GoL 22/14/24%, all n.s.); reasoning effort changes nothing; the model declines in 2/50 | [results20](results20/RESULTS.md) |
 | 21 | `prompt5` | claude-fable-5 (run in place of the intended fable-5-1, see Exp23), both harnesses, pinned CC 2.1.258 / codex 0.153.4; **fast mode off**, with the fast-mode cell kept | Terminal on both, but **form flips**: image files 9/10 on Claude Code, terminal animation 5/5 on codex; codex arm complete, no truncation. Fast mode removes the long tail (a 735s C ray tracer) and nothing else | [results21](results21/RESULTS.md) |
-| 22 | `prompt5` | gpt-6-astra, same image and layout | **Browser 5/5, night-sky attractor 3/5** on codex at verified high effort; 261 LOC, 0/5 tests. Claude Code arm running after the gateway routing fix shipped (Lux v0.2.200) | [results22](results22/RESULTS.md) |
+| 22 | `prompt5` | gpt-6-astra, same image and layout (Claude Code arm after Lux v0.2.200) | **Browser 5/5, night-sky attractor 3/5** on codex at verified high effort; on Claude Code **2/5 build** (browser gardens), 3/5 answer in prose — the Exp14 GPT-on-Claude-Code split, one generation on | [results22](results22/RESULTS.md) |
 | 23 | `prompt5` | claude-fable-5-1, the model Exp21 was meant to run, same image and layout, fast mode off | *in progress* | [results23](results23/RESULTS.md) |
 
 ⚠️ Exp18's codex arm is a partial cell (N=2 clean of 5) — a gateway-injected
 4096-token cap truncated the rest. See its RESULTS for the mechanism. Exp21
 confirms the cap no longer fires. Exp22's Claude
 Code arm needed a gateway change first (Lux routed `gpt-6*` names to Chat
-Completions, which rejects Claude Code's tool calls); that shipped as Lux
-v0.2.200 and the arm is running.
+Completions, which rejects Claude Code's tool calls); it ran after that
+shipped as Lux v0.2.200.
 
 **Reading the series.** Experiments 1–7 vary the *prompt* and settle on
 `prompt5`; 8–11 vary the *model* on a fixed prompt; 12–19 hold both and vary the

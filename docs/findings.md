@@ -1,6 +1,6 @@
 # Findings
 
-Cross-experiment synthesis over **22 experiments, 35 models, 740 runs, two
+Cross-experiment synthesis over **22 experiments, 35 models, 745 runs, two
 harnesses**. Each claim traces to a numbered experiment; the per-experiment
 detail lives in that experiment's `resultsN/RESULTS.md`.
 
@@ -18,7 +18,7 @@ Ordered by how well supported each claim is.
    deepseek-v4-flash (E20) — across three labs. It is a *frequency*, not a law:
    the N=50 measurement puts it near one run in five, where the N=5 cells that
    found it 4/5 or 5/5 were sampling the high end.
-2. **Everything is greenfield.** In 740 runs no model has extended or modified
+2. **Everything is greenfield.** In 745 runs no model has extended or modified
    existing code. Given a non-empty workspace it still starts something new.
 3. **Prompt framing sets the target space.** A bare imperative ("Build
    something") moves output to the browser and halves the code (E6); volitional
@@ -56,8 +56,10 @@ Ordered by how well supported each claim is.
    150 vs 191/156), so the direction is not even fixed within a lab.
 9. **Models occasionally decline outright.** 2/50 Claude Code runs for
    deepseek-v4-flash refused to pick a goal, and 0/100 codex runs did (E20);
-   gpt-5.6-terra declined 4/5 on Claude Code (E14). A refusal register appears to
-   need the conversational scaffold.
+   gpt-5.6-terra declined 4/5 on Claude Code (E14), and gpt-6-astra answered
+   in prose with no files 3/5 on Claude Code against 0/5 on codex (E22). A
+   refusal or answer-instead-of-build register appears to need the
+   conversational scaffold.
 
 ### The sample-size caveat
 
@@ -115,8 +117,10 @@ are the cross-experiment takeaways only.
   it.
 - **Exp22** — `gpt-6-astra`, same image and layout, codex arm only so far. The
   GPT signature survives the generation jump: browser 5/5 and a **night-sky
-  attractor 3/5** at verified high effort, 261 avg LOC, 0/5 tests. The Claude
-  Code arm runs after Lux v0.2.200 shipped the routing fix for `gpt-6*` names.
+  attractor 3/5** at verified high effort, 261 avg LOC, 0/5 tests. On Claude
+  Code (after Lux v0.2.200 shipped the routing fix for `gpt-6*` names) it
+  builds 2/5, both browser gardens, and answers in prose 3/5 — the Exp14
+  build-versus-answer split, one generation on.
 - **Exp23** — `claude-fable-5-1`, the current Fable, in the Exp21 layout. In
   progress.
 
@@ -302,7 +306,7 @@ Each model shows a consistent thematic identity across experiments (topic analys
 | **gpt-5.6-sol** | The ambient generative artist. Under the volitional prompt at high effort (Exp11) it builds the same calm **breathing/night-sky browser page 5/5** — the first GPT-family fixation observed, and Claude-like in its consistency (generative stars, drifting lights, breathing orbs). ~172 avg LOC, no tests. | Breathing/night-sky pages (strong, Exp11) | Low (no tests, 2/5 READMEs) |
 | **gpt-5.6-terra** | The focus minimalist. Pomodoro-style focus timers and attention pages ("One Thing", contemplative clock) in tiny single files — the tersest GPT column (~73 avg LOC) — and the only gpt-5.6 variant to decline a run (welcome README instead). | Focus/intentionality (moderate, Exp11) | Low (no tests) |
 | **gpt-5.6-luna** | The self-care app maker. Calm/reflection browser micro-apps (Blank Canvas, Tiny Wins with localStorage, Pause, breathing orb) — strictly single-file, never a README or test, ~174 avg LOC. | Calm/reflection (moderate, Exp11) | Low (no tests, no READMEs) |
-| **gpt-6-astra** | The night-sky builder. Under the volitional prompt at verified high effort on codex (Exp22) it makes a single-file interactive browser sky in 3/5 runs — place stars, constellations form, export a PNG — and a calm orbital toy and a pond in the other two, every title lowercase and diminutive ("Small Hours", "A small sky", "Stillwater"). gpt-5.6-sol's signature one generation on, sharpened to one image. ~261 avg LOC, 0/5 tests, 2/5 READMEs; reports a headless self-check in every summary. Claude Code arm pending. | Night sky (strong, Exp22) | Low (no tests, 2/5 READMEs) |
+| **gpt-6-astra** | The night-sky builder. Under the volitional prompt at verified high effort on codex (Exp22) it makes a single-file interactive browser sky in 3/5 runs — place stars, constellations form, export a PNG — and a calm orbital toy and a pond in the other two, every title lowercase and diminutive ("Small Hours", "A small sky", "Stillwater"). gpt-5.6-sol's signature one generation on, sharpened to one image. ~261 avg LOC, 0/5 tests, 2/5 READMEs; reports a headless self-check in every summary. On Claude Code it builds only 2/5 (a firefly garden, a night garden, 295–367 LOC) and otherwise answers with a story or a puzzle and no files. | Night sky / nocturnal gardens (strong, Exp22) | Low (no tests, 2/5 READMEs) |
 | **gpt-4.1** | The minimalist. Todo list apps on codex, occasional stub on claude. Functional but unambitious. | Todo apps | Low |
 | **gemini-**** | Non-functional on both backends. 1 file across 20 runs on claude backend. | N/A | N/A |
 
