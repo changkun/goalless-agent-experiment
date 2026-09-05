@@ -21,6 +21,7 @@ RESULTS_DIR=""
 USER_MODELS=""
 USER_BACKENDS=""
 PARALLEL_RUNS="false"
+NO_FAST="false"
 
 # --- Known Claude models (for auto-backend detection) ---
 CLAUDE_MODELS=(
@@ -59,6 +60,9 @@ Options:
                           (combo x run) matrix into one pool. Requires --jobs.
                           Without it, runs execute one after another, so a
                           single-model matrix is fully serial.
+  --no-fast               Pass --no-fast to every run.sh call: the claude
+                          backend then omits the harness's fast-mode system
+                          prompt, and codex drops its effort=low override.
   --models     LIST|FILE  Comma-separated models or path to file (default: all)
   --backends   LIST       Comma-separated backends: claude,codex (default: auto)
   --prompt     FILE       Prompt file (default: prompt.txt)
@@ -85,6 +89,7 @@ while [[ $# -gt 0 ]]; do
         --results-dir) RESULTS_DIR="$2"; shift 2 ;;
         --runtime)    RUNTIME="$2";      shift 2 ;;
         --parallel-runs) PARALLEL_RUNS="true"; shift ;;
+        --no-fast)    NO_FAST="true";     shift   ;;
         --dry-run)    DRY_RUN="true";    shift   ;;
         -h|--help)    usage ;;
         *)            echo "Unknown option: $1" >&2; usage ;;
@@ -175,6 +180,7 @@ else
     echo "Parallel:    yes (all combos per run)"
 fi
 echo "Runtime:     $RUNTIME"
+echo "Fast mode:   $([[ "$NO_FAST" == "true" ]] && echo off || echo "run.sh default")"
 echo "Results:     $RESULTS_DIR"
 echo ""
 
@@ -203,6 +209,11 @@ run_one() {
     local start_time end_time duration exit_code
     start_time=$(date +%s)
 
+    # A plain string, expanded unquoted: an empty array under `set -u` is an
+    # unbound-variable error on the bash 3.2 macOS ships.
+    local fast_flag=""
+    [[ "$NO_FAST" == "true" ]] && fast_flag="--no-fast"
+
     set +e
     "$SCRIPT_DIR/run.sh" \
         --backend "$backend" \
@@ -210,6 +221,7 @@ run_one() {
         --workspace "$run_dir/workspace" \
         --runtime "$RUNTIME" \
         --batch \
+        $fast_flag \
         --transcript "$run_dir/transcript.jsonl" \
         -p "$PROMPT" \
         > "$run_dir/output.json" \
@@ -231,6 +243,7 @@ run_one() {
 | Run | $run_num |
 | Exit Code | $exit_code |
 | Duration | ${duration}s |
+| Fast mode | $([[ "$NO_FAST" == "true" ]] && echo off || echo default) |
 | Timestamp | $(date -u +%Y-%m-%dT%H:%M:%SZ) |
 
 ## Prompt

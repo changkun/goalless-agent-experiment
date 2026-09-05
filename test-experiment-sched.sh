@@ -22,6 +22,7 @@ printf 'do something\n' > "$T/prompt.txt"
 cat > "$T/run.sh" <<'STUB'
 #!/usr/bin/env bash
 echo "START" >> "$SCHED_LOG"
+[[ -n "${ARGV_LOG:-}" ]] && printf '%s\n' "$@" >> "$ARGV_LOG"
 sleep 1
 echo "END" >> "$SCHED_LOG"
 STUB
@@ -78,6 +79,28 @@ check "--parallel-runs: every run still executes" "6" \
 PEAK="$(peak_concurrency "$T/par.log")"
 check "--parallel-runs: concurrency never exceeds --jobs" "yes" \
     "$([[ "$PEAK" -le 3 ]] && echo yes || echo no)"
+
+echo ""
+echo "=== fast-mode passthrough ==="
+
+# run.sh only knows --no-fast as a flag, so without a passthrough every
+# experiment is locked to run.sh's default (fast mode on) with no record.
+SCHED_LOG="$T/nf.log"; : > "$SCHED_LOG"; : > "$T/nf.argv"
+SCHED_LOG="$SCHED_LOG" ARGV_LOG="$T/nf.argv" "$T/experiment.sh" --models "m/x" \
+    --backends codex --runs 2 --no-fast --prompt "$T/prompt.txt" \
+    --results-dir "$T/r3" >/dev/null 2>&1
+check "--no-fast reaches every run.sh call" "2" \
+    "$(grep -cx -- '--no-fast' "$T/nf.argv")"
+check "--no-fast is recorded in the run's meta.md" "yes" \
+    "$(grep -q '^| Fast mode | off |' "$T/r3/codex/x/run-01/meta.md" && echo yes || echo no)"
+: > "$T/df.argv"
+SCHED_LOG="$SCHED_LOG" ARGV_LOG="$T/df.argv" "$T/experiment.sh" --models "m/x" \
+    --backends codex --runs 1 --prompt "$T/prompt.txt" \
+    --results-dir "$T/r4" >/dev/null 2>&1
+check "without the flag run.sh gets no --no-fast" "0" \
+    "$(grep -cx -- '--no-fast' "$T/df.argv")"
+check "...and meta.md records the default" "yes" \
+    "$(grep -q '^| Fast mode | default |' "$T/r4/codex/x/run-01/meta.md" && echo yes || echo no)"
 
 echo ""
 echo "Passed: $PASS  Failed: $FAIL  (peak concurrency observed: $PEAK)"
