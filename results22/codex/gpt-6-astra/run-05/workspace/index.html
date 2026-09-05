@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102d2c">
+  <title>Stillwater — a tiny pond</title>
+  <style>
+    :root { color-scheme: dark; --paper: #ece9d8; --muted: #b1c4b6; --line: #b8cfad38; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #102d2c; color: var(--paper); font-family: ui-sans-serif, system-ui, sans-serif; }
+    .scene { position: relative; min-height: 700px; height: 100svh; overflow: hidden; isolation: isolate; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; outline: none; cursor: crosshair; }
+    canvas:focus-visible { outline: 2px solid #e2e6ab; outline-offset: -10px; }
+    header, footer { position: absolute; left: clamp(24px, 6vw, 96px); right: clamp(24px, 6vw, 96px); pointer-events: none; }
+    header { top: clamp(32px, 6vh, 72px); }
+    .eyebrow { display: flex; align-items: center; gap: 12px; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+    .mark { width: 18px; height: 18px; border: 1px solid #b5c9a9; border-radius: 50%; position: relative; }
+    .mark::after { content: ''; position: absolute; inset: 4px; border: 1px solid #b5c9a9; border-radius: 50%; }
+    h1 { font: 400 clamp(48px, 7vw, 94px)/1.06 Georgia, 'Times New Roman', serif; letter-spacing: -.055em; margin: 32px 0 18px; }
+    .intro { font-size: 14px; line-height: 1.8; color: var(--muted); margin: 0; }
+    footer { bottom: clamp(24px, 5vh, 56px); display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+    .hint { font: italic 19px/1.5 Georgia, serif; margin: 0 0 8px; }
+    .keys { font-size: 11px; line-height: 1.8; color: var(--muted); letter-spacing: .02em; }
+    .controls { display: flex; gap: 8px; pointer-events: auto; flex-wrap: wrap; }
+    button { display: inline-flex; gap: 10px; align-items: center; justify-content: center; min-height: 46px; padding: 12px 18px; border: 1px solid var(--line); border-radius: 30px; color: var(--paper); background: #102d2ccc; font: inherit; font-size: 12px; cursor: pointer; transition: background .2s, border-color .2s; }
+    button:hover { background: #28423c; border-color: #b8cfad88; }
+    button[aria-pressed="true"] { background: #d9dfad; border-color: #d9dfad; color: #17362f; }
+    button:focus-visible { outline: 2px solid #e2e6ab; outline-offset: 4px; }
+    button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    noscript { position: absolute; top: 50%; left: 24px; right: 24px; text-align: center; }
+    @media (max-width: 600px) {
+      .scene { min-height: 600px; }
+      h1 { margin-top: 28px; }
+      footer { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .keys { max-width: 270px; }
+    }
+    @media (prefers-reduced-motion: reduce) { button { transition: none; } }
+  </style>
+</head>
+<body>
+  <main class="scene">
+    <canvas id="pond" tabindex="0" role="img" aria-label="An illustrated pond with lily pads. Click or tap the water to make a ripple, or focus here and press Space." aria-describedby="instructions">An illustrated green pond with lily pads.</canvas>
+    <header>
+      <div class="eyebrow"><span class="mark" aria-hidden="true"></span> Stillwater <span aria-hidden="true">/</span> A tiny escape</div>
+      <h1>A little<br>stillness.</h1>
+      <p class="intro">A small place to do nothing.<br>Stay for a ripple or two.</p>
+    </header>
+    <footer>
+      <div>
+        <p class="hint">Touch the water. Let it go.</p>
+        <div class="keys" id="instructions">Click or tap for ripples. With the pond focused, press Space.</div>
+      </div>
+      <div class="controls">
+        <button id="rain" type="button" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 4 3 8M12 3 10 7M17 7 15 11M8 11 6 15M14 14 12 18"/></svg><span>Rain</span></button>
+        <button id="pause" type="button" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path id="pause-icon" d="M7 5v10M13 5v10"/></svg><span id="pause-label">Pause</span></button>
+      </div>
+    </footer>
+    <p class="sr-only" id="status" role="status"></p>
+    <noscript>Enable JavaScript to bring the pond to life.</noscript>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const canvas = document.querySelector('#pond');
+      const ctx = canvas.getContext('2d');
+      const rainButton = document.querySelector('#rain');
+      const pauseButton = document.querySelector('#pause');
+      const status = document.querySelector('#status');
+      const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+      if (!ctx) {
+        status.textContent = 'This browser cannot draw the pond.';
+        rainButton.disabled = pauseButton.disabled = true;
+        return;
+      }
+
+      let width = 0, height = 0, time = 0, previous = 0, frameId = null;
+      let paused = motionPreference.matches, raining = false, rainIn = 0;
+      let background;
+      const ripples = [];
+      // Fixed seeds keep the same garden when the window is resized.
+      let seed = 42;
+      const random = () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+      const motes = Array.from({ length: 65 }, () => ({ x: random(), y: random(), r: .4 + random() * 1.3, phase: random() * Math.PI * 2 }));
+      const pads = [
+        { x: .78, y: .36, size: 43, turn: .6, shade: 0 },
+        { x: .85, y: .42, size: 30, turn: 2.8, shade: 1 },
+        { x: .70, y: .44, size: 24, turn: -1.2, shade: 2 },
+        { x: .22, y: .69, size: 38, turn: 2.3, shade: 1 },
+        { x: .15, y: .75, size: 23, turn: -.3, shade: 0 },
+        { x: .29, y: .73, size: 18, turn: 1, shade: 2 }
+      ];
+
+      function addRipple(x, y, strength = 1) {
+        ripples.push({ x: x / width, y: y / height, born: time, strength });
+        if (ripples.length > 40) ripples.shift();
+        if (paused) draw();
+      }
+
+      function resize() {
+        const bounds = canvas.getBoundingClientRect();
+        width = bounds.width;
+        height = bounds.height;
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        background = ctx.createRadialGradient(width * .64, height * .47, 0, width * .58, height * .5, Math.max(width, height) * .8);
+        background.addColorStop(0, '#284a40');
+        background.addColorStop(.45, '#183a34');
+        background.addColorStop(1, '#0b2428');
+        draw();
+      }
+
+      function ellipse(x, y, rx, ry, color, lineWidth = 1) {
+        ctx.beginPath();
+        ctx.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), 0, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+      }
+
+      function drawPad(pad) {
+        const scale = Math.min(1, width / 800);
+        const radius = pad.size * (.65 + scale * .35);
+        const bob = Math.sin(time * .4 + pad.turn) * 2;
+        const x = pad.x * width, y = pad.y * height + bob;
+        ellipse(x, y + 4, radius * 1.3, radius * .79, '#b4d3a411');
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(1, .68);
+        ctx.rotate(pad.turn + Math.sin(time * .16) * .025);
+        ctx.shadowColor = '#031b25aa';
+        ctx.shadowBlur = 16;
+        ctx.shadowOffsetY = 10;
+        const fill = ctx.createLinearGradient(-radius, -radius, radius, radius);
+        fill.addColorStop(0, ['#91aa69', '#769764', '#adc080'][pad.shade]);
+        fill.addColorStop(1, ['#486d4c', '#3d664a', '#6e8b57'][pad.shade]);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, .15, Math.PI * 2 - .15);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.strokeStyle = '#d4dd9d33';
+        ctx.lineWidth = .7;
+        ctx.stroke();
+        for (let angle = .55; angle < Math.PI * 2 - .2; angle += .55) {
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(angle) * 3, Math.sin(angle) * 3);
+          ctx.quadraticCurveTo(Math.cos(angle + .1) * radius * .5, Math.sin(angle + .1) * radius * .5, Math.cos(angle) * radius * .9, Math.sin(angle) * radius * .9);
+          ctx.strokeStyle = '#d6dfa224';
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawFlower() {
+        const x = width * .79, y = height * .355 + Math.sin(time * .4 + .6) * 2;
+        const size = width < 600 ? 8 : 11;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(1, .8);
+        for (let layer = 0; layer < 2; layer++) {
+          for (let petal = 0; petal < 7; petal++) {
+            ctx.save();
+            ctx.rotate(petal / 7 * Math.PI * 2 + layer * .45);
+            ctx.beginPath();
+            ctx.ellipse(0, -size * (layer ? .55 : .8), size * (layer ? .28 : .4), size * (layer ? .65 : 1), 0, 0, Math.PI * 2);
+            ctx.fillStyle = layer ? '#eee6cb' : '#bfbfab';
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#dac479';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function draw() {
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, width, height);
+
+        // Slow currents, barely visible beneath the surface.
+        for (let i = 0; i < 12; i++) {
+          const x = width * .61 + Math.sin(time * .07 + i * .3) * 14;
+          const y = height * .48 + Math.cos(time * .09 + i) * 8;
+          ellipse(x, y, 100 + i * 43, 40 + i * 23, '#a8c6ae06');
+        }
+        for (const mote of motes) {
+          const x = mote.x * width + Math.sin(time * .13 + mote.phase) * 7;
+          const y = mote.y * height + Math.cos(time * .11 + mote.phase) * 5;
+          const alpha = .12 + (Math.sin(time * .6 + mote.phase) + 1) * .08;
+          ctx.beginPath();
+          ctx.arc(x, y, mote.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(216,222,169,${alpha})`;
+          ctx.fill();
+        }
+        for (const ripple of ripples) {
+          const age = time - ripple.born;
+          for (let ring = 0; ring < 4; ring++) {
+            const phase = age - ring * .32;
+            if (phase < 0) continue;
+            const radius = 5 + phase * 38 * ripple.strength;
+            const alpha = Math.max(0, 1 - phase / 6) * .32 * (1 - ring * .15);
+            ellipse(ripple.x * width, ripple.y * height, radius, radius * .55, `rgba(197,218,181,${alpha})`, 1);
+            ellipse(ripple.x * width, ripple.y * height + 2, radius + 2, radius * .55 + 1, `rgba(3,26,27,${alpha * .7})`, 1.5);
+          }
+        }
+        pads.forEach(drawPad);
+        drawFlower();
+      }
+
+      function tick(now) {
+        frameId = null;
+        if (paused || document.hidden) return;
+        const delta = previous ? Math.min((now - previous) / 1000, .05) : 0;
+        previous = now;
+        time += delta;
+        if (raining) {
+          rainIn -= delta;
+          if (rainIn <= 0) {
+            addRipple(width * (.08 + Math.random() * .84), height * (.30 + Math.random() * .48), .4 + Math.random() * .35);
+            rainIn = .25 + Math.random() * .6;
+          }
+        }
+        while (ripples.length && time - ripples[0].born > 7.5) ripples.shift();
+        draw();
+        start();
+      }
+
+      function start() {
+        if (frameId === null && !paused && !document.hidden) frameId = requestAnimationFrame(tick);
+      }
+
+      function setPaused(value) {
+        paused = value;
+        previous = 0;
+        pauseButton.setAttribute('aria-pressed', String(paused));
+        document.querySelector('#pause-label').textContent = paused ? 'Resume' : 'Pause';
+        document.querySelector('#pause-icon').setAttribute('d', paused ? 'M6 4l9 6-9 6Z' : 'M7 5v10M13 5v10');
+        if (paused && frameId !== null) {
+          cancelAnimationFrame(frameId);
+          frameId = null;
+        }
+        start();
+      }
+
+      canvas.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        const bounds = canvas.getBoundingClientRect();
+        addRipple(event.clientX - bounds.left, event.clientY - bounds.top);
+      });
+      canvas.addEventListener('keydown', event => {
+        if (event.code === 'Space' || event.code === 'Enter') {
+          event.preventDefault();
+          if (!event.repeat) addRipple(width * (.35 + Math.random() * .3), height * (.45 + Math.random() * .15));
+        }
+      });
+      rainButton.addEventListener('click', () => {
+        raining = !raining;
+        rainIn = 0;
+        rainButton.setAttribute('aria-pressed', String(raining));
+        status.textContent = raining ? (paused ? 'Rain is on. Resume to animate it.' : 'Gentle rain is on.') : 'Rain is off.';
+      });
+      pauseButton.addEventListener('click', () => setPaused(!paused));
+      motionPreference.addEventListener('change', event => setPaused(event.matches));
+      document.addEventListener('visibilitychange', () => {
+        previous = 0;
+        if (document.hidden && frameId !== null) {
+          cancelAnimationFrame(frameId);
+          frameId = null;
+        } else start();
+      });
+      window.addEventListener('resize', resize);
+      resize();
+      addRipple(width * .53, height * .56, .8);
+      // A paused pond starts with a complete, still ripple.
+      if (paused) { time = 1.3; draw(); }
+      setPaused(paused);
+    })();
+  </script>
+</body>
+</html>

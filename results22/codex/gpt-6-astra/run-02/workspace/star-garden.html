@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080f19">
+  <title>Star Garden — a small pocket of night</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; color: #f2eee5; background: #080f19; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button { font: inherit; }
+    .garden { min-height: 100svh; position: relative; overflow: hidden; isolation: isolate; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; z-index: -1; }
+    .layout { min-height: 100svh; display: flex; flex-direction: column; justify-content: space-between; padding: 32px 5vw 26px; pointer-events: none; gap: 40px; }
+    header, footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .wordmark { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
+    .mark { color: #e8bf7b; font-size: 25px; line-height: 1; }
+    .edition { font-family: ui-monospace, monospace; color: #a2adb9; font-size: 10px; letter-spacing: .12em; }
+    main { max-width: 620px; padding-bottom: 90px; }
+    .eyebrow { color: #dfba80; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; }
+    h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(52px, 7.7vw, 108px); line-height: 1.02; letter-spacing: -.055em; margin: 22px 0; }
+    h1 em { font-weight: 400; color: #e5c499; }
+    .intro { color: #b6c0ca; font-size: 14px; line-height: 1.8; max-width: 310px; }
+    .instruction { display: flex; align-items: center; gap: 11px; margin-top: 32px; color: #e4ddd1; font-size: 11px; }
+    .instruction::before { content: '+'; width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid #6b6b64; border-radius: 50%; font-size: 16px; }
+    footer { align-items: flex-end; }
+    .status { color: #a2adb9; font-family: ui-monospace, monospace; font-size: 10px; line-height: 1.9; letter-spacing: .05em; }
+    .status strong { color: #e5c499; font-weight: 400; }
+    .controls { pointer-events: auto; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    button { border: 1px solid #69717b; color: #ede7dc; background: #0a1321e8; border-radius: 100px; padding: 12px 17px; font-size: 11px; cursor: pointer; transition: background .2s, border-color .2s; }
+    button:hover { background: #24303e; border-color: #d1bc9c; }
+    button:focus-visible { outline: 2px solid #e8bf7b; outline-offset: 4px; }
+    .primary { color: #1a2026; background: #e5c499; border-color: #e5c499; }
+    .primary:hover { background: #f4d7ae; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    @media (max-width: 600px) {
+      .layout { padding: 24px 24px 22px; gap: 80px; }
+      .edition { max-width: 85px; text-align: right; line-height: 1.7; }
+      main { padding-bottom: 65px; }
+      footer { align-items: flex-start; flex-direction: column; gap: 18px; }
+      .controls { justify-content: flex-start; gap: 7px; }
+      button { padding: 11px 13px; }
+      .status br { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { button { transition: none; } }
+  </style>
+</head>
+<body>
+  <div class="garden" id="garden">
+    <canvas id="sky" role="img" aria-label="An interactive night sky. Click or drag to plant stars, or use the Plant a star button."></canvas>
+    <div class="layout">
+      <header>
+        <div class="wordmark"><span class="mark" aria-hidden="true">✳</span> Star Garden</div>
+        <span class="edition">A SMALL POCKET OF NIGHT</span>
+      </header>
+      <main>
+        <p class="eyebrow">An invitation to do very little</p>
+        <h1>Let something<br><em>small</em> begin.</h1>
+        <p class="intro">Plant a star. Let it find a neighbor.<br>There is no right way to make a sky.</p>
+        <div class="instruction">Click or wander with your cursor held down.</div>
+      </main>
+      <footer>
+        <div class="status"><strong id="count">0 stars planted</strong><br> &nbsp;A little universe, just for now.</div>
+        <div class="controls" aria-label="Garden controls">
+          <button class="primary" id="plant">Plant a star <span aria-hidden="true">↗</span></button>
+          <button id="pause" aria-pressed="false">Pause motion</button>
+          <button id="save">Keep this sky</button>
+          <button id="clear">Start fresh</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <p class="sr-only" id="announcement" role="status" aria-live="polite"></p>
+  <script>
+    (() => {
+      'use strict';
+      const canvas = document.getElementById('sky');
+      const ctx = canvas.getContext('2d');
+      const garden = document.getElementById('garden');
+      const count = document.getElementById('count');
+      const pause = document.getElementById('pause');
+      const announcement = document.getElementById('announcement');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const colors = ['#edc891', '#bad7e8', '#f3e5c7', '#c4bbeb'];
+      const stars = [];
+      const background = Array.from({ length: 190 }, () => ({
+        x: Math.random(), y: Math.random(), size: Math.random() * 1.1 + .2,
+        alpha: Math.random() * .4 + .1, phase: Math.random() * Math.PI * 2
+      }));
+      let width = 1, height = 1, time = 0, lastFrame = 0, frame = 0;
+      let paused = reducedMotion.matches;
+      let dragging = null, lastPlant = null;
+
+      function announce(message) { announcement.textContent = message; }
+
+      function plant(x, y) {
+        if (stars.length >= 140) stars.shift();
+        stars.push({ x, y, size: 1.3 + Math.random() * 1.4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          phase: Math.random() * Math.PI * 2, born: time });
+        count.textContent = `${stars.length} ${stars.length === 1 ? 'star' : 'stars'} planted`;
+        if (paused) draw();
+      }
+
+      function draw() {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#080f19';
+        ctx.fillRect(0, 0, width, height);
+        const haze = ctx.createRadialGradient(width * .76, height * .45, 0, width * .7, height * .5, Math.max(width, height) * .7);
+        haze.addColorStop(0, '#192a38');
+        haze.addColorStop(.47, '#0e1a29');
+        haze.addColorStop(1, '#080f19');
+        ctx.fillStyle = haze;
+        ctx.fillRect(0, 0, width, height);
+
+        for (const star of background) {
+          ctx.globalAlpha = star.alpha * (.8 + .2 * Math.sin(time * .5 + star.phase));
+          ctx.fillStyle = '#d2deea';
+          ctx.beginPath();
+          ctx.arc(star.x * width, star.y * height, star.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const reach = Math.min(190, width * .31);
+        ctx.strokeStyle = '#c1b8a5';
+        ctx.lineWidth = .7;
+        for (let i = 0; i < stars.length; i++) {
+          for (let j = i + 1; j < stars.length; j++) {
+            const a = stars[i], b = stars[j];
+            const distance = Math.hypot((a.x - b.x) * width, (a.y - b.y) * height);
+            if (distance > reach) continue;
+            ctx.globalAlpha = .23 * (1 - distance / reach);
+            ctx.beginPath();
+            ctx.moveTo(a.x * width, a.y * height);
+            ctx.lineTo(b.x * width, b.y * height);
+            ctx.stroke();
+          }
+        }
+
+        for (const star of stars) {
+          const x = star.x * width, y = star.y * height;
+          const pulse = .85 + .15 * Math.sin(time * 1.2 + star.phase);
+          const glow = ctx.createRadialGradient(x, y, 0, x, y, 28);
+          glow.addColorStop(0, star.color + '40');
+          glow.addColorStop(1, star.color + '00');
+          ctx.globalAlpha = pulse;
+          ctx.fillStyle = glow;
+          ctx.fillRect(x - 28, y - 28, 56, 56);
+          ctx.fillStyle = star.color;
+          ctx.beginPath();
+          ctx.arc(x, y, star.size * pulse, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = .45 * pulse;
+          ctx.strokeStyle = star.color;
+          ctx.lineWidth = .7;
+          ctx.beginPath();
+          ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
+          ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
+          ctx.stroke();
+          const age = time - star.born;
+          if (!paused && age < 1.5) {
+            ctx.globalAlpha = .3 * (1 - age / 1.5);
+            ctx.beginPath();
+            ctx.arc(x, y, 5 + age * 27, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function animate(now) {
+        time += lastFrame ? Math.min((now - lastFrame) / 1000, .05) : 0;
+        lastFrame = now;
+        draw();
+        frame = requestAnimationFrame(animate);
+      }
+
+      function syncMotion() {
+        cancelAnimationFrame(frame);
+        lastFrame = 0;
+        pause.textContent = paused ? 'Resume motion' : 'Pause motion';
+        pause.setAttribute('aria-pressed', String(paused));
+        draw();
+        if (!paused && !document.hidden) frame = requestAnimationFrame(animate);
+      }
+
+      function resize() {
+        const rect = garden.getBoundingClientRect();
+        width = rect.width; height = rect.height;
+        const scale = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        draw();
+      }
+
+      function plantAtPointer(event) {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / width));
+        const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / height));
+        if (lastPlant && Math.hypot((x - lastPlant.x) * width, (y - lastPlant.y) * height) < 32) return;
+        plant(x, y);
+        lastPlant = { x, y };
+      }
+
+      canvas.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || dragging !== null) return;
+        dragging = event.pointerId;
+        lastPlant = null;
+        canvas.setPointerCapture(event.pointerId);
+        plantAtPointer(event);
+      });
+      canvas.addEventListener('pointermove', event => {
+        if (dragging === event.pointerId) plantAtPointer(event);
+      });
+      function endDrag(event) {
+        if (dragging !== event.pointerId) return;
+        dragging = null; lastPlant = null;
+        announce(count.textContent + '.');
+      }
+      canvas.addEventListener('pointerup', endDrag);
+      canvas.addEventListener('pointercancel', endDrag);
+      canvas.addEventListener('lostpointercapture', endDrag);
+      document.getElementById('plant').addEventListener('click', () => {
+        plant(.48 + Math.random() * .43, .2 + Math.random() * .52);
+        announce(count.textContent + '.');
+      });
+      pause.addEventListener('click', () => { paused = !paused; syncMotion(); });
+      document.getElementById('clear').addEventListener('click', () => {
+        stars.length = 0;
+        count.textContent = '0 stars planted';
+        draw();
+        announce('A fresh sky. Ready for your first star.');
+      });
+      document.getElementById('save').addEventListener('click', () => {
+        draw();
+        canvas.toBlob(blob => {
+          if (!blob) { announce('Could not save the sky. Please try again.'); return; }
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'my-star-garden.png';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+          announce('Your sky is ready as a PNG download.');
+        }, 'image/png');
+      });
+      reducedMotion.addEventListener('change', event => { paused = event.matches; syncMotion(); });
+      document.addEventListener('visibilitychange', syncMotion);
+      new ResizeObserver(resize).observe(garden);
+      resize();
+      [[.64,.35], [.73,.25], [.83,.33], [.77,.46], [.66,.53], [.86,.57], [.71,.66]].forEach(([x,y]) => plant(x,y));
+      syncMotion();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+>>> Running codex sandbox
+>>> Image:     sandbox-harness:pinned-cc2.1.258-cx0.153.4
+>>> Endpoint:  https://lux.latere.ai/compat/openai
+>>> API Key:   lux_YCRX...
+>>> Model:     gpt-6-astra
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results22/codex/gpt-6-astra/run-04/workspace
+
+>>> Transcript: results22/codex/gpt-6-astra/run-04/transcript.jsonl

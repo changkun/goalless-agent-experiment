@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080f20">
+  <title>A small sky</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; color: #ebe7dc; background: #080f20; }
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; }
+    main { position: relative; height: 100vh; height: 100svh; min-height: 420px; isolation: isolate; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: manipulation; }
+    header { position: absolute; top: clamp(28px, 6vh, 70px); left: clamp(24px, 7vw, 110px); pointer-events: none; }
+    .eyebrow { margin: 0 0 20px; color: #b9ad8d; font-size: 10px; letter-spacing: .26em; text-transform: uppercase; }
+    h1 { margin: 0; font: normal clamp(48px, 7vw, 88px)/1.03 Georgia, serif; letter-spacing: -.045em; }
+    h1 em { color: #dfcfa4; font-weight: normal; }
+    .intro { max-width: 290px; margin-top: 22px; color: #a9b1c2; font-size: 13px; line-height: 1.8; }
+    .edition { position: absolute; top: 48px; right: 7vw; color: #79849b; writing-mode: vertical-rl; font-size: 10px; letter-spacing: .23em; text-transform: uppercase; }
+    footer { position: absolute; inset: auto clamp(24px, 7vw, 110px) 30px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+    .discovery { min-height: 58px; }
+    .discovery .eyebrow { margin-bottom: 9px; font-size: 9px; }
+    #name { margin: 0; font: italic 23px/1.3 Georgia, serif; }
+    #count { margin: 9px 0 0; color: #939db0; font-size: 11px; }
+    .controls { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    button { font: inherit; font-size: 12px; cursor: pointer; }
+    #wish { padding: 13px 19px; border: 1px solid #b8a77866; border-radius: 999px; background: #d6bf8510; color: #e5d7b7; }
+    #wish:hover { background: #d6bf8524; border-color: #c8b683; }
+    #reset { padding: 13px 6px; border: 0; background: transparent; color: #a6aec0; }
+    #reset:hover { color: #fff; }
+    button:focus-visible { outline: 2px solid #e8d19c; outline-offset: 5px; }
+    .hint { position: absolute; right: 7vw; bottom: 115px; color: #768198; font-size: 10px; letter-spacing: .06em; pointer-events: none; }
+    @media (max-width: 600px) {
+      header { top: 30px; }
+      h1 { font-size: 52px; }
+      .intro { font-size: 12px; margin-top: 16px; max-width: 240px; }
+      .edition { right: 24px; top: 34px; }
+      footer { bottom: 24px; align-items: flex-start; flex-direction: column; gap: 20px; }
+      .hint { display: none; }
+      #name { font-size: 21px; }
+    }
+    @media (max-height: 600px) {
+      header { top: 20px; }
+      .eyebrow { margin-bottom: 10px; }
+      h1 { font-size: 40px; }
+      .intro { margin-top: 10px; }
+      footer { bottom: 16px; gap: 12px; }
+      .hint, .edition { display: none; }
+    }
+    @media (max-height: 419px) { body { overflow: auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <canvas id="sky" aria-label="An imaginary night sky. Use the Make a constellation button to add stars." role="img"></canvas>
+    <header>
+      <p class="eyebrow">An observatory for the imagination</p>
+      <h1>Somewhere,<br>a <em>small sky.</em></h1>
+      <p class="intro">Click the dark. Give the night a constellation.<br>There is no wrong place for a little light.</p>
+    </header>
+    <span class="edition" aria-hidden="true">No coordinates necessary · Est. tonight</span>
+    <p class="hint" aria-hidden="true">the sky is yours to draw in</p>
+    <footer>
+      <div class="discovery" role="status" aria-live="polite" aria-atomic="true">
+        <p class="eyebrow">Your latest discovery</p>
+        <p id="name">The Unhurried Fox</p>
+        <p id="count">1 constellation, and room for more.</p>
+      </div>
+      <div class="controls">
+        <button id="wish" type="button">✧ &nbsp; Make a constellation</button>
+        <button id="reset" type="button">Begin again</button>
+      </div>
+    </footer>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const canvas = document.querySelector('#sky');
+      const ctx = canvas.getContext('2d');
+      const nameElement = document.querySelector('#name');
+      const countElement = document.querySelector('#count');
+      const motion = matchMedia('(prefers-reduced-motion: reduce)');
+      const random = (min, max) => min + Math.random() * (max - min);
+      const pick = items => items[Math.floor(Math.random() * items.length)];
+      const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+      const adjectives = ['Unhurried', 'Wandering', 'Velvet', 'Forgotten', 'Drowsy', 'Paper', 'Quiet', 'Moonlit', 'Patient', 'Little', 'Faraway', 'Secret'];
+      const things = ['Fox', 'Teacup', 'Compass', 'Orchard', 'Whale', 'Letter', 'Kite', 'Doorway', 'Lantern', 'Sparrow', 'Umbrella', 'Boat'];
+      // Each point links to an earlier point, like a tiny branching star atlas.
+      const shapes = [
+        [[-.9,.1,-1],[-.35,-.1,0],[.1,-.6,1],[.3,.05,1],[.85,.3,3],[.6,.8,4]],
+        [[-.8,-.4,-1],[-.35,.35,0],[0,-.1,1],[.4,.5,2],[.85,-.25,3]],
+        [[-.85,.55,-1],[-.3,.15,0],[0,-.55,1],[.6,-.25,2],[.45,.4,3],[-.3,.15,4]],
+        [[-.8,0,-1],[-.2,.15,0],[.2,-.4,1],[.7,-.7,2],[.55,.5,1],[.9,.7,4]],
+        [[-.7,-.7,-1],[-.3,-.15,0],[.35,.05,1],[.7,.55,2],[-.15,.65,2],[-.65,.35,4]]
+      ];
+      const stars = Array.from({ length: 340 }, () => ({
+        x: Math.random(), y: Math.random(), r: random(.35, 1.25),
+        brightness: random(.12, .65), phase: random(0, Math.PI * 2)
+      }));
+      let width = 0, height = 0, background, frame = 0, plot;
+      let constellations = [];
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+        const scale = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        const header = document.querySelector('header').getBoundingClientRect();
+        const footer = document.querySelector('footer').getBoundingClientRect();
+        const top = header.bottom - rect.top + 12;
+        const bottom = footer.top - rect.top - 25;
+        plot = { left: 35, right: width - 35, top, bottom: Math.max(top + 35, bottom) };
+        if (width > 800) {
+          plot.left = width * .36;
+          plot.top = 110;
+        }
+        background = ctx.createLinearGradient(0, 0, width * .75, height);
+        background.addColorStop(0, '#070d1c');
+        background.addColorStop(.5, '#0d192c');
+        background.addColorStop(1, '#091c27');
+        draw(performance.now());
+      }
+
+      function addConstellation(u, v, first = false) {
+        const angle = random(-.8, .8);
+        const points = pick(shapes).map(([x, y, parent]) => ({
+          x: x * Math.cos(angle) - y * Math.sin(angle),
+          y: x * Math.sin(angle) + y * Math.cos(angle),
+          parent, radius: random(1.5, 2.8)
+        }));
+        const name = first ? 'The Unhurried Fox' : `The ${pick(adjectives)} ${pick(things)}`;
+        constellations.push({ u, v, points, name, size: random(55, 90), born: first ? -10000 : performance.now() });
+        nameElement.textContent = name;
+        const n = constellations.length;
+        countElement.textContent = `${n} constellation${n === 1 ? '' : 's'}, and room for more.`;
+        if (motion.matches) draw(performance.now());
+      }
+
+      function glow(x, y, radius, opacity) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, `rgba(214, 227, 250, ${opacity})`);
+        gradient.addColorStop(1, 'rgba(180, 205, 250, 0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function draw(now) {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, width, height);
+        // A faint cloud of light gives the empty spaces a little depth.
+        const mist = ctx.createRadialGradient(width * .72, height * .48, 0, width * .72, height * .48, width * .48);
+        mist.addColorStop(0, 'rgba(76, 103, 133, .10)');
+        mist.addColorStop(1, 'rgba(40, 70, 110, 0)');
+        ctx.fillStyle = mist;
+        ctx.fillRect(0, 0, width, height);
+        for (const star of stars) {
+          const shimmer = motion.matches ? .85 : .8 + .2 * Math.sin(now * .0006 + star.phase);
+          ctx.fillStyle = `rgba(207, 219, 238, ${star.brightness * shimmer})`;
+          ctx.beginPath();
+          ctx.arc(star.x * width, star.y * height, star.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        for (const constellation of constellations) {
+          const availableWidth = plot.right - plot.left;
+          const availableHeight = plot.bottom - plot.top;
+          const size = Math.min(constellation.size, availableWidth / 3, availableHeight / 2.8);
+          const margin = size * 1.2;
+          const x = plot.left + margin + constellation.u * Math.max(0, availableWidth - margin * 2);
+          const y = plot.top + margin + constellation.v * Math.max(0, availableHeight - margin * 2);
+          const age = motion.matches ? 1 : clamp((now - constellation.born) / 850, 0, 1);
+          const ease = 1 - Math.pow(1 - age, 3);
+          const points = constellation.points.map(p => ({ ...p, x: x + p.x * size, y: y + p.y * size }));
+          ctx.globalAlpha = ease;
+          ctx.strokeStyle = 'rgba(173, 197, 224, .36)';
+          ctx.lineWidth = .8;
+          for (const point of points) {
+            if (point.parent < 0) continue;
+            const parent = points[point.parent];
+            ctx.beginPath();
+            ctx.moveTo(parent.x, parent.y);
+            ctx.lineTo(parent.x + (point.x - parent.x) * ease, parent.y + (point.y - parent.y) * ease);
+            ctx.stroke();
+          }
+          for (const point of points) {
+            glow(point.x, point.y, 15, .18);
+            ctx.fillStyle = '#f1e7cc';
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          const bright = points[0];
+          ctx.strokeStyle = 'rgba(241, 231, 204, .6)';
+          ctx.lineWidth = .6;
+          ctx.beginPath();
+          ctx.moveTo(bright.x - 7, bright.y); ctx.lineTo(bright.x + 7, bright.y);
+          ctx.moveTo(bright.x, bright.y - 7); ctx.lineTo(bright.x, bright.y + 7);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      function animate(now) {
+        draw(now);
+        frame = requestAnimationFrame(animate);
+      }
+
+      function updateMotion() {
+        cancelAnimationFrame(frame);
+        if (!document.hidden && !motion.matches) frame = requestAnimationFrame(animate);
+        else draw(performance.now());
+      }
+
+      canvas.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        if (y < plot.top || y > plot.bottom) return;
+        addConstellation(clamp((x - plot.left) / (plot.right - plot.left), 0, 1), clamp((y - plot.top) / (plot.bottom - plot.top), 0, 1));
+      });
+      document.querySelector('#wish').addEventListener('click', () => addConstellation(Math.random(), Math.random()));
+      document.querySelector('#reset').addEventListener('click', () => {
+        constellations = [];
+        nameElement.textContent = 'A whole new kind of nothing.';
+        countElement.textContent = 'An empty sky. A little possibility.';
+        draw(performance.now());
+      });
+      window.addEventListener('resize', resize);
+      motion.addEventListener('change', updateMotion);
+      document.addEventListener('visibilitychange', updateMotion);
+      resize();
+      addConstellation(.55, .45, true);
+      updateMotion();
+    })();
+  </script>
+</body>
+</html>

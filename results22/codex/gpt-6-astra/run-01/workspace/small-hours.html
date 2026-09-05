@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090f20">
+  <title>Small Hours · A constellation sketchbook</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; color: #e8e7ee; background: #090f20; }
+    * { box-sizing: border-box; }
+    body { margin: 0; overflow: hidden; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+    canvas:focus-visible { outline: 1px solid #b2bfdc; outline-offset: -6px; }
+    header { position: fixed; top: clamp(28px, 6vw, 72px); left: clamp(24px, 6vw, 80px); pointer-events: none; }
+    .eyebrow { color: #aab2cb; font-size: 10px; letter-spacing: .28em; text-transform: uppercase; }
+    h1 { margin: 14px 0 12px; font-family: Georgia, serif; font-size: clamp(42px, 6vw, 72px); font-weight: 400; letter-spacing: -.05em; line-height: 1; }
+    .description { max-width: 250px; color: #aab2cb; font-size: 13px; line-height: 1.8; }
+    .edition { position: fixed; top: 46px; right: 44px; writing-mode: vertical-rl; font-size: 10px; letter-spacing: .23em; color: #909ab5; pointer-events: none; }
+    footer { position: fixed; bottom: max(26px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 16px; width: max-content; max-width: calc(100% - 24px); }
+    .toolbar { display: flex; padding: 7px; gap: 4px; background: #11192be8; border: 1px solid #ffffff1a; border-radius: 16px; box-shadow: 0 12px 40px #0004; backdrop-filter: blur(16px); }
+    button { border: 0; border-radius: 10px; background: transparent; padding: 11px 16px; font: inherit; font-size: 12px; color: #ccd1e0; cursor: pointer; transition: background .15s; white-space: nowrap; }
+    button:hover { background: #ffffff0d; }
+    button:focus-visible { outline: 2px solid #d1b787; outline-offset: 2px; }
+    button:disabled { color: #69738a; cursor: default; }
+    #save { color: #182032; background: #e6d7b8; margin-left: 4px; }
+    #save:hover { background: #f3e7cf; }
+    .hint { margin: 0; font-size: 11px; color: #a3aec6; letter-spacing: .025em; text-align: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    @media (max-width: 480px) { .edition { display: none; } button { padding: 11px 12px; } .description { max-width: 220px; } .hint { font-size: 10px; } }
+    @media (prefers-reduced-motion: reduce) { button { transition: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="sky" tabindex="0" aria-label="Constellation sketchbook" aria-describedby="instructions"></canvas>
+  <header>
+    <div class="eyebrow">An idle moment, well spent</div>
+    <h1>Small Hours</h1>
+    <p class="description">A sky with room for something new.<br>Drag to draw a constellation.<br>Tap to leave a little light.</p>
+  </header>
+  <div class="edition" aria-hidden="true">NO MAP. NO DESTINATION. JUST STARS.</div>
+  <footer>
+    <div class="toolbar" role="toolbar" aria-label="Sky controls">
+      <button id="undo" title="Undo the last stroke (Ctrl or Command + Z)">Undo</button>
+      <button id="clear" title="Clear the drawing; Undo restores it">Clear</button>
+      <button id="motion" aria-pressed="false">Twinkle</button>
+      <button id="save">Save sky ↗</button>
+    </div>
+    <p class="hint">Every constellation starts with one point.</p>
+  </footer>
+  <p id="instructions" class="sr-only">Draw with a mouse or touch. With the canvas focused, use arrow keys to move, Space to add a connected star, and Enter to start a new constellation. Control or Command Z undoes the last action. Use the controls to clear the drawing, toggle twinkling, or download a PNG image.</p>
+  <p id="status" class="sr-only" role="status" aria-live="polite"></p>
+  <script>
+    'use strict';
+    const canvas = document.querySelector('#sky');
+    const ctx = canvas.getContext('2d');
+    const background = document.createElement('canvas');
+    const bg = background.getContext('2d');
+    const undoButton = document.querySelector('#undo');
+    const clearButton = document.querySelector('#clear');
+    const motionButton = document.querySelector('#motion');
+    const status = document.querySelector('#status');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    let moving = !reducedMotion.matches;
+    let width = 0, height = 0, ratio = 1, frame = 0;
+    let pointer = null, stroke = null, keyboardStroke = null;
+    let cursor = { x: .5, y: .5 }, showCursor = false;
+    let history = [];
+    // Coordinates are proportional, so drawings survive viewport changes.
+    let strokes = [[
+      { x: .49, y: .48 }, { x: .57, y: .39 }, { x: .65, y: .47 },
+      { x: .72, y: .35 }, { x: .78, y: .43 }
+    ], [
+      { x: .27, y: .68 }, { x: .33, y: .61 }, { x: .39, y: .7 }, { x: .35, y: .77 }
+    ]];
+    const specks = [];
+    let seed = 4127;
+    function random() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    for (let i = 0; i < 380; i++) specks.push({ x: random(), y: random(), size: .3 + random() * 1.05, alpha: .12 + random() * .52, phase: random() * Math.PI * 2 });
+
+    function announce(message) { status.textContent = message; }
+    function updateControls() {
+      undoButton.disabled = history.length === 0;
+      clearButton.disabled = strokes.length === 0;
+      motionButton.setAttribute('aria-pressed', String(moving));
+      motionButton.textContent = moving ? 'Pause' : 'Twinkle';
+    }
+    function remember() {
+      history.push(strokes.map(line => line.map(point => ({ ...point }))));
+      if (history.length > 40) history.shift();
+    }
+    function endStroke() { pointer = null; stroke = null; keyboardStroke = null; }
+    function undo() {
+      if (!history.length) return;
+      endStroke();
+      strokes = history.pop();
+      updateControls(); draw(); announce('Last action undone.');
+    }
+    function resize() {
+      width = innerWidth; height = innerHeight; ratio = Math.min(devicePixelRatio || 1, 2);
+      for (const surface of [canvas, background]) { surface.width = Math.round(width * ratio); surface.height = Math.round(height * ratio); }
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      bg.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const base = bg.createLinearGradient(0, 0, width * .6, height);
+      base.addColorStop(0, '#090e1d'); base.addColorStop(.55, '#111b32'); base.addColorStop(1, '#15182c');
+      bg.fillStyle = base; bg.fillRect(0, 0, width, height);
+      for (const [x, y, radius, color] of [[.65, .45, .58, '#354f672c'], [.9, .8, .48, '#59436720'], [.1, .95, .45, '#25485120']]) {
+        const glow = bg.createRadialGradient(width * x, height * y, 0, width * x, height * y, Math.max(width, height) * radius);
+        glow.addColorStop(0, color); glow.addColorStop(1, '#00000000');
+        bg.fillStyle = glow; bg.fillRect(0, 0, width, height);
+      }
+      for (const star of specks) {
+        bg.fillStyle = `rgba(199,215,241,${star.alpha})`;
+        bg.beginPath(); bg.arc(star.x * width, star.y * height, star.size, 0, Math.PI * 2); bg.fill();
+      }
+      draw();
+    }
+    function draw(time = 0, exporting = false) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(background, 0, 0, width, height);
+      if (moving && !exporting) {
+        for (let i = 0; i < specks.length; i += 7) {
+          const star = specks[i];
+          ctx.fillStyle = `rgba(220,231,255,${.12 + .12 * Math.sin(time * .0006 + star.phase)})`;
+          ctx.beginPath(); ctx.arc(star.x * width, star.y * height, star.size + .25, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      for (const line of strokes) {
+        ctx.beginPath();
+        line.forEach((point, i) => ctx[i ? 'lineTo' : 'moveTo'](point.x * width, point.y * height));
+        ctx.strokeStyle = '#d6d5d044'; ctx.lineWidth = .85; ctx.stroke();
+        line.forEach((point, i) => {
+          const x = point.x * width, y = point.y * height;
+          const size = 1.65 + (i % 3) * .35;
+          const glow = ctx.createRadialGradient(x, y, 0, x, y, 20);
+          glow.addColorStop(0, '#f2ddb33b'); glow.addColorStop(.25, '#e2d2bc12'); glow.addColorStop(1, '#e2d2bc00');
+          ctx.fillStyle = glow; ctx.fillRect(x - 20, y - 20, 40, 40);
+          ctx.fillStyle = '#f5e7ce'; ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+          if (i % 3 === 0) {
+            ctx.strokeStyle = '#eadbc74a'; ctx.lineWidth = .6;
+            ctx.beginPath(); ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y); ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6); ctx.stroke();
+          }
+        });
+      }
+      if (showCursor && !exporting) {
+        ctx.strokeStyle = '#e6d7b899'; ctx.lineWidth = 1; ctx.setLineDash([2, 4]);
+        ctx.beginPath(); ctx.arc(cursor.x * width, cursor.y * height, 11, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+    function animate(time) { draw(time); frame = requestAnimationFrame(animate); }
+    function setMotion(enabled) {
+      moving = enabled; cancelAnimationFrame(frame);
+      if (moving && !document.hidden) frame = requestAnimationFrame(animate);
+      updateControls(); draw();
+    }
+    function position(event) { return { x: Math.max(0, Math.min(1, event.clientX / width)), y: Math.max(0, Math.min(1, event.clientY / height)) }; }
+    canvas.addEventListener('pointerdown', event => {
+      if (pointer !== null || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      remember(); keyboardStroke = null; showCursor = false;
+      pointer = event.pointerId; canvas.setPointerCapture(pointer);
+      stroke = [position(event)]; strokes.push(stroke); updateControls(); draw();
+    });
+    canvas.addEventListener('pointermove', event => {
+      if (pointer !== event.pointerId || !stroke) return;
+      const point = position(event), previous = stroke[stroke.length - 1];
+      if (Math.hypot((point.x - previous.x) * width, (point.y - previous.y) * height) < 34) return;
+      stroke.push(point); draw();
+    });
+    function finishPointer(event) {
+      if (pointer !== event.pointerId) return;
+      const count = stroke ? stroke.length : 0;
+      endStroke(); announce(count === 1 ? 'A star added.' : `Constellation of ${count} stars added.`);
+    }
+    canvas.addEventListener('pointerup', finishPointer);
+    canvas.addEventListener('pointercancel', finishPointer);
+    canvas.addEventListener('lostpointercapture', finishPointer);
+    canvas.addEventListener('keydown', event => {
+      const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+      if (directions[event.key]) {
+        event.preventDefault(); showCursor = true;
+        const [dx, dy] = directions[event.key], step = event.shiftKey ? 40 : 12;
+        cursor.x = Math.max(.01, Math.min(.99, cursor.x + dx * step / width));
+        cursor.y = Math.max(.01, Math.min(.99, cursor.y + dy * step / height)); draw();
+      } else if (event.code === 'Space') {
+        event.preventDefault(); if (event.repeat) return;
+        remember(); showCursor = true;
+        if (!keyboardStroke) { keyboardStroke = []; strokes.push(keyboardStroke); }
+        keyboardStroke.push({ ...cursor }); updateControls(); draw(); announce('Star added. Use arrow keys to move to the next point.');
+      } else if (event.key === 'Enter' || event.key === 'Escape') {
+        event.preventDefault(); keyboardStroke = null; announce('Ready for a new constellation.');
+      }
+    });
+    canvas.addEventListener('blur', () => { showCursor = false; keyboardStroke = null; draw(); });
+    document.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') { event.preventDefault(); undo(); }
+    });
+    undoButton.addEventListener('click', undo);
+    clearButton.addEventListener('click', () => {
+      if (!strokes.length) return;
+      remember(); endStroke(); strokes = []; updateControls(); draw(); announce('Sky cleared. Undo can restore your drawing.');
+    });
+    motionButton.addEventListener('click', () => setMotion(!moving));
+    reducedMotion.addEventListener('change', event => setMotion(!event.matches));
+    document.addEventListener('visibilitychange', () => setMotion(moving));
+    document.querySelector('#save').addEventListener('click', () => {
+      draw(0, true);
+      // Capture only the sky, without controls or the keyboard cursor.
+      canvas.toBlob(blob => {
+        if (!blob) { announce('The image could not be saved. Please try again.'); return; }
+        const url = URL.createObjectURL(blob), link = document.createElement('a');
+        link.href = url; link.download = 'small-hours.png'; document.body.append(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        announce('Your sky is ready as small-hours.png.');
+      }, 'image/png');
+      draw();
+    });
+    addEventListener('resize', resize);
+    resize(); setMotion(moving);
+  </script>
+</body>
+</html>
