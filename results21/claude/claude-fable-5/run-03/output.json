@@ -1,0 +1,9 @@
+I made a generative art piece. The workspace was empty, so I filled it with **`/workspace/flowfield.html`** — a self-contained flow-field painting with zero dependencies. Open it in any browser and it grows itself over about 15 seconds: ~1,400 particles drift along a seeded fractal-noise vector field, laying down thousands of translucent strokes that accumulate into something like wind-blown silk, then gently settle as the strokes thin out.
+
+A few details I enjoyed putting in:
+
+- **Every run is a different piece.** A seeded PRNG (mulberry32) drives everything — the noise field, the palette, the global drift direction, how tightly the field winds. The seed is shown in the corner, and resizing the window regrows the *same* piece deterministically.
+- **Five palettes** it picks from at random: *ember*, *lagoon*, *meadow*, *nocturne*, and a light one called *paper* with ink-like strokes on cream.
+- **Click** anywhere to regrow with a fresh seed; press **`s`** to save the current state as a PNG named after its seed, so a composition you like is reproducible and keepable.
+
+The JavaScript parses cleanly under Node, so it should run as-is. If you'd like, I could add more palettes, an animated "living" mode that never settles, or a gallery page that renders a grid of seeds side by side.

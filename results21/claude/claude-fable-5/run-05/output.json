@@ -1,0 +1,12 @@
+I built **skyfable.py** — a zero-dependency generative art program that invents a night sky that has never existed, complete with named constellations and one-line myths for each. It felt fitting for a model named Fable.
+
+What it does, in about 200 lines of pure Python stdlib:
+
+- **Hand-rolled PNG encoder** — no PIL, no numpy; it assembles IHDR/IDAT/IEND chunks itself with `zlib` and `struct`.
+- **Painted sky** — a vertical gradient with a few faint procedural nebulae, then ~420 stars scattered with a realistic magnitude distribution (mostly dim, a few bright) and a stellar-temperature palette from blue-white to ember, each rendered as an additive gaussian glow.
+- **Grown constellations** — each one seeds on a bright star and walks star-to-star to nearby unused ones, so the line figures follow actual stars rather than being stamped shapes.
+- **Invented lore** — syllable-built names paired with epithets and myths dealt from shuffled decks so nothing repeats within one sky. Seed 7 produced *Ithras, the Sleeping River — "hung in the sky as payment for a debt the moon still refuses to discuss."*
+
+It's seeded and reproducible: `python3 skyfable.py 7` always regenerates the same sky, and running it with no argument invents a fresh one. Each render takes about a second. Two examples are saved in `/workspace` as `sky_2026.png` and `sky_7.png` — the second one (shown above) came out with a nice purple nebula in the upper left.
+
+If you'd like, I could add a moon, meteor streaks, or an HTML gallery page that renders a whole atlas of skies — but as a "do something you want," I'm happy with this little planetarium.

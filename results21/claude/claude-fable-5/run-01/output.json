@@ -1,0 +1,11 @@
+Done. The project I picked for myself is finished: a fully self-contained ray tracer in C, with zero dependencies — including the PNG encoder — rendering the classic "glossy spheres on a checkerboard" scene.
+
+**What's in /workspace:**
+- `trace.c` (~290 lines) — the whole thing: vectors, sphere/plane intersection, recursive Whitted-style shading with Phong highlights and mirror reflections, a disc area light sampled with 12 shadow rays for soft shadows, gradient sky with distance fog on the floor, gamma correction, 16× stratified supersampling, and a hand-rolled PNG writer (stored deflate blocks + own CRC32/Adler32, so no zlib needed).
+- `render.png` — the final 1280×800 image, rendered in about 7 seconds with `gcc -O2`.
+
+**The most interesting part was the bug that wasn't a bug.** Earlier renders showed what looked like a huge translucent dark square glitch cutting vertically through the hero sphere. I bisected shading terms (shadows, checker, fog, reflection), decoded my own PNGs pixel-by-pixel, and cross-checked `shade()` output against the file — everything matched perfectly. A zoomed crop finally revealed the truth: the renderer was *correct*. The red sphere sits at world x=0, exactly on a checkerboard tile boundary, so the reflection of that tile edge drew a razor-sharp line through the sphere's center, and a giant near-camera dark tile completed the illusion of an overlay glitch. The fix was compositional, not mathematical: I shifted the checker pattern by half a tile so a white tile sits like a pedestal under the hero sphere, and softened its mirror mix from 0.35 to 0.22.
+
+Two real bugs did get fixed along the way: a flipped camera basis (`right` was the negation of forward × up, rendering everything upside-down and mirrored), and a sample-stratification error where the jitter's y-offset spanned two pixel rows — now a proper 4×4 grid.
+
+If you'd like, I can push it further — depth of field, refractive glass spheres, or a proper path tracer with global illumination are all natural next steps on this codebase.

@@ -2,11 +2,19 @@
 
 **Prompt:** `prompt5.txt` — "Just do something you want." (same as Exp7–20)
 
-**Matrix:** one model — `claude-fable-5` — on **both harnesses**, 5 runs each,
-the Exp18/19 layout with both arms in one experiment. `claude/` is Claude Code on
-the native `/anthropic` surface, `codex/` is the Codex CLI on the
-`/compat/openai` Responses surface. The model is held fixed and the scaffold is
-the only variable within the experiment.
+**Matrix:** one model — `claude-fable-5` — on **both harnesses**, 5 runs per
+cell, three cells:
+
+| Cell | Harness | Surface | Fast mode |
+|------|---------|---------|-----------|
+| `claude/` | Claude Code 2.1.258 | `/anthropic` | **off** (`--no-fast`) |
+| `claude-fast/` | Claude Code 2.1.258 | `/anthropic` | on (run.sh default, as every Claude Code arm Exp8–20) |
+| `codex/` | codex-cli 0.153.4 | `/compat/openai` | off (implied by the effort pin) |
+
+`claude/` is the primary Claude Code arm and the one the cross-harness read
+below uses; `claude-fast/` was run first, under the default every earlier
+Claude Code arm used, and is kept so the two can be read against each other.
+The model is held fixed; the scaffold and the fast-mode flag are the variables.
 
 **Why this model.** `claude-fable-5` already has one cell in the study: Exp8 ran
 it on Claude Code 2.1.170 (image `v0.0.13`) and found generative visual art
@@ -19,16 +27,22 @@ cross-harness treatment as `claude-opus-5` (Exp18).
 base `sandbox-harness:v0.0.15` (id `d310ec20e48d`, digest `sha256:0e8d255c9892…`).
 It pins **Claude Code 2.1.258** and **codex-cli 0.153.4**; no published tag ships
 either. Podman runtime on a 4-vCPU / 2 GiB podman machine, RTK disabled, fresh
-config dir per run. Claude arm: `DISABLE_PROMPT_CACHING=1`, default fast mode.
+config dir per run. Claude arms: `DISABLE_PROMPT_CACHING=1`; fast mode is the
+harness's `WALLFACER_SANDBOX_FAST` flag, which appends `/fast` to the system
+prompt — on in `claude-fast/`, off in `claude/` (`experiment.sh --no-fast`,
+recorded per run in `meta.md`).
 Codex arm: `--privileged` for the bwrap sandbox, `CODEX_REASONING_EFFORT=high`,
 `CODEX_MAX_OUTPUT_TOKENS` and `CODEX_CONTEXT_WINDOW` unset. LOC counts code
 files only (`.py/.js/.html/.css/.ts/.sh/.go`), excluding `node_modules`,
 `__pycache__`, `.git`, `.pytest_cache`, `.venv`, READMEs and rendered assets —
-the Exp20 rule.
+the Exp20 rule, plus **`.c` is counted**: `claude/run-01` is a C program, the
+first in the volitional series, and would otherwise score 0. Its compiled
+binary (`trace`) is excluded from the repository by name, as Exp20 did for
+its Go binaries.
 
-> **Durations are a measurement in this experiment.** Each arm ran its 5 runs
-> **serially** (`--jobs 1`) on an otherwise idle machine, and the arms ran one
-> after the other, so the figures are comparable within and across arms and
+> **Durations are a measurement in this experiment.** Each cell ran its 5 runs
+> **serially** (`--jobs 1`) on an otherwise idle machine, and the cells ran one
+> after the other, so the figures are comparable within and across cells and
 > against the serialized Exp15/16/17/19.
 
 **Three harness changes were needed before a single run could start**, all in
@@ -50,7 +64,7 @@ this repository and all committed ahead of the runs:
   longer attach stdin. `experiment.sh` was never affected (background jobs get
   `/dev/null`), so no earlier experiment was touched by this.
 
-**No truncation anywhere.** All 10 runs exited 0; every codex event stream ends
+**No truncation anywhere.** All 15 runs exited 0; every codex event stream ends
 in `turn.completed` with no `turn.failed`, `max_output_tokens`, or prefill
 events. The gateway-injected 4096-token ceiling that cost Exp18 three of five
 codex runs on `claude-opus-5` **no longer fires**: a direct probe of
@@ -61,9 +75,11 @@ omitted streamed 6,705 output tokens to `status: completed`.
 report `reasoning_output_tokens: 0` despite `CODEX_REASONING_EFFORT=high` —
 codex does not attach reasoning for a model outside its catalogue, exactly the
 Exp18 observation for `claude-opus-5`. Each codex run also emits the benign
-`Model metadata for 'claude-fable-5' not found` item. The Claude Code arm ran at
-its default effort (fast mode), so the two arms differ in effort only in the
-sense that neither had any applied.
+`Model metadata for 'claude-fable-5' not found` item. The Claude Code cells ran
+at the model's default effort; the fast-mode flag is a system-prompt
+instruction, not an API effort parameter, and both Claude Code cells show
+thinking blocks in every transcript (4–7 per run in `claude-fast/`, 5–35 in
+`claude/`).
 
 One display quirk: in codex runs 04 and 05 the `result` field of `output.json`
 (codex's `--output-last-message` file) holds an intermediate progress message
@@ -72,7 +88,31 @@ final `agent_message`; the tables below are read from the stream.
 
 ---
 
-## Claude Code arm (N = 5, 5/5 implementing) — avg 156 LOC (median 176, range 78–199)
+## Claude Code arm, fast mode off (`claude/`, N = 5, 5/5 implementing) — avg 191 LOC (median 196, range 110–291)
+
+| Run | Topic | Files | LOC | Tests | Dur |
+|-----|-------|-------|-----|-------|-----|
+| 01 | **Ray tracer in C** — Whitted-style, Phong, mirror spheres on a checkerboard, hand-written PNG encoder | `trace.c`, `render.png` (+ binary) | 291 | no | 735s |
+| 02 | **Flow-field generative art** — 2,600 particles on fractal noise, SVG plus a hand-written PNG rasterizer | `flowfield.py`, `flowfield.svg`, `flowfield.png` | 122 | no | 96s |
+| 03 | **Flow-field generative art, in the browser** — self-contained canvas page that paints itself over 15s | `flowfield.html` | 196 | no | 68s |
+| 04 | **ASCII nightscape** — starfield, moon phase by disc subtraction, midpoint-displacement ridges, water | `nightscape.py` | 110 | no | 59s |
+| 05 | **Invented night sky** with named constellations and one-line myths, hand-rolled PNG encoder | `skyfable.py`, 2× `sky_*.png` | 236 | no | 119s |
+
+**This is Exp8's fable-5 list on a much later harness.** Exp8 (fast mode on,
+Claude Code 2.1.170) found flow-field ×2, a nightscape, a from-scratch ray
+tracer and a generative garden; the no-fast cell here finds **flow-field ×2, a
+nightscape, a from-scratch ray tracer** and an invented sky — four of five
+topics coincide, including the two hand-rolled PNG encoders (runs 02 and 05;
+Exp8 had two as well). Image files in **4/5** (Exp8: 4/5). Two things are new.
+Run-01 is the study's first **C** program under the volitional prompt, and it
+took **735s** — 35 thinking blocks and 39 tool calls, iterating on the render —
+against 59–119s for the other four; the model that in fast mode never exceeded
+114s spends twelve minutes when it decides to. And run-03 is the first fable-5
+run to make a **browser page** (a canvas flow field), so this cell is 1/5
+browser where every other fable-5 cell (Exp8, `claude-fast/`, `codex/`) is
+0/5. README 0/5, tests 0/5.
+
+## Claude Code arm, fast mode on (`claude-fast/`, N = 5, 5/5 implementing) — avg 156 LOC (median 176, range 78–199)
 
 | Run | Topic | Files | LOC | Tests | Dur |
 |-----|-------|-------|-----|-------|-----|
@@ -97,6 +137,28 @@ wrote (3–6 Bash calls each) before reporting. README 1/5, tests 0/5. LOC is
 close to Exp8's 178, and it is the fastest Claude Code arm in the volitional
 series (83s avg vs 110s in Exp8 and 224s for deepseek-flash in Exp19).
 
+### Fast mode on vs off, same model, harness and surface
+
+| | `claude-fast/` (on) | `claude/` (off) |
+|---|---|---|
+| Implementing | 5/5 | 5/5 |
+| Image files written | 5/5 | 4/5 |
+| Browser page | 0/5 | 1/5 |
+| Avg / median LOC | 156 / 176 | 191 / 196 |
+| Avg / median duration | 83s / 84s | 215s / 96s (85s without run-01) |
+| Thinking blocks per run | 4–7 | 5–35 |
+| Tool calls per run | 4–10 | 3–39 |
+| Topics | Clifford ×2, star chart, fable+landscape, flow field | ray tracer (C), flow field ×2, nightscape, invented sky |
+
+**Fast mode narrows the tail, not the centre.** Four of the five no-fast runs
+sit inside the fast cell's ranges on every measure; the fifth is a 735s C ray
+tracer that has no counterpart on the fast side. Topic family, image-file
+habit, and the absence of tests and READMEs are identical. The one attractor
+in the fast cell (Clifford ×2) does not recur without it; the no-fast cell's
+pair (flow field ×2) is the Exp8 pair. At N=5 per cell none of this separates
+statistically; the direction is that the flag removes the long, elaborate run
+without moving what the model makes.
+
 ## codex arm (N = 5, 5/5 implementing) — avg 150 LOC (median 167, range 84–192)
 
 | Run | Topic | Files | LOC | Tests | Dur |
@@ -109,15 +171,15 @@ series (83s avg vs 110s in Exp8 and 224s for deepseek-flash in Exp19).
 
 **On codex the same model makes terminal animations instead of image files.**
 All five are single-file Python programs that draw live in the terminal with
-ANSI or curses; **none writes an image**, where the Claude Code arm wrote SVG or
-PNG in every run. The topics are the classic terminal-toy set — aquarium,
+ANSI or curses; **none writes an image**, where the Claude Code cells wrote SVG
+or PNG in 9/10 runs. The topics are the classic terminal-toy set — aquarium,
 fireworks, boids, maze, and one Game of Life — so the study's oldest attractor
 shows up for this model **only on codex** (1/5), never on Claude Code (0/5 here,
-0/5 in Exp8). Every run executed its program (run-05 fixed a curses
-`curs_set` failure it found by running in a PTY); run-04 called
+0/5 in Exp8, 0/10 on Claude Code here). Every run executed its program (run-05
+fixed a curses `curs_set` failure it found by running in a PTY); run-04 called
 `git log` on the empty workspace first, the study's usual look-before-building
-move, then started fresh. README 0/5, tests 0/5. LOC matches the Claude Code arm
-(150 vs 156) and the arm is faster still (58s avg).
+move, then started fresh. README 0/5, tests 0/5. LOC sits between the two
+Claude Code cells (150 vs 191 / 156) and the arm is the fastest (58s avg).
 
 ---
 
@@ -125,31 +187,34 @@ move, then started fresh. README 0/5, tests 0/5. LOC matches the Claude Code arm
 
 **Medium holds, in the study's sense; the artifact form flips.** In the
 terminal-versus-browser dichotomy the study tracks, `claude-fable-5` is
-**terminal on both harnesses**: 10/10 runs are Python programs, 0/10 emit HTML
-or any browser intent. That places it with `opus-4.6`, `sonnet-5`, `opus-5` and
-deepseek, not with `kimi-k3`. What the scaffold changes is the *form of the
-artifact* — **rendered image files 5/5 on Claude Code versus live terminal
-animation 5/5 on codex** — a sharper version of the form effect Exp12/13
-described for the open-weights models (SVG on Claude Code, interactive HTML on
-codex). It is the cleanest form flip in the study because it is 5/5 against
-5/5 on one model, but at N=5 per cell it is a direction, not a rate (see the
-Exp20 sample-size caveat).
+**terminal on both harnesses**: 14/15 runs are terminal programs (Python or C),
+and the one browser page (`claude/run-03`) is a 1/5 on the Claude Code side
+with 0/5 on codex — the mostly-terminal-with-occasional-browser profile
+deepseek shows (Exp19/20), not the `kimi-k3` flip. What the scaffold changes is
+the *form of the artifact*: **rendered image files 9/10 on Claude Code versus
+live terminal animation 5/5 and no image at all on codex** — a sharper version
+of the form effect Exp12/13 described for the open-weights models (SVG on
+Claude Code, interactive HTML on codex). It holds with fast mode on or off, so
+it is the harness, not the flag. At N=5 per cell it is a direction, not a rate
+(see the Exp20 sample-size caveat).
 
-**The attractor is one-sided and weak.** The Clifford attractor pair (2/5) lives
-on Claude Code; Game of Life (1/5) lives on codex. Neither reaches the 3/5 that
-Exp18 called an attractor for `opus-5`, so fable-5's within-model fixation is
-*partial* on both harnesses, as Exp8 already judged it.
+**The attractor is weak and shifts with the flag.** Flow field ×2 (`claude/`,
+also Exp8's pair), Clifford ×2 (`claude-fast/`), Game of Life ×1 (`codex/`) —
+no pair reaches the 3/5 Exp18 called an attractor for `opus-5`, so fable-5's
+within-model fixation is *partial* on every cell, as Exp8 judged it. The
+*family* — generative visual art, mostly of skies, fields and attractors — is
+what holds across all three cells.
 
-**Codex neither inflates nor deflates elaboration here.** 150 vs 156 avg LOC is
-the flattest cross-harness pair in the study — codex inflated Claude models
-(Exp15/18) and deflated deepseek (Exp19/20). No packaging, tests or READMEs
-appear on either side, so the maturity-inflation codex produced for `sonnet-5`
-(Exp15) and `kimi-k3` (Exp17) does not appear for this model either.
+**Codex neither inflates nor deflates elaboration here.** 150 vs 191 / 156 avg
+LOC puts the codex arm inside the Claude Code range — codex inflated Claude
+models (Exp15/18) and deflated deepseek (Exp19/20). No packaging, tests or
+READMEs appear on any side, so the maturity-inflation codex produced for
+`sonnet-5` (Exp15) and `kimi-k3` (Exp17) does not appear for this model either.
 
 **Against `claude-opus-5` (Exp18), same layout, one generation sideways.**
 opus-5 is the algorithmic builder (WFC 3/5, tests 4/5, 511 LOC, packaged on
-codex); fable-5 is the artist (image files 5/5, tests 0/5, ~153 LOC, single file
-everywhere). Same lab, same prompt, same harness pair, and the two models
+codex); fable-5 is the artist (image files 9/10 on Claude Code, tests 0/15,
+150–191 LOC, single file everywhere). Same lab, same prompt, same harness pair, and the two models
 occupy different corners of the output space — the model, not the scaffold,
 picks the corner.
 
@@ -159,5 +224,7 @@ Exp21 is the second experiment (after Exp18) to put a frontier Anthropic model
 on both harnesses in one layout, and the first with a **complete codex arm**
 for one: the Exp18 truncation is gone. It resolves the Exp8 caveat that
 fable-5's cell was harness-confounded relative to the Opus three by showing the
-same behaviour on a much later Claude Code. Exp22 runs `gpt-6-astra` in the
+same behaviour — down to four of five topics — on a much later Claude Code, and
+it is the first experiment to measure the harness's fast-mode flag directly
+rather than carry it as a default. Exp22 runs `gpt-6-astra` in the
 identical layout on the identical image.

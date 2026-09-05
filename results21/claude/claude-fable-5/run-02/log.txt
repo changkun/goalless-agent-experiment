@@ -3,6 +3,6 @@
 >>> Endpoint:  https://lux.latere.ai/anthropic
 >>> API Key:   lux_YCRX...
 >>> Model:     claude-fable-5
->>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results21/claude/claude-fable-5/run-01/workspace
+>>> Workspace: /Users/changkun/dev/changkun.de/goalless-agents/results21/claude/claude-fable-5/run-02/workspace
 
->>> Transcript: results21/claude/claude-fable-5/run-01/transcript.jsonl
+>>> Transcript: results21/claude/claude-fable-5/run-02/transcript.jsonl

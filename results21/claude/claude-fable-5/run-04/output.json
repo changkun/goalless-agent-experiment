@@ -1,0 +1,26 @@
+Done — I gave myself a blank workspace and made some generative art with it. There's now a `nightscape.py` in `/workspace` that procedurally draws a random ASCII night scene: a starfield, a moon with a randomized phase (crescent through full, carved by subtracting an offset disc), three layered mountain ridges built with midpoint-displacement so they're smooth-but-craggy, and water below with a moonlight glitter path that widens with depth and lines up under wherever the moon happens to be.
+
+Here's one of the scenes it produced (seed `moonlight` — a waxing crescent over a ridge line):
+
+```
+.------------------------------------------------------------------------------.
+|          '                                    .                              |
+|              *                                                               |
+|                                                 @@@@@@@           '          |
+|                                            +   @@@@@                         |
+|                    +           `              @@@@@@                         |
+|                 '                              @@@@@      .                  |
+|                                       .         @@@@@@@                      |
+|                                   . .           .                           .|
+|  .                         .                      .                          |
+|------------                                                          --------|
+|-------------------------- -----------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^|
+|----------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^###^^^^^^^^^^^^^^^^^^^^^^^^#|
+|^^^-^^^^^^^^^^^^^^^^^##########^^^^^^^########################^^^^#^#^^^^#####|
+|##############################################################################|
+|  _~ ____ ___ _ _  _   _  __         _   __  _  _ _~~-_ ~ _  _ _  __   _ ___ _|
+|___ ~_ ___ __~__ ____        _ _~_       _ _ ____  __~=  =_  _ __   __  _ _ __|
+'------------------------------------------------------------------------------'
+```
+
+Every run gives a new scene, and passing a seed (`python3 nightscape.py 2026`) makes it reproducible — the script prints the seed after each render so you can recreate any scene you like. I tested three seeds and got a half moon, a gibbous, and a crescent, each with distinctly different ridge lines. Feel free to run it a few times, or ask me to extend it (color via ANSI codes, animated water, a sunrise mode…).

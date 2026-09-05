@@ -1,0 +1,10 @@
+That came out better than I hoped — it looks like river deltas or kelp drawn in ink, teal and gold currents converging on a near-black field, with the occasional violet accent thread where the field angle crosses a narrow band.
+
+What I did with my free rein: the workspace was empty, so I wrote a small generative-art program. **`/workspace/flowfield.py`** drops 2,600 particles onto the canvas and lets each one walk along a smooth pseudo-noise vector field (a bilinearly-interpolated random angle grid, three octaves deep). Each walk becomes a stroke: color keyed to the field angle where it started, width scaled by how long the particle survived, opacity randomized so the layers read like translucent ink. It's fully deterministic — seed `20260905`, today's date.
+
+Three files are in the workspace now:
+- `flowfield.py` — the generator (~120 lines, stdlib only for the SVG; Pillow optional for the PNG)
+- `flowfield.svg` — the vector original, crisp at any size
+- `flowfield.png` — the 1200×800 preview shown above, rendered supersampled at 2× via a throwaway venv (`/tmp/venv`) since system pip is PEP-668-locked
+
+If you want variations, change `SEED` for a new composition, `GRID` for broader or tighter turbulence, or the two RGB endpoints in `color_for` for a different palette — every knob is near the top of the file.

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>drift — a flow field</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0e12; overflow: hidden; }
+  canvas { display: block; }
+  #hud {
+    position: fixed; left: 14px; bottom: 12px;
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #8a8f9c; user-select: none; pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6);
+  }
+  #hud b { color: #cfd4de; font-weight: 600; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"><b>drift</b> · seed <span id="seed"></span> · click to regrow · <kbd>s</kbd> saves a PNG</div>
+<script>
+"use strict";
+
+/* ---------- seeded randomness ---------- */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- value noise + fbm ---------- */
+function makeNoise(rand) {
+  const SIZE = 256, perm = new Uint8Array(SIZE * 2), grad = new Float32Array(SIZE);
+  const p = [...Array(SIZE).keys()];
+  for (let i = SIZE - 1; i > 0; i--) {
+    const j = (rand() * (i + 1)) | 0;
+    [p[i], p[j]] = [p[j], p[i]];
+  }
+  for (let i = 0; i < SIZE * 2; i++) perm[i] = p[i & 255];
+  for (let i = 0; i < SIZE; i++) grad[i] = rand() * 2 - 1;
+
+  const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+  function noise2(x, y) {
+    const X = Math.floor(x) & 255, Y = Math.floor(y) & 255;
+    const xf = x - Math.floor(x), yf = y - Math.floor(y);
+    const u = fade(xf), v = fade(yf);
+    const aa = grad[perm[perm[X] + Y]],     ba = grad[perm[perm[X + 1] + Y]];
+    const ab = grad[perm[perm[X] + Y + 1]], bb = grad[perm[perm[X + 1] + Y + 1]];
+    const x1 = aa + u * (ba - aa), x2 = ab + u * (bb - ab);
+    return x1 + v * (x2 - x1); // in [-1, 1]
+  }
+  return function fbm(x, y, oct) {
+    let sum = 0, amp = 1, freq = 1, norm = 0;
+    for (let o = 0; o < oct; o++) {
+      sum += amp * noise2(x * freq, y * freq);
+      norm += amp; amp *= 0.5; freq *= 2.03;
+    }
+    return sum / norm;
+  };
+}
+
+/* ---------- palettes (bg, ink weights, hue ranges) ---------- */
+const PALETTES = [
+  { name: "ember",    bg: "#12080a", hues: [[8, 45], [345, 360]],  sat: [55, 90], lit: [45, 72] },
+  { name: "lagoon",   bg: "#06121a", hues: [[165, 210], [220, 250]], sat: [40, 85], lit: [42, 75] },
+  { name: "meadow",   bg: "#0b1208", hues: [[70, 140], [40, 60]],  sat: [35, 75], lit: [40, 70] },
+  { name: "nocturne", bg: "#0c0a16", hues: [[250, 290], [300, 330]], sat: [40, 80], lit: [48, 78] },
+  { name: "paper",    bg: "#efe9dd", hues: [[10, 30], [200, 230]], sat: [30, 70], lit: [22, 45] },
+];
+
+/* ---------- setup ---------- */
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+let W, H, rand, fbm, palette, particles, tick, running, seed;
+
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  canvas.style.width = W + "px"; canvas.style.height = H + "px";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+function pick(rand, arr) { return arr[(rand() * arr.length) | 0]; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function spawn() {
+  const margin = 0.08;
+  return {
+    x: lerp(-W * margin, W * (1 + margin), rand()),
+    y: lerp(-H * margin, H * (1 + margin), rand()),
+    life: 60 + rand() * 240,
+    hue: 0, sat: 0, lit: 0, w: 0,
+  };
+}
+
+function paint(p) {
+  const range = pick(rand, palette.hues);
+  p.hue = lerp(range[0], range[1], rand());
+  p.sat = lerp(palette.sat[0], palette.sat[1], rand());
+  p.lit = lerp(palette.lit[0], palette.lit[1], rand());
+  p.w = rand() < 0.92 ? 0.6 + rand() * 1.2 : 2.2 + rand() * 2.4;
+}
+
+function restart(newSeed) {
+  seed = newSeed >>> 0;
+  document.getElementById("seed").textContent = seed.toString(36);
+  rand = mulberry32(seed);
+  fbm = makeNoise(rand);
+  palette = pick(rand, PALETTES);
+  resize();
+  ctx.fillStyle = palette.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  particles = [];
+  const n = Math.min(1400, Math.round((W * H) / 900));
+  for (let i = 0; i < n; i++) {
+    const p = spawn(); paint(p); particles.push(p);
+  }
+  tick = 0; running = true;
+}
+
+/* field parameters vary per seed */
+function fieldAngle(x, y) {
+  const s = 0.0016 * FIELD.zoom;
+  const n = fbm(x * s + FIELD.ox, y * s + FIELD.oy, 4);
+  return n * Math.PI * FIELD.twist + FIELD.bias;
+}
+let FIELD = {};
+function rollField() {
+  FIELD = {
+    zoom: 0.6 + rand() * 1.6,
+    twist: 2 + rand() * 4,       // how many radians the noise can wind
+    bias: rand() * Math.PI * 2,  // global drift direction
+    ox: rand() * 1000, oy: rand() * 1000,
+  };
+}
+
+const MAX_TICKS = 900;
+function frame() {
+  if (!running) return;
+  tick++;
+  ctx.globalAlpha = 0.16;
+  ctx.lineCap = "round";
+
+  // fade the stroke alpha out near the end so the piece "settles"
+  const settle = tick > MAX_TICKS * 0.75
+    ? 1 - (tick - MAX_TICKS * 0.75) / (MAX_TICKS * 0.25) : 1;
+
+  for (const p of particles) {
+    const a = fieldAngle(p.x, p.y);
+    const step = 1.4;
+    const nx = p.x + Math.cos(a) * step;
+    const ny = p.y + Math.sin(a) * step;
+    ctx.strokeStyle = `hsl(${p.hue} ${p.sat}% ${p.lit}%)`;
+    ctx.lineWidth = p.w * settle;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(nx, ny);
+    ctx.stroke();
+    p.x = nx; p.y = ny;
+    if (--p.life <= 0 || p.x < -W * 0.1 || p.x > W * 1.1 || p.y < -H * 0.1 || p.y > H * 1.1) {
+      Object.assign(p, spawn()); paint(p);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  if (tick >= MAX_TICKS) { running = false; return; }
+  requestAnimationFrame(frame);
+}
+
+function begin(newSeed) {
+  restart(newSeed);
+  rollField();
+  requestAnimationFrame(frame);
+}
+
+canvas.addEventListener("click", () => begin((Math.random() * 0xffffffff) >>> 0));
+window.addEventListener("keydown", e => {
+  if (e.key === "s") {
+    const a = document.createElement("a");
+    a.download = `drift-${seed.toString(36)}.png`;
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  }
+});
+window.addEventListener("resize", () => begin(seed));
+
+begin((Math.random() * 0xffffffff) >>> 0);
+</script>
+</body>
+</html>
